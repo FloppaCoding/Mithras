@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "mithras",
+	"version": "${version}",
+	"name": "Project Mithras",
+	"description": "Floppa is best!",
+	"authors": [
+		"Aton"
+	],
+	"contact": {
+		"homepage": "https://github.com/FloppaCoding",
+		"sources": "https://github.com/FloppaCoding/Mithras"
+	},
+	"license": "AGPL-3.0",
+	"icon": "assets/mithras/gui/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			{
+				"value": "floppacoding.mithras.Mithras",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"mixins": [
+		"mithras.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.14.22",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*",
+		"fabric-language-kotlin": ">=1.9.0"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
