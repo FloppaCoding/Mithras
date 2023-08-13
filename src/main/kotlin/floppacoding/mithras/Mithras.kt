@@ -41,6 +41,7 @@ object Mithras : ModInitializer {
 	@JvmField
 	val mc: MinecraftClient = MinecraftClient.getInstance()
 
+	@JvmField
 	val EVENT_BUS = EventBus()
 
 	var display: Screen? = null

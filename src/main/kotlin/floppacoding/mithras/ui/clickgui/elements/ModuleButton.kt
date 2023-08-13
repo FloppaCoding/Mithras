@@ -2,7 +2,7 @@ package floppacoding.mithras.ui.clickgui.elements
 
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.Module
-import floppacoding.mithras.module.impl.render.ClickGui
+import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.impl.*
 import floppacoding.mithras.ui.clickgui.Panel
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
@@ -80,7 +80,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
         context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
 
         context.fill(0, 0, width, height + 1, ColorUtil.moduleButtonColor)
-        if (ClickGui.design.isSelected("New")) {
+        if (MainSettings.design.isSelected("New")) {
             context.fill(0, 0, 2, height + 1, ColorUtil.outlineColor)
         }
 

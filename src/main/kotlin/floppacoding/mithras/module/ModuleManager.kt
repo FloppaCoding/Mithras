@@ -1,10 +1,9 @@
 package floppacoding.mithras.module
 
 import floppacoding.mithras.module.ModuleManager.modules
-import floppacoding.mithras.module.impl.render.ClickGui
+import floppacoding.mithras.module.impl.render.MainSettings
+import floppacoding.mithras.module.impl.render.EditHud
 import floppacoding.mithras.module.settings.Setting
-import floppacoding.mithras.ui.hud.EditHudGUI
-
 
 /**
  * # This object handles all the modules of the mod.
@@ -36,7 +35,8 @@ object ModuleManager {
 
 
         //RENDER
-        ClickGui,
+        MainSettings,
+        EditHud
 
 
         //PLAYER
@@ -95,5 +95,4 @@ object ModuleManager {
     fun getModuleByName(name: String): Module? {
         return modules.find{ it.name.equals(name, ignoreCase = true) }
     }
-
 }

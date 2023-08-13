@@ -4,7 +4,7 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.Mithras.moduleConfig
 import floppacoding.mithras.module.Category
-import floppacoding.mithras.module.impl.render.ClickGui
+import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementColor
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementSlider
@@ -86,7 +86,7 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
             p.drawScreen(context, scaledMouseX, scaledMouseY, partialTicks)
         }
 
-        if(ClickGui.showUsageInfo.enabled) {
+        if(MainSettings.showUsageInfo.enabled) {
             renderUsageInfo(context)
         }
 
@@ -115,7 +115,7 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         )
 
         context.matrices.scale(2f, 2f, 2f)
-        val titleWidth = FontUtil.getStringWidth(ClickGui.clientName.text)
+        val titleWidth = FontUtil.getStringWidth(MainSettings.clientName.text)
 
 //        RenderSystem.clearColor(255f, 255f, 255f, 255f)
 //        mc.textureManager.bindTexture(LOGO)
@@ -123,7 +123,7 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
 
         FontUtil.drawString(
             context,
-            ClickGui.clientName.text,
+            MainSettings.clientName.text,
             -titleWidth.toDouble() - 10.0 - logoSize,
             -FontUtil.fontHeight.toDouble() / 2.0 - 5.0 - logoSize / 2.0,
             ColorUtil.clickGUIColor.rgb
@@ -254,7 +254,7 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         }
 
         /** Exits the menu when the toggle key is pressed */
-        if (keyCode == ClickGui.keyCode && System.currentTimeMillis() - openedTime > 200) {
+        if (keyCode == MainSettings.keyCode && System.currentTimeMillis() - openedTime > 200) {
             this.close()
             return true
         }
@@ -272,7 +272,7 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         super.init()
         openedTime = System.currentTimeMillis()
         /** Start blur */
-//        if (OpenGlHelper.shadersSupported && mc.renderViewEntity is EntityPlayer && ClickGui.blur.enabled) {
+//        if (OpenGlHelper.shadersSupported && mc.renderViewEntity is EntityPlayer && MainSettings.blur.enabled) {
 //            mc.entityRenderer.stopUseShader()
 //            mc.entityRenderer.loadShader(ResourceLocation("shaders/post/blur.json"))
 //        }
@@ -280,9 +280,9 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         /** update panel positions to make it possible to update the positions
          * this is required for loading the panel positions from the config and for resetting the gui */
         for (panel in panels) {
-            panel.x = ClickGui.panelX[panel.category]!!.value.toInt()
-            panel.y = ClickGui.panelY[panel.category]!!.value.toInt()
-            panel.extended = ClickGui.panelExtended[panel.category]!!.enabled
+            panel.x = MainSettings.panelX[panel.category]!!.value.toInt()
+            panel.y = MainSettings.panelY[panel.category]!!.value.toInt()
+            panel.extended = MainSettings.panelExtended[panel.category]!!.enabled
         }
     }
 

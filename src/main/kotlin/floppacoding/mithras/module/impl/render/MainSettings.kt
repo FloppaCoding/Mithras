@@ -15,7 +15,7 @@ import java.awt.Color
  * @author Aton
  */
 @AlwaysActive
-object ClickGui: Module(
+object MainSettings: Module(
     "ClickGUI",
     GLFW.GLFW_KEY_RIGHT_SHIFT,
     category = Category.RENDER,

@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Main.class)
-public abstract class MinMixin {
+public abstract class MainMixin {
 
     @Inject(method = "main", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;finishInitialization()V", shift = At.Shift.AFTER))
     private static void onGameStart(String[] args, CallbackInfo ci) {
-        Mithras.INSTANCE.getEVENT_BUS().post(new GameStartEvent());
+        Mithras.EVENT_BUS.post(new GameStartEvent());
     }
 }

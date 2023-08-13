@@ -2,7 +2,7 @@ package floppacoding.mithras.ui.clickgui.advanced
 
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.Module
-import floppacoding.mithras.module.impl.render.ClickGui
+import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.impl.*
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
@@ -28,13 +28,13 @@ class AdvancedMenu(val module: Module) {
         get() = mc.window
     var x = 10
         set(value) {
-            ClickGui.advancedRelX.value = value / s.width.toDouble() * ClickGUI.CLICK_GUI_SCALE
-            field = (s.width * ClickGui.advancedRelX.value / ClickGUI.CLICK_GUI_SCALE).toInt()
+            MainSettings.advancedRelX.value = value / s.width.toDouble() * ClickGUI.CLICK_GUI_SCALE
+            field = (s.width * MainSettings.advancedRelX.value / ClickGUI.CLICK_GUI_SCALE).toInt()
         }
     var y = 10
         set(value) {
-            ClickGui.advancedRelY.value = value / s.height.toDouble() * ClickGUI.CLICK_GUI_SCALE
-            field = (s.height * ClickGui.advancedRelY.value / ClickGUI.CLICK_GUI_SCALE).toInt()
+            MainSettings.advancedRelY.value = value / s.height.toDouble() * ClickGUI.CLICK_GUI_SCALE
+            field = (s.height * MainSettings.advancedRelY.value / ClickGUI.CLICK_GUI_SCALE).toInt()
         }
     private var width = 10
     private var height = 10
@@ -105,17 +105,17 @@ class AdvancedMenu(val module: Module) {
         // Set up the Scissor Box
 //        val scale = mc.window.height /  mc.window.scaledHeight
         HUDRenderUtils.setUpScissor(
-            (mc.window.width * ClickGui.advancedRelX.value).toInt(),
-            (mc.window.height * ClickGui.advancedRelY.value + 15 * ClickGUI.CLICK_GUI_SCALE).toInt(),
-            (mc.window.width * ClickGui.advancedRelWidth).toInt(),
-            (mc.window.height * ClickGui.advancedRelHeight - (15+indent) * ClickGUI.CLICK_GUI_SCALE).toInt(),
+            (mc.window.width * MainSettings.advancedRelX.value).toInt(),
+            (mc.window.height * MainSettings.advancedRelY.value + 15 * ClickGUI.CLICK_GUI_SCALE).toInt(),
+            (mc.window.width * MainSettings.advancedRelWidth).toInt(),
+            (mc.window.height * MainSettings.advancedRelHeight - (15+indent) * ClickGUI.CLICK_GUI_SCALE).toInt(),
             1.0
         )
 //        GL11.glScissor(
-//            (mc.window.width * ClickGui.advancedRelX.value).toInt(),
-//            (mc.window.height * (1- ClickGui.advancedRelHeight -ClickGui.advancedRelY.value) + indent * scale).toInt(),
-//            (mc.window.width * ClickGui.advancedRelWidth).toInt(),
-//            (mc.window.height * ClickGui.advancedRelHeight - 15 * scale - indent * scale).toInt()
+//            (mc.window.width * MainSettings.advancedRelX.value).toInt(),
+//            (mc.window.height * (1- MainSettings.advancedRelHeight -MainSettings.advancedRelY.value) + indent * scale).toInt(),
+//            (mc.window.width * MainSettings.advancedRelWidth).toInt(),
+//            (mc.window.height * MainSettings.advancedRelHeight - 15 * scale - indent * scale).toInt()
 //        )
 //        GL11.glEnable(GL11.GL_SCISSOR_TEST)
 
@@ -191,10 +191,10 @@ class AdvancedMenu(val module: Module) {
      */
     private fun updatePosition() {
         val s = mc.window
-        x = (s.width  * ClickGui.advancedRelX.value   / ClickGUI.CLICK_GUI_SCALE).toInt()
-        y = (s.height * ClickGui.advancedRelY.value   / ClickGUI.CLICK_GUI_SCALE).toInt()
-        width =  (s.width *ClickGui.advancedRelWidth  / ClickGUI.CLICK_GUI_SCALE).toInt()
-        height = (s.height*ClickGui.advancedRelHeight / ClickGUI.CLICK_GUI_SCALE).toInt()
+        x = (s.width  * MainSettings.advancedRelX.value   / ClickGUI.CLICK_GUI_SCALE).toInt()
+        y = (s.height * MainSettings.advancedRelY.value   / ClickGUI.CLICK_GUI_SCALE).toInt()
+        width =  (s.width *MainSettings.advancedRelWidth  / ClickGUI.CLICK_GUI_SCALE).toInt()
+        height = (s.height*MainSettings.advancedRelHeight / ClickGUI.CLICK_GUI_SCALE).toInt()
     }
 
     /**

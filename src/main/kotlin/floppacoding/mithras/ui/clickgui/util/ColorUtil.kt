@@ -1,6 +1,6 @@
 package floppacoding.mithras.ui.clickgui.util
 
-import floppacoding.mithras.module.impl.render.ClickGui
+import floppacoding.mithras.module.impl.render.MainSettings
 import java.awt.Color
 
 /**
@@ -10,20 +10,20 @@ import java.awt.Color
  */
 object ColorUtil {
     val clickGUIColor: Color
-        get() = ClickGui.color.value
+        get() = MainSettings.color.value
 
     val elementColor: Int
-     get() = if (ClickGui.design.isSelected("New"))
+     get() = if (MainSettings.design.isSelected("New"))
              newColor
-         else if (ClickGui.design.isSelected("JellyLike"))
+         else if (MainSettings.design.isSelected("JellyLike"))
              jellyColor
          else
              0
 
     val bgColor: Int
-        get() = if (ClickGui.design.isSelected("New"))
+        get() = if (MainSettings.design.isSelected("New"))
             newColor
-        else if (ClickGui.design.isSelected("JellyLike"))
+        else if (MainSettings.design.isSelected("JellyLike"))
             Color(255,255,255,50).rgb
         else
             0

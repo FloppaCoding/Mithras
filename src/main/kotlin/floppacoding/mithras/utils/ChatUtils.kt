@@ -2,7 +2,7 @@ package floppacoding.mithras.utils
 
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
-import floppacoding.mithras.module.impl.render.ClickGui
+import floppacoding.mithras.module.impl.render.MainSettings
 import net.minecraft.text.Text
 import net.minecraft.util.*
 
@@ -86,9 +86,9 @@ object ChatUtils {
      */
     fun modMessage(message: Text) = chatMessage(
         Text.literal(
-            when (ClickGui.prefixStyle.index) {
+            when (MainSettings.prefixStyle.index) {
                 0 -> Mithras.CHAT_PREFIX; 1 -> Mithras.SHORT_PREFIX
-                else -> reformatString( ClickGui.customPrefix.text)
+                else -> reformatString( MainSettings.customPrefix.text)
             } + " "
         ).append(message)
     )
