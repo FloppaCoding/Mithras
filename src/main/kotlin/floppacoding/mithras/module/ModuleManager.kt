@@ -1,9 +1,11 @@
 package floppacoding.mithras.module
 
+import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
-import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.impl.render.EditHud
+import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.Setting
+import meteordevelopment.orbit.EventHandler
 
 /**
  * # This object handles all the modules of the mod.
@@ -72,25 +74,15 @@ object ModuleManager {
         }
     }
 
-//    /**
-//     * Handles the key binds for the modules.
-//     * Note that the custom event fired in the minecraft mixin is used here and not the forge event.
-//     * That is done to run this code before the vanilla minecraft code.
-//     */
-//    @SubscribeEvent
-//    fun activateModuleKeyBinds(event: PreKeyInputEvent) {
-//        modules.stream().filter { module -> module.keyCode == event.key }.forEach { module -> module.onKeyBind() }
-//    }
-//
-//    /**
-//     * Handles the key binds for the modules.
-//     * Note that the custom event fired in the minecraft mixin is used here and not the forge event.
-//     * That is done to run this code before the vanilla minecraft code.
-//     */
-//    @SubscribeEvent
-//    fun activateModuleMouseBinds(event: PreMouseInputEvent) {
-//        modules.stream().filter { module -> module.keyCode + 100 == event.button }.forEach { module -> module.onKeyBind() }
-//    }
+    /**
+     * Handles the key binds for the modules.
+     * This code is run before the vanilla minecraft code.
+     */
+    @EventHandler
+    fun activateModuleKeyBinds(event: InputEvent) {
+        modules.stream().filter { module -> module.keyBind == event.key }.forEach { module -> module.onKeyBind() }
+    }
+
 
     fun getModuleByName(name: String): Module? {
         return modules.find{ it.name.equals(name, ignoreCase = true) }

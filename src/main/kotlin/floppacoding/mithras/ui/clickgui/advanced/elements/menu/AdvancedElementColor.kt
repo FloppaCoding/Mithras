@@ -146,7 +146,7 @@ class AdvancedElementColor(
     /**
      * Check for arrow keys to move the slider by one increment.
      */
-    override fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         if (!comboextended) return false
         val scaledresolution = mc.window
         val i1: Int = scaledresolution.scaledWidth
@@ -173,7 +173,7 @@ class AdvancedElementColor(
 
             ay += 15
         }
-        return super.keyTyped(typedChar, keyCode)
+        return super.keyTyped(keyCode, scanCode)
     }
 
 

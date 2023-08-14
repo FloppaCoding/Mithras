@@ -69,8 +69,12 @@ object Mithras : ModInitializer {
 			lookupInMethod.invoke(null, klass, MethodHandles.lookup()) as MethodHandles.Lookup
 		}
 
-		EVENT_BUS.subscribe(this)
+		listOf(
+			this,
+			ModuleManager
+		).forEach{ EVENT_BUS.subscribe(it) }
 
+		// Load in the config
 		// This has to be run before ModuleManager.initializeModules()
 		runBlocking {
 			launch(Dispatchers.IO) {
@@ -85,7 +89,7 @@ object Mithras : ModInitializer {
 			dispatcher.register(
 				ClientCommandManager.literal("mithras").executes { context: CommandContext<FabricClientCommandSource> ->
 					context.source.sendFeedback(Text.literal("opening menu"))
-					mc.send { mc.setScreen(ClickGUI()) }
+					mc.send { mc.setScreen(clickGUI) }
 					0
 				}
 			)

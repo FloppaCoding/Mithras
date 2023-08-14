@@ -4,6 +4,7 @@ import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
+import floppacoding.mithras.ui.clickgui.elements.menu.ElementKeyBind
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil.capitalizeOnlyFirst
@@ -119,7 +120,7 @@ class Panel(
                 extended = !extended
                 return true
             }
-        }else if (isMouseOverExtended(mouseX, mouseY)) {
+        }else if (isMouseOverExtended(mouseX, mouseY) || moduleButtons.any { it.menuElements.any { element -> element is ElementKeyBind && element.listening} }) {
             for (moduleButton in moduleButtons.reversed()) {
                 if (moduleButton.mouseClicked(mouseX, mouseY, mouseButton)) {
                     return true
@@ -161,10 +162,10 @@ class Panel(
      * @return true if any of the modules used the input.
      * @see ModuleButton.keyTyped
      */
-    fun keyTyped(typedChar: String, keyCode: Int): Boolean{
+    fun keyTyped(keyCode: Int, scanCode: Int): Boolean{
         if (extended && visible) {
             for (moduleButton in moduleButtons.reversed()) {
-                if (moduleButton.keyTyped(typedChar, keyCode)) return true
+                if (moduleButton.keyTyped(keyCode, scanCode)) return true
             }
         }
         return false

@@ -22,13 +22,7 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
 
 
     override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float): Int {
-        val keyName = if (mod.keyCode > 0)
-            GLFW.glfwGetKeyName(mod.keyCode, GLFW.glfwGetKeyScancode(mod.keyCode)) ?: "Err"
-        else if (mod.keyCode < -10)
-            InputUtil.Type.MOUSE.createFromCode(mod.keyCode + 100).localizedText.string
-//            Mouse.getButtonName(mod.keyCode + 100)
-        else
-            ".."
+        val keyName = mod.keyBind.localizedText.string
         val displayValue = "[$keyName]"
 
         FontUtil.drawString(context, displayName, 1, 2)
@@ -46,7 +40,7 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
             listening = !listening
             return true
         } else if (listening) {
-            mod.keyCode = -100 + mouseButton
+            mod.keyBind = InputUtil.Type.MOUSE.createFromCode(mouseButton)
             listening = false
         }
         return super.mouseClicked(mouseX, mouseY, mouseButton)
@@ -55,20 +49,20 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
     /**
      * Register key strokes. Used to set the key bind.
      */
-    override fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         if (listening) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
-                mod.keyCode = GLFW.GLFW_KEY_UNKNOWN
+                mod.keyBind = InputUtil.UNKNOWN_KEY
                 listening = false
             } else if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
                 listening = false
             } else if (!keyBlackList.contains(keyCode)) {
-                mod.keyCode = keyCode
+                mod.keyBind = InputUtil.fromKeyCode(keyCode, scanCode)
                 listening = false
             }
             return true
         }
-        return super.keyTyped(typedChar, keyCode)
+        return super.keyTyped(keyCode, scanCode)
     }
 
     /**

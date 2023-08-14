@@ -2,11 +2,12 @@ package floppacoding.mithras.module
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.ui.hud.HudElement
 import floppacoding.mithras.utils.ChatUtils
-import floppacoding.mithras.Mithras
-import org.lwjgl.glfw.GLFW
+import net.minecraft.client.util.InputUtil
+import net.minecraft.client.util.InputUtil.Key
 import kotlin.reflect.full.hasAnnotation
 
 /**
@@ -93,13 +94,13 @@ import kotlin.reflect.full.hasAnnotation
  * @author Aton
  * @see ModuleManager
  * @param name The name of the Module. **This has to be unique!** This name is shown in the GUI and used to identify the module in the config.
- * @param keyCode Key code for the Modules key-bind.
+ * @param keyBind Key code for the Modules key-bind.
  * @param category Determines in which category Panel the module will appear in the GUI.
  * @param description A description of the module and its usage that is shown in the [Advanced GUI][floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu].
  */
 abstract class Module(
     name: String,
-    keyCode: Int = GLFW.GLFW_KEY_UNKNOWN,
+    keyCode: Int = InputUtil.UNKNOWN_KEY.code,
     category: Category = Category.MISC,
     toggled: Boolean = false,
     settings: ArrayList<Setting<*>> = ArrayList(),
@@ -116,7 +117,7 @@ abstract class Module(
      */
     @Expose
     @SerializedName("key")
-    var keyCode: Int
+    var keyBind: Key
     val category: Category
 
     /**
@@ -139,7 +140,7 @@ abstract class Module(
 
     init {
         this.name = name
-        this.keyCode = keyCode
+        this.keyBind = InputUtil.Type.KEYSYM.createFromCode(keyCode)
         this.category = category
         this.settings = settings
         this.description = description
@@ -152,7 +153,7 @@ abstract class Module(
         name: String,
         category: Category = Category.MISC,
         description: String = ""
-    ) : this(name, 0,  category =  category, description =  description)
+    ) : this(name, InputUtil.UNKNOWN_KEY.code,  category =  category, description =  description)
 
     /**
      * Will toggle the module.
@@ -247,7 +248,7 @@ abstract class Module(
     }
 
     /**
-     * This method is run whenever the [key-bind][keyCode] for the Module is pressed.
+     * This method is run whenever the [key-bind][keyBind] for the Module is pressed.
      *
      * By default, this will toggle the module and send a chat message.
      * It can be overwritten in the module to change that behaviour.

@@ -130,26 +130,30 @@ class ModuleButton(val module: Module, val panel: Panel) {
     fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
         if (isButtonHovered(mouseX, mouseY)) {
             /** Toggle the mod on left click, expand its settings on right click and show an info screen on middle click */
-            if (mouseButton == 0) {
-                module.toggle()
-                return true
-            } else if (mouseButton == 1) {
-                /** toggle extended
-                 * Disable listening for all members*/
-                if (menuElements.size > 0) {
-                    extended = !extended
-                    if (!extended) {
-                        menuElements.forEach {
-                            it.listening = false
+            when (mouseButton) {
+                0 -> {
+                    module.toggle()
+                    return true
+                }
+                1 -> {
+                    /** toggle extended
+                     * Disable listening for all members*/
+                    if (menuElements.size > 0) {
+                        extended = !extended
+                        if (!extended) {
+                            menuElements.forEach {
+                                it.listening = false
+                            }
                         }
                     }
+                    return true
                 }
-                return true
-            } else if (mouseButton == 2) {
-                panel.clickgui.advancedMenu = AdvancedMenu(module)
-                return true
+                2 -> {
+                    panel.clickgui.advancedMenu = AdvancedMenu(module)
+                    return true
+                }
             }
-        }else if (isMouseUnderButton(mouseX, mouseY)) {
+        }else if (isMouseUnderButton(mouseX, mouseY) || menuElements.any { element -> element is ElementKeyBind && element.listening}) {
             for (menuElement in menuElements.reversed()) {
                 if (menuElement.mouseClicked(mouseX, mouseY, mouseButton)) {
                     updateElements()
@@ -177,10 +181,10 @@ class ModuleButton(val module: Module, val panel: Panel) {
      * @return true if any of the elements used the input.
      * @see Element.keyTyped
      */
-    fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         if (extended) {
             for (menuElement in menuElements.reversed()) {
-                if (menuElement.keyTyped(typedChar, keyCode)) return true
+                if (menuElement.keyTyped(keyCode, scanCode)) return true
             }
         }
         return false

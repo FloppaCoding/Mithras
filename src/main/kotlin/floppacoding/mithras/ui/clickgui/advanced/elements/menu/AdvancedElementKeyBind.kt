@@ -25,14 +25,8 @@ class AdvancedElementKeyBind(parent: AdvancedMenu, module: Module) :
      */
     override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float): Int {
         val displayName = "Key Bind"
+        val keyName = module.keyBind.localizedText.string
 
-        val keyName = if (module.keyCode > 0)
-            GLFW.glfwGetKeyName(module.keyCode, GLFW.glfwGetKeyScancode(module.keyCode)) ?: "Err"
-        else if (module.keyCode < -10)
-            InputUtil.Type.MOUSE.createFromCode(module.keyCode + 100).localizedText.string
-//            Mouse.getButtonName(mod.keyCode + 100)
-        else
-            ".."
         val displayValue = "[$keyName]"
 
         // Rendering the text and the keybind.
@@ -50,7 +44,7 @@ class AdvancedElementKeyBind(parent: AdvancedMenu, module: Module) :
             listening = !listening
             return true
         } else if (listening) {
-            module.keyCode = -100 + mouseButton
+            module.keyBind = InputUtil.Type.MOUSE.createFromCode(mouseButton)
             listening = false
         }
         return super.mouseClicked(mouseX, mouseY, mouseButton)
@@ -59,20 +53,20 @@ class AdvancedElementKeyBind(parent: AdvancedMenu, module: Module) :
     /**
      * Register key strokes. Used to set the key bind.
      */
-    override fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         if (listening) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
-                module.keyCode = GLFW.GLFW_KEY_UNKNOWN
+                module.keyBind = InputUtil.UNKNOWN_KEY
                 listening = false
             } else if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
                 listening = false
             } else if (!keyBlackList.contains(keyCode)) {
-                module.keyCode = keyCode
+                module.keyBind = InputUtil.fromKeyCode(keyCode, scanCode)
                 listening = false
             }
             return true
         }
-        return super.keyTyped(typedChar, keyCode)
+        return super.keyTyped(keyCode, scanCode)
     }
 
     /**

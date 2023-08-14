@@ -81,7 +81,7 @@ class AdvancedElementSlider(
     /**
      * Check for arrow keys to move the slider by one increment.
      */
-    override fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         val scaledresolution = mc.window
         val i1: Int = scaledresolution.scaledWidth
         val j1: Int = scaledresolution.scaledHeight
@@ -102,7 +102,7 @@ class AdvancedElementSlider(
                 return true
             }
         }
-        return super.keyTyped(typedChar, keyCode)
+        return super.keyTyped(keyCode, scanCode)
     }
 
     /**

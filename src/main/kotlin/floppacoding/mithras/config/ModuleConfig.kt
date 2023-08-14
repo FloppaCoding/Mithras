@@ -5,12 +5,15 @@ import com.google.gson.JsonIOException
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import floppacoding.mithras.Mithras.MOD_NAME
+import floppacoding.mithras.config.jsonutils.KeyDeserializer
+import floppacoding.mithras.config.jsonutils.KeySerializer
 import floppacoding.mithras.config.jsonutils.SettingDeserializer
 import floppacoding.mithras.config.jsonutils.SettingSerializer
 import floppacoding.mithras.module.ConfigModule
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.module.settings.impl.*
+import net.minecraft.client.util.InputUtil.Key
 import java.awt.Color
 import java.io.File
 import java.io.IOException
@@ -27,6 +30,8 @@ class ModuleConfig(path: File) {
     private val gson = GsonBuilder()
         .registerTypeAdapter(object : TypeToken<Setting<*>>(){}.type, SettingSerializer())
         .registerTypeAdapter(object : TypeToken<Setting<*>>(){}.type, SettingDeserializer())
+        .registerTypeAdapter(object : TypeToken<Key>(){}.type, KeySerializer())
+        .registerTypeAdapter(object : TypeToken<Key>(){}.type, KeyDeserializer())
         .excludeFieldsWithoutExposeAnnotation()
         .setPrettyPrinting().create()
 
@@ -72,7 +77,7 @@ class ModuleConfig(path: File) {
 //                        return@updateModule
 //                    }
                     if (module.enabled != configModule.enabled) module.toggle()
-                    module.keyCode = configModule.keyCode
+                    module.keyBind = configModule.keyBind
                     for (configSetting in configModule.settings) {
                         // It seems like when the config parsing failed it can result in this being null. The compiler does not know this.
                         // This check ensures that the rest of the config will still get processed in that case, avoiding the loss of data.

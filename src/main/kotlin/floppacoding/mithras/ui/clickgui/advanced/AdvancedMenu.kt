@@ -148,7 +148,7 @@ class AdvancedMenu(val module: Module) {
             dragging = true
             return true
         }
-        if (isMouseInBox(mouseX, mouseY)) {
+        if (isMouseInBox(mouseX, mouseY) || elements.any { element -> element is AdvancedElementKeyBind && element.listening} ) {
             for (element in elements.reversed()) {
                 if(element.mouseClicked(mouseX, mouseY, mouseButton)) return true
             }
@@ -165,9 +165,9 @@ class AdvancedMenu(val module: Module) {
         }
     }
 
-    fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         for (element in elements.reversed()) {
-            if(element.keyTyped(typedChar, keyCode)) return true
+            if(element.keyTyped(keyCode, scanCode)) return true
         }
         return false
     }

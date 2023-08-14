@@ -69,7 +69,7 @@ class ElementSlider(parent: ModuleButton, setting: NumberSetting) :
     /**
      * Check for arrow keys to move the slider by one increment.
      */
-    override fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         val scaledMouseX = clickgui.getScaledMouseX()
         val scaledMouseY = clickgui.getScaledMouseY()
 
@@ -83,7 +83,7 @@ class ElementSlider(parent: ModuleButton, setting: NumberSetting) :
                 return true
             }
         }
-        return super.keyTyped(typedChar, keyCode)
+        return super.keyTyped(keyCode, scanCode)
     }
 
     /**

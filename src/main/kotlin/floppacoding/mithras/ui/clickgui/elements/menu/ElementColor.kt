@@ -119,7 +119,7 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
     /**
      * Check for arrow keys to move the slider by one increment.
      */
-    override fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         if (!extended) return false
         val scaledMouseX = clickgui.getScaledMouseX()
         val scaledMouseY = clickgui.getScaledMouseY()
@@ -138,7 +138,7 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
             }
             ay += increment
         }
-        return super.keyTyped(typedChar, keyCode)
+        return super.keyTyped(keyCode, scanCode)
     }
 
 

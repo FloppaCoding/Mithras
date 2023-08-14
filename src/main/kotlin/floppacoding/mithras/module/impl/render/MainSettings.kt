@@ -1,10 +1,10 @@
 package floppacoding.mithras.module.impl.render
 
 import floppacoding.mithras.Mithras
-import floppacoding.mithras.Mithras.display
-import floppacoding.mithras.module.Module
+import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.AlwaysActive
 import floppacoding.mithras.module.Category
+import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.*
 import org.lwjgl.glfw.GLFW
@@ -128,7 +128,7 @@ object MainSettings: Module(
      * Automatically disable it again and open the gui
      */
     override fun onEnable() {
-        display = Mithras.clickGUI
+        mc.send { mc.setScreen(Mithras.clickGUI) }
         super.onEnable()
         toggle()
     }

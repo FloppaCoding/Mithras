@@ -238,23 +238,22 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
     }
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        val typedChar = GLFW.glfwGetKeyName(keyCode, scanCode) ?: ""
         /** If in an advanced menu only hande that */
         if (advancedMenu != null) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE && !advancedMenu!!.isListening()) {
                 advancedMenu = null
             }
-            return advancedMenu?.keyTyped(typedChar,keyCode) ?: true
+            return advancedMenu?.keyTyped(keyCode, scanCode) ?: true
         }
 
         /** For key registration in the menu elements. Required for text fields.
          * Reversed order to check the panel on top first! */
         for (panel in panels.reversed()) {
-            if (panel.keyTyped(typedChar, keyCode)) return true
+            if (panel.keyTyped(keyCode, scanCode)) return true
         }
 
         /** Exits the menu when the toggle key is pressed */
-        if (keyCode == MainSettings.keyCode && System.currentTimeMillis() - openedTime > 200) {
+        if (keyCode == MainSettings.keyBind.code && System.currentTimeMillis() - openedTime > 200) {
             this.close()
             return true
         }

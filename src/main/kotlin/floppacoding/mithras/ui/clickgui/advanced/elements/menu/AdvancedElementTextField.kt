@@ -366,18 +366,19 @@ class AdvancedElementTextField(
     /**
      * Register key strokes.
      */
-    override fun keyTyped(typedChar: String, keyCode: Int): Boolean {
+    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         if (listening) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_KP_ENTER || keyCode == GLFW.GLFW_KEY_ENTER) {
                 listening = false
             } else if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
                 setting.text = setting.text.dropLast(1)
             }else if (!keyBlackList.contains(keyCode)) {
+                val typedChar = GLFW.glfwGetKeyName(keyCode, scanCode) ?: ""
                 setting.text += typedChar
             }
             return true
         }
-        return super.keyTyped(typedChar, keyCode)
+        return super.keyTyped(keyCode, scanCode)
     }
 
     /**

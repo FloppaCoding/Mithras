@@ -124,7 +124,7 @@ abstract class Element<S: Setting<*>>(
      * Overridden in the elements to enable key detection.
      * @return true when an action was taken.
      */
-    open fun keyTyped(typedChar: String, keyCode: Int): Boolean { return false }
+    open fun keyTyped(keyCode: Int, scanCode: Int): Boolean { return false }
 
     private fun isHovered(mouseX: Int, mouseY: Int): Boolean {
         return mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute && mouseY <= yAbsolute + height

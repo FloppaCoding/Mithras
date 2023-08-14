@@ -70,7 +70,7 @@ abstract class AdvancedElement<S: Setting<*>>(
     /**
      * Overridden in the elements to enable key detection. Returns true when an action was taken.
      */
-    open fun keyTyped(typedChar: String, keyCode: Int): Boolean { return false }
+    open fun keyTyped(keyCode: Int, scanCode: Int): Boolean { return false }
 
     fun renderDescription(context: DrawContext) : Int{
         var descriptionHeight = 0
