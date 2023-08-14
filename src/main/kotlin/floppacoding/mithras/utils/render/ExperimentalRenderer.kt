@@ -20,7 +20,7 @@ object ExperimentalRenderer {
 
     fun rect() {
         nvgBeginPath(nanoContext)
-        nvgRect(nanoContext, 0f, 0f, 1f, 1f)
+        nvgRect(nanoContext, 0.3f, 0f, 0.6f, 1f)
         val nvgColor: NVGColor = color(nanoContext, ColorUtil.buttonColor)
         nvgFill(nanoContext)
         nvgColor.free()
