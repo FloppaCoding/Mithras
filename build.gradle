@@ -1,5 +1,3 @@
-
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -45,19 +43,6 @@ loom {
 
 sourceSets.main.runtimeClasspath += configurations.lwjglNative
 
-tasks.register('lwjglJar', ShadowJar) {
-	group = "shadow"
-	archiveClassifier.set("lwjgl")
-	configurations = [project.configurations.lwjgl]
-	exclude "META-INF/versions/**"
-	exclude "**/module-info.class"
-	exclude "**/package-info.class"
-	relocate("org.lwjgl", "org.lwjgl3") {
-		include "org.lwjgl.PointerBuffer"
-		include "org.lwjgl.BufferUtils"
-	}
-}
-
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -72,17 +57,10 @@ dependencies {
 	implementation "meteordevelopment:orbit:0.2.3"
 	include "meteordevelopment:orbit:0.2.3"
 
-	// for rendering; might need to change the natives for mac os / unix versions
-	lwjgl "org.lwjgl:lwjgl:3.3.1"
-	lwjgl "org.lwjgl:lwjgl-tinyfd:3.3.1"
-	lwjgl "org.lwjgl:lwjgl-nanovg:3.3.1"
-	lwjglNative "org.lwjgl:lwjgl:3.3.1:natives-windows"
-	lwjglNative "org.lwjgl:lwjgl-tinyfd:3.3.1:natives-windows"
-	lwjglNative "org.lwjgl:lwjgl-nanovg:3.3.1:natives-windows"
-	implementation lwjglJar.outputs.files
-
+	// NanoVG for rendering
+	implementation("org.lwjgl:lwjgl-nanovg:3.3.1")
 	include("org.lwjgl:lwjgl-nanovg:3.3.1")
-	include( "org.lwjgl:lwjgl-nanovg:3.3.0:natives-windows")
+	include( "org.lwjgl:lwjgl-nanovg:3.3.1:natives-windows")
 }
 
 processResources {
