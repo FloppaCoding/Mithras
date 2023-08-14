@@ -121,6 +121,7 @@ object ChatUtils {
      * @see modMessage
      */
     fun sendChat(message: Text) {
+        //TODO This seems to do the same as chatMessage
         mc.player?.sendMessage(message)
     }
 

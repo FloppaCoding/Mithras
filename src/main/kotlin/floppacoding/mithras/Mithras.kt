@@ -1,7 +1,6 @@
 package floppacoding.mithras
 
-import com.mojang.brigadier.CommandDispatcher
-import com.mojang.brigadier.context.CommandContext
+import floppacoding.mithras.commands.MithrasCommandManager
 import floppacoding.mithras.config.ModuleConfig
 import floppacoding.mithras.events.GameStartEvent
 import floppacoding.mithras.module.ModuleManager
@@ -13,13 +12,8 @@ import kotlinx.coroutines.runBlocking
 import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
 import net.fabricmc.api.ModInitializer
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
-import net.minecraft.command.CommandRegistryAccess
-import net.minecraft.text.Text
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.invoke.MethodHandles
@@ -60,9 +54,8 @@ object Mithras : ModInitializer {
 		// Proceed with mild caution.
 		logger.info("Initializing Project Mithras")
 
+		// Loads in all modules and sets up automatically generated funtionality
 		ModuleManager.loadModules()
-
-
 
 		// Important for orbit, I don't yet know why
 		EVENT_BUS.registerLambdaFactory("floppacoding.mithras") { lookupInMethod, klass ->
@@ -81,24 +74,16 @@ object Mithras : ModInitializer {
 				moduleConfig.loadConfig()
 			}
 		}
+
+		// Initialize all modules and register them to the eventbus
 		ModuleManager.initializeModules()
 
-
-		//Commands
-		ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource?>, registryAccess: CommandRegistryAccess? ->
-			dispatcher.register(
-				ClientCommandManager.literal("mithras").executes { context: CommandContext<FabricClientCommandSource> ->
-					context.source.sendFeedback(Text.literal("opening menu"))
-					mc.send { mc.setScreen(clickGUI) }
-					0
-				}
-			)
-		})
+		// Register the commands
+		MithrasCommandManager.registerCommands()
 	}
 
 	@EventHandler
 	fun onGameStart(event: GameStartEvent) {
-		logger.info("mithras game start event")
 		clickGUI = ClickGUI()
 	}
 }
