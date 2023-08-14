@@ -2,9 +2,11 @@ package floppacoding.mithras.module
 
 import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
+import floppacoding.mithras.module.impl.render.CoordinateDisplay
 import floppacoding.mithras.module.impl.render.EditHud
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.Setting
+import floppacoding.mithras.ui.hud.EditHudGUI
 import meteordevelopment.orbit.EventHandler
 
 /**
@@ -38,7 +40,8 @@ object ModuleManager {
 
         //RENDER
         MainSettings,
-        EditHud
+        EditHud,
+        CoordinateDisplay
 
 
         //PLAYER
@@ -70,7 +73,7 @@ object ModuleManager {
     fun initializeModules() {
         modules.forEach {
             it.initializeModule()
-//            EditHudGUI.addHUDElements(it.hudElements)
+            EditHudGUI.addHUDElements(it.hudElements)
         }
     }
 

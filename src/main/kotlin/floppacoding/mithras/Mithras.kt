@@ -13,7 +13,6 @@ import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
 import net.fabricmc.api.ModInitializer
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.Screen
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.invoke.MethodHandles
@@ -38,8 +37,6 @@ object Mithras : ModInitializer {
 	@JvmField
 	val EVENT_BUS = EventBus()
 
-	var display: Screen? = null
-
 	val scope = CoroutineScope(EmptyCoroutineContext)
 
 	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
@@ -54,9 +51,6 @@ object Mithras : ModInitializer {
 		// Proceed with mild caution.
 		logger.info("Initializing Project Mithras")
 
-		// Loads in all modules and sets up automatically generated funtionality
-		ModuleManager.loadModules()
-
 		// Important for orbit, I don't yet know why
 		EVENT_BUS.registerLambdaFactory("floppacoding.mithras") { lookupInMethod, klass ->
 			lookupInMethod.invoke(null, klass, MethodHandles.lookup()) as MethodHandles.Lookup
@@ -66,6 +60,19 @@ object Mithras : ModInitializer {
 			this,
 			ModuleManager
 		).forEach{ EVENT_BUS.subscribe(it) }
+
+
+
+		// Register the commands
+		MithrasCommandManager.registerCommands()
+	}
+
+	@EventHandler
+	fun onGameStart(event: GameStartEvent) {
+
+		// Moved here from onInitialize because at that time some minecraft classes are not yet loaded in.
+		// Loads in all modules and sets up automatically generated funtionality
+		ModuleManager.loadModules()
 
 		// Load in the config
 		// This has to be run before ModuleManager.initializeModules()
@@ -78,12 +85,6 @@ object Mithras : ModInitializer {
 		// Initialize all modules and register them to the eventbus
 		ModuleManager.initializeModules()
 
-		// Register the commands
-		MithrasCommandManager.registerCommands()
-	}
-
-	@EventHandler
-	fun onGameStart(event: GameStartEvent) {
 		clickGUI = ClickGUI()
 	}
 }

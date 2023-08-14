@@ -1,8 +1,11 @@
 package floppacoding.mithras.ui.hud
 
+import floppacoding.mithras.events.HudRenderEvent
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.NumberSetting
+import meteordevelopment.orbit.EventHandler
+import net.minecraft.client.gui.DrawContext
 
 /**
  * Provides functionality for game overlay elements.
@@ -86,20 +89,19 @@ abstract class HudElement{
         this.scale.value += amount * zoomIncrement
     }
 
-//    /**
-//     * This will initiate the hud render and translate to the correct position and scale.
-//     */
-//    @SubscribeEvent
-//    fun onOverlay(event: RenderGameOverlayEvent.Post) {
-//        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
-//        GlStateManager.pushMatrix()
-//        GlStateManager.translate(x.toFloat(), y.toFloat(), 0f)
-//        GlStateManager.scale(scale.value, scale.value, 1.0)
-//
-//        renderHud()
-//
-//        GlStateManager.popMatrix()
-//    }
+    /**
+     * This will initiate the hud render and translate to the correct position and scale.
+     */
+    @EventHandler
+    fun onOverlay(event: HudRenderEvent) {
+        event.context.matrices.push()
+        event.context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
+        event.context.matrices.scale(scale.value.toFloat(), scale.value.toFloat(), 1f)
+
+        renderHud(event.context)
+
+        event.context.matrices.pop()
+    }
 
     /**
      * Override this method in your implementations.
@@ -107,25 +109,25 @@ abstract class HudElement{
      * This method is responsible for rendering the HUD element.
      * Within this method coordinates are already transformed regarding to the HUD position [x],[x] and [scale].
      */
-    abstract fun renderHud()
+    abstract fun renderHud(context: DrawContext)
 
-//    /**
-//     * Used for moving the hud element.
-//     * Draws a rectangle in place of the actual element
-//     */
-//    fun renderPreview() {
-//        GlStateManager.pushMatrix()
-//        GlStateManager.translate(x.toFloat(), y.toFloat(), 0f)
-//        GlStateManager.scale(scale.value, scale.value, 1.0)
-//
-//        HUDRenderUtils.renderRect(
-//            0.0,
-//            0.0,
-//            width.toDouble(),
-//            height.toDouble(),
-//            Color(-0x44eaeaeb, true)
-//        )
-//
-//        GlStateManager.popMatrix()
-//    }
+    /**
+     * Used for moving the hud element.
+     * Draws a rectangle in place of the actual element
+     */
+    fun renderPreview(context: DrawContext) {
+        context.matrices.push()
+        context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
+        context.matrices.scale(scale.value.toFloat(), scale.value.toFloat(), 1f)
+
+        context.fill(
+            0,
+            0,
+            width,
+            height,
+            -0x44eaeaeb
+        )
+
+        context.matrices.pop()
+    }
 }

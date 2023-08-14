@@ -1,5 +1,6 @@
 package floppacoding.mithras.events
 
+import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.util.InputUtil.Key
 
 /**
@@ -15,4 +16,12 @@ class GameStartEvent
  * @see floppacoding.mithras.mixin.KeyboardMixin.onKeyPress
  */
 class InputEvent(val key: Key)
+
+/**
+ * Posted when the in game hud is being rendered.
+ * Posted right after the hotbar is rendered but before everything else is rendered.
+ * Does not get posted when the hud is hidden but does get posted in spectator
+ * @see floppacoding.mithras.mixin.InGameHudMixin.onRenderCrosshair
+ */
+class HudRenderEvent(val context: DrawContext, val partialTicks: Float)
 

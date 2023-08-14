@@ -97,7 +97,7 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         super.render(context, scaledMouseX, scaledMouseY, partialTicks)
 
         mc.options.guiScale.value = prevScale
-        context.matrices.push()
+        context.matrices.pop()
     }
 
     /**

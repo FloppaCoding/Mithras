@@ -26,7 +26,7 @@ object EditHud : Module(
      * Automatically disable it again and open the gui
      */
     override fun onEnable() {
-        Mithras.display = EditHudGUI
+        Mithras.mc.send { Mithras.mc.setScreen(EditHudGUI) }
         toggle()
         super.onEnable()
     }
