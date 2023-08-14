@@ -8,14 +8,17 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 
 object MainCommand : CommandBase() {
     override fun buildCommand(): LiteralArgumentBuilder<FabricClientCommandSource?> {
-        return "mithras".literal(
-            "reload".literal {
-                ChatUtils.modMessage("reloading config")
-                Mithras.moduleConfig.loadConfig()
+        return command("mithras"){
+            execute {
+                ChatUtils.modMessage("opening menu")
+                Mithras.mc.send { Mithras.mc.setScreen(Mithras.clickGUI) }
             }
-        ){
-            ChatUtils.modMessage("opening menu")
-            Mithras.mc.send { Mithras.mc.setScreen(Mithras.clickGUI) }
+            literal("reload") {
+                execute {
+                    ChatUtils.modMessage("reloading config")
+                    Mithras.moduleConfig.loadConfig()
+                }
+            }
         }
     }
 }

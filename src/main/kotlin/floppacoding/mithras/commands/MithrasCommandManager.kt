@@ -19,7 +19,7 @@ import net.minecraft.command.CommandRegistryAccess
  */
 object MithrasCommandManager {
     private val commands : ArrayList<CommandBase> = arrayListOf(
-        MainCommand
+        MainCommand,
     )
 
     /**
