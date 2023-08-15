@@ -21,6 +21,7 @@ import org.lwjgl.nanovg.NanoVGGL3
  *
  * @author Aton
  */
+@Suppress("unused")
 object NVGR {
     val nanoContext: Long = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS)
 
@@ -68,6 +69,21 @@ object NVGR {
     fun pop() = nvgRestore(nanoContext)
 
     /**
+     * Draws a line from point 1 to point 2.
+     * @param capStyle can be [NVG_ROUND] or [NVG_SQUARE]
+     */
+    fun line(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Int, capStyle: Int = NVG_ROUND) {
+        nvgBeginPath(nanoContext)
+        nvgStrokeWidth(nanoContext, width)
+        strokeColor(color)
+        nvgLineCap(nanoContext, capStyle)
+        nvgMoveTo(nanoContext, x1, y1)
+        nvgLineTo(nanoContext, x2, y2)
+        nvgStroke(nanoContext)
+        nvgClosePath(nanoContext)
+    }
+
+    /**
      * Draws a rectangle with the given dimensions and color.
      */
     fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
@@ -99,9 +115,31 @@ object NVGR {
         nvgText(nanoContext, x, y, text)
     }
 
+    /**
+     * Sets up a scissor rectangle.
+     *
+     */
+    fun scissor(x: Float, y: Float, width: Float, height: Float) = nvgScissor(nanoContext, x, y, width, height)
+
+    /**
+     * Disables scissoring.
+     */
+    fun endScissor() = nvgResetScissor(nanoContext)
+
+    /**
+     * Sets fill style for [nvgFill] to the specified color.
+     */
     private fun fillColor(color: Int) {
         updateColor(color)
         nvgFillColor(nanoContext ,nanoColor)
+    }
+
+    /**
+     * Sets stroke style for [nvgStroke] to the specified color.
+     */
+    private fun strokeColor(color: Int) {
+        updateColor(color)
+        nvgStrokeColor(nanoContext ,nanoColor)
     }
 
     private fun updateColor(color: Int) = nvgRGBA(
