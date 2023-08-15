@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
+import floppacoding.mithras.commands.CommandBase.Command
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 
 /**
@@ -15,7 +16,8 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
  * ## Creating a new command
  *
  * To create a new command you have to create class (or object) that inherits from this class.
- * In there, override [buildCommand] to return your desired functionality.
+ * In there, override [builder] to return your desired functionality.
+ * Alternatively use the [Command] constructor for a simpler syntax.
  * Then add an Instance of your command to the [commands][MithrasCommandManager.commands]
  * list in the [MithrasCommandManager].
  *
@@ -23,7 +25,11 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
  * @author Aton
  */
 abstract class CommandBase {
-    abstract fun buildCommand(): LiteralArgumentBuilder<FabricClientCommandSource?>
+
+    abstract val builder: LiteralArgumentBuilder<FabricClientCommandSource?>
+    fun buildCommand(): LiteralArgumentBuilder<FabricClientCommandSource?> {
+        return builder
+    }
 
     fun command(
         name: String,
@@ -108,7 +114,9 @@ abstract class CommandBase {
         tasks: ArgumentBuilder<FabricClientCommandSource, *>.() -> Unit
     ) = this.argument(name, LongArgumentType.longArg(min, max), tasks)
 
-
+open class Command(name: String, tasks: ArgumentBuilder<FabricClientCommandSource, *>.() -> Unit) : CommandBase() {
+    override val builder: LiteralArgumentBuilder<FabricClientCommandSource?> = command(name, tasks)
+}
 
 // The code below does not quite work so far. It cleans up some things tho and maybe it can be made to work but I cba to
 // fix it rn
