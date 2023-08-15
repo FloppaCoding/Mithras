@@ -1,11 +1,10 @@
 package floppacoding.mithras.ui.hud
 
+//import floppacoding.mithras.floppamap.dungeon.MapRender
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
-//import floppacoding.mithras.floppamap.dungeon.MapRender
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil
-import floppacoding.mithras.utils.render.ExperimentalRenderer
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent
@@ -37,8 +36,6 @@ object EditHudGUI : Screen(MutableText.of(LiteralTextContent("Edit Hud GUI"))) {
      * Draw a previes of all hud elements, regardless of whether they are visible.
      */
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
-
-        ExperimentalRenderer.draw()
 
         // Render a reset Button
         renderRestButton(context, mouseX, mouseY, partialTicks)
