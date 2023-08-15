@@ -1,0 +1,114 @@
+package floppacoding.mithras.ui.nanovg
+
+import floppacoding.mithras.Mithras
+import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
+import floppacoding.mithras.ui.nanovg.NVGR.endFrame
+import org.lwjgl.nanovg.NVGColor
+import org.lwjgl.nanovg.NanoVG.*
+import org.lwjgl.nanovg.NanoVGGL3
+
+/**
+ * # NanoVG Renderer - 2D Rendering Library
+ *
+ * This library uses nanoVG to greatly simplify rendering 2D elements for GUIs and HUDs.
+ * It cannot be used for 3D rendering.
+ * Note also that all the methods in here are independent of the usual modifiers in the game's rendering matrix stack.
+ *
+ * ## Usage
+ * All rendering related instructions from this library have to be placed in between [beginFrame] and [endFrame].
+ * The coordinate system has its origin in the top left corner of the screen with x going to the right and y towards the bottom.
+ * The coordinates scale 1 to 1 to pixels on the screen.
+ *
+ * @author Aton
+ */
+object NVGR {
+    val nanoContext: Long = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS)
+
+    private val nanoColor: NVGColor = NVGColor.calloc()
+
+    /**
+     * Begins drawing a new frame.
+     *
+     * All further rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
+     */
+    fun beginFrame() = nvgBeginFrame(
+            nanoContext,
+            Mithras.mc.window.width.toFloat(),
+            Mithras.mc.window.height.toFloat(),
+            1f
+        )
+
+
+    /**
+     * Ends drawing the frame.
+     *
+     * All rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
+     */
+    fun endFrame() = nvgEndFrame(nanoContext)
+
+    /**
+     * Translates the origin of the current coordinate system.
+     */
+    fun translate(x: Float, y: Float) = nvgTranslate(nanoContext, x, y)
+
+    /**
+     * Scales the current coordinate system.
+     */
+    fun scale(x: Float, y: Float) = nvgScale(nanoContext, x, y)
+
+    /**
+     * Pushes the current rendering state to a stack.
+     * [pop] must be used to restore that state.
+     */
+    fun push() = nvgSave(nanoContext)
+
+    /**
+     * Restores the previous rendering state.
+     */
+    fun pop() = nvgRestore(nanoContext)
+
+    /**
+     * Draws a rectangle with the given dimensions and color.
+     */
+    fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
+        nvgBeginPath(nanoContext)
+        nvgRect(nanoContext, x, y, width, height)
+        fillColor(color)
+        nvgFill(nanoContext)
+    }
+
+    /**
+     * Draws a rectangle with rounded corners.
+     */
+    fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
+        nvgBeginPath(nanoContext)
+        nvgRoundedRect(nanoContext, x, y, width, height, radius)
+        fillColor(color)
+        nvgFill(nanoContext)
+    }
+
+    /**
+     * Renders text aligned with the left bottom corner to the given coordinates.
+     */
+    fun text(text: String, x: Float, y: Float, fontSize: Float, font: NVGFontManager.Font, color: Int) {
+        nvgBeginPath(nanoContext)
+        nvgFontSize(nanoContext, fontSize)
+        nvgFontFaceId(nanoContext, font.id)
+        nvgTextAlign(nanoContext, NVG_ALIGN_LEFT)
+        fillColor(color)
+        nvgText(nanoContext, x, y, text)
+    }
+
+    private fun fillColor(color: Int) {
+        updateColor(color)
+        nvgFillColor(nanoContext ,nanoColor)
+    }
+
+    private fun updateColor(color: Int) = nvgRGBA(
+            (color shr 16 and 0xFF).toByte(),
+            (color shr 8 and 0xFF).toByte(),
+            (color and 0xFF).toByte(),
+            (color shr 24 and 0xFF).toByte(),
+            nanoColor
+        )
+}
