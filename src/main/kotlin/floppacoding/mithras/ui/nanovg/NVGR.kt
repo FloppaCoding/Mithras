@@ -1,5 +1,6 @@
 package floppacoding.mithras.ui.nanovg
 
+import com.mojang.blaze3d.systems.RenderSystem
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
 import floppacoding.mithras.ui.nanovg.NVGR.endFrame
@@ -32,12 +33,15 @@ object NVGR {
      *
      * All further rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
      */
-    fun beginFrame() = nvgBeginFrame(
+    fun beginFrame() {
+        nvgBeginFrame(
             nanoContext,
             Mithras.mc.window.width.toFloat(),
             Mithras.mc.window.height.toFloat(),
             1f
         )
+        RenderSystem.disableCull()
+    }
 
 
     /**
@@ -45,7 +49,10 @@ object NVGR {
      *
      * All rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
      */
-    fun endFrame() = nvgEndFrame(nanoContext)
+    fun endFrame() {
+        nvgEndFrame(nanoContext)
+        RenderSystem.disableCull()
+    }
 
     /**
      * Translates the origin of the current coordinate system.
