@@ -20,6 +20,9 @@ import org.lwjgl.nanovg.NanoVGGL3
  * The coordinate system has its origin in the top left corner of the screen with x going to the right and y towards the bottom.
  * The coordinates scale 1 to 1 to pixels on the screen.
  *
+ * ## State changes
+ * NanoVG disables the depth test, this is not compensated for.
+ *
  * @author Aton
  */
 @Suppress("unused")
@@ -51,7 +54,6 @@ object NVGR {
      */
     fun endFrame() {
         nvgEndFrame(nanoContext)
-        RenderSystem.disableCull()
     }
 
     /**
