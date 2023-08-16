@@ -1,23 +1,30 @@
 package floppacoding.mithras.commands.impl
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import floppacoding.mithras.Mithras
-import floppacoding.mithras.commands.CommandBase
-import floppacoding.mithras.commands.impl.MainCommand.execute
-import floppacoding.mithras.commands.impl.MainCommand.literal
+import floppacoding.mithras.commands.Command
+import floppacoding.mithras.ui.hud.Test
 import floppacoding.mithras.utils.ChatUtils
+import floppacoding.mithras.utils.Utils
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 
-object MainCommand : CommandBase.Command(
-    name = "mithras",
-    tasks = {
-        execute {
-            ChatUtils.modMessage("opening menu")
-            Mithras.mc.send { Mithras.mc.setScreen(Mithras.clickGUI) }
-        }
-        literal("reload") {
+object MainCommand : Command {
+    override val builder: LiteralArgumentBuilder<FabricClientCommandSource> =
+        command("mithras") {
             execute {
-                ChatUtils.modMessage("reloading config")
-                Mithras.moduleConfig.loadConfig()
+                ChatUtils.modMessage("opening menu")
+                Utils.setScreen(Mithras.clickGUI)
+            }
+            literal("reload") {
+                execute {
+                    ChatUtils.modMessage("reloading config")
+                    Mithras.moduleConfig.loadConfig()
+                }
+            }
+            literal("test") {
+                execute {
+                    Utils.setScreen(Test)
+                }
             }
         }
-    }
-)
+}
