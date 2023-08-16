@@ -1,5 +1,6 @@
 package floppacoding.mithras.ui.nanovg
 
+import com.mojang.blaze3d.systems.RenderSystem
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
 import floppacoding.mithras.ui.nanovg.NVGR.endFrame
@@ -21,6 +22,7 @@ import org.lwjgl.nanovg.NanoVGGL3
  *
  * @author Aton
  */
+@Suppress("unused")
 object NVGR {
     val nanoContext: Long = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS)
 
@@ -31,12 +33,15 @@ object NVGR {
      *
      * All further rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
      */
-    fun beginFrame() = nvgBeginFrame(
+    fun beginFrame() {
+        nvgBeginFrame(
             nanoContext,
             Mithras.mc.window.width.toFloat(),
             Mithras.mc.window.height.toFloat(),
             1f
         )
+        RenderSystem.disableCull()
+    }
 
 
     /**
@@ -44,7 +49,10 @@ object NVGR {
      *
      * All rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
      */
-    fun endFrame() = nvgEndFrame(nanoContext)
+    fun endFrame() {
+        nvgEndFrame(nanoContext)
+        RenderSystem.disableCull()
+    }
 
     /**
      * Translates the origin of the current coordinate system.
@@ -66,6 +74,21 @@ object NVGR {
      * Restores the previous rendering state.
      */
     fun pop() = nvgRestore(nanoContext)
+
+    /**
+     * Draws a line from point 1 to point 2.
+     * @param capStyle can be [NVG_ROUND] or [NVG_SQUARE]
+     */
+    fun line(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Int, capStyle: Int = NVG_ROUND) {
+        nvgBeginPath(nanoContext)
+        nvgStrokeWidth(nanoContext, width)
+        strokeColor(color)
+        nvgLineCap(nanoContext, capStyle)
+        nvgMoveTo(nanoContext, x1, y1)
+        nvgLineTo(nanoContext, x2, y2)
+        nvgStroke(nanoContext)
+        nvgClosePath(nanoContext)
+    }
 
     /**
      * Draws a rectangle with the given dimensions and color.
@@ -99,9 +122,31 @@ object NVGR {
         nvgText(nanoContext, x, y, text)
     }
 
+    /**
+     * Sets up a scissor rectangle.
+     *
+     */
+    fun scissor(x: Float, y: Float, width: Float, height: Float) = nvgScissor(nanoContext, x, y, width, height)
+
+    /**
+     * Disables scissoring.
+     */
+    fun endScissor() = nvgResetScissor(nanoContext)
+
+    /**
+     * Sets fill style for [nvgFill] to the specified color.
+     */
     private fun fillColor(color: Int) {
         updateColor(color)
         nvgFillColor(nanoContext ,nanoColor)
+    }
+
+    /**
+     * Sets stroke style for [nvgStroke] to the specified color.
+     */
+    private fun strokeColor(color: Int) {
+        updateColor(color)
+        nvgStrokeColor(nanoContext ,nanoColor)
     }
 
     private fun updateColor(color: Int) = nvgRGBA(
