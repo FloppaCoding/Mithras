@@ -115,11 +115,19 @@ object NVGR {
     /**
      * Renders text aligned with the left bottom corner to the given coordinates.
      */
-    fun text(text: String, x: Float, y: Float, fontSize: Float, font: NVGFontManager.Font, color: Int) {
+    fun text(
+        text: String,
+        x: Float,
+        y: Float,
+        fontSize: Float,
+        color: Int,
+        font: NVGFontManager.Font = NVGFontManager.ROBOTO,
+        textAlign: TextAlign = TextAlign.LEFT
+    ) {
         nvgBeginPath(nanoContext)
         nvgFontSize(nanoContext, fontSize)
         nvgFontFaceId(nanoContext, font.id)
-        nvgTextAlign(nanoContext, NVG_ALIGN_LEFT)
+        nvgTextAlign(nanoContext, textAlign.nvg)
         fillColor(color)
         nvgText(nanoContext, x, y, text)
     }
@@ -158,4 +166,14 @@ object NVGR {
             (color shr 24 and 0xFF).toByte(),
             nanoColor
         )
+
+    enum class TextAlign(
+        val nvg: Int
+    ) {
+        LEFT(NVG_ALIGN_LEFT),
+        RIGHT(NVG_ALIGN_RIGHT),
+        MIDDLE(NVG_ALIGN_MIDDLE)
+    }
 }
+
+typealias TextAlign = NVGR.TextAlign
