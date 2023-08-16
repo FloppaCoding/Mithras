@@ -18,15 +18,17 @@ import java.io.File
 import java.lang.invoke.MethodHandles
 import kotlin.coroutines.EmptyCoroutineContext
 
-
 object Mithras : ModInitializer {
+
     val logger = LoggerFactory.getLogger("mithras")
 
 	const val MOD_ID = "mithras"
 	const val MOD_NAME = "Project Mithras"
 	const val MOD_VERSION = "0.0.1"
+
 	const val CHAT_PREFIX = "§6§lProject §r§eMithras §6§l»§r"
 	const val SHORT_PREFIX = "§6§lF§r§eC §6§l»§r"
+
 	const val RESOURCE_DOMAIN = "mithras"
 	const val CONFIG_DOMAIN = "mithras"
 
@@ -59,7 +61,7 @@ object Mithras : ModInitializer {
 		listOf(
 			this,
 			ModuleManager
-		).forEach{ EVENT_BUS.subscribe(it) }
+		).forEach { EVENT_BUS.subscribe(it) }
 
 
 
