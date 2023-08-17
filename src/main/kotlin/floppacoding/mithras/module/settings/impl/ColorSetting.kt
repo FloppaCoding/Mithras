@@ -136,7 +136,7 @@ class ColorSetting(
      * Returns an array of the availiable settings. Those are either red, green and blue or red, green, blue and alpha.
      */
     fun colors(): Array<ColorComponent> {
-        val tempArr = if (MainSettings.colorSettingMode.isSelected("RGB"))
+        val tempArr = if (MainSettings.colorSettingMode.isSelected(MainSettings.ColorModes.RGB))
             arrayOf(ColorComponent.RED, ColorComponent.GREEN, ColorComponent.BLUE)
         else
             arrayOf(ColorComponent.HUE, ColorComponent.SATURATION, ColorComponent.BRIGHTNESS)
