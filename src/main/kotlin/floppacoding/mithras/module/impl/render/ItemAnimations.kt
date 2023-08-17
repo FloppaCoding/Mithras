@@ -1,0 +1,83 @@
+package floppacoding.mithras.module.impl.render
+
+import floppacoding.mithras.module.Category
+import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.settings.impl.BooleanSetting
+import floppacoding.mithras.module.settings.impl.NumberSetting
+import net.minecraft.client.util.math.MatrixStack
+import net.minecraft.util.Hand
+import net.minecraft.util.math.MathHelper
+import net.minecraft.util.math.RotationAxis
+import kotlin.math.exp
+
+/**
+ * Module to change the appearance of held items.
+ *
+ * This module uses the EntityLivingBase and ItemRenderer Mixins to function.
+ * Because only this module and no others are supposed to modify their behavior direct references are used instead of
+ * forge events.
+ *
+ * @author Aton
+ */
+object ItemAnimations : Module(
+    "Animations",
+    category = Category.RENDER,
+    description = "Changes the appearance of held items."
+) {
+
+    private val size : Double by NumberSetting("Size", 0.0, -1.5, 1.5, 0.05, description = "Scales the size of your currently held item. Default: 0")
+    private val scaleSwing: Boolean by BooleanSetting("Scale Swing", true, description = "Also scale the size of the swing animation.")
+    private val oldSwing: Boolean by BooleanSetting("1.8 Swing", true, description = "Uses the 1.8.9 swing animation.")
+    private val disableEquip: Boolean by BooleanSetting("Disable Equip", true, description = "Disables the Item Equip animation.")
+    private val x: Double by NumberSetting("X", 0.0, -3.0, 3.0, 0.05, description = "Moves the held item. Default: 0")
+    private val y: Double by NumberSetting("Y", 0.0, -2.0, 2.0, 0.05, description = "Moves the held item. Default: 0")
+    private val z: Double by NumberSetting("Z", 0.0, -0.5, 3.0, 0.05, description = "Moves the held item. Default: 0")
+    private val yaw   :Double by NumberSetting("Yaw", 0.0, -180.0, 180.0, 5.0, description = "Rotates your held item. Default: 0")
+    private val pitch :Double by NumberSetting("Pitch", 0.0, -180.0, 180.0, 5.0, description = "Rotates your held item. Default: 0")
+    private val roll  :Double by NumberSetting("Roll", 0.0, -180.0, 180.0, 5.0, description = "Rotates your held item. Default: 0")
+
+    /**
+     * Modifies the position, angle and scale of the held item.
+     */
+    fun itemTransformHook(matrices: MatrixStack, hand: Hand, swingProgress: Float) {
+        if (!this.enabled) return
+        val scale = exp(size).toFloat()
+        if (this.scaleSwing) {
+            val bl3 = hand == Hand.MAIN_HAND
+            val i = if (bl3) 1 else -1
+            val f = -0.4f * MathHelper.sin(MathHelper.sqrt(swingProgress) * 3.1415927f) * (scale - 1)
+            val g = 0.2f * MathHelper.sin(MathHelper.sqrt(swingProgress) * 6.2831855f) * (scale - 1)
+            val h = -0.2f * MathHelper.sin(swingProgress * 3.1415927f) * (scale - 1)
+            matrices.translate(i.toFloat() * f, g, h)
+        }
+        if (hand == Hand.MAIN_HAND) {
+            matrices.translate(x* 0.56, y*0.52, z* -0.72)
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yaw.toFloat()))
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch.toFloat()))
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll.toFloat()))
+        }
+        matrices.scale(scale, scale, scale)
+    }
+
+    /**
+     * Scales the item equip animation, or disables it.
+     * This animation is part of the 1.9+ item swing.
+     */
+    fun equipProgressTransform(matrices: MatrixStack, equipProgress: Float) {
+        if (!this.enabled) return
+        if (disableEquip) {
+            matrices.translate(0f, - equipProgress * -0.6f, 0f)
+        }else if (scaleSwing) {
+            val scale = exp(size).toFloat()
+            matrices.translate(0f, -(1 - scale) * equipProgress * -0.6f, 0f)
+        }
+    }
+
+    /**
+     * Returns whether the 1.8 swing animation should be used.
+     * @see floppacoding.mithras.mixin.render.HeldItemRendererMixin.tweakSwing
+     */
+    fun doOldSwing(): Boolean {
+        return this.enabled && oldSwing
+    }
+}

@@ -12,6 +12,7 @@
     "KeyboardMixin",
     "MainMixin",
     "MouseMixin",
-    "WorldRendererMixin"
+    "render.HeldItemRendererMixin",
+    "render.WorldRendererMixin"
   ]
 }

@@ -1,4 +1,4 @@
-package floppacoding.mithras.mixin;
+package floppacoding.mithras.mixin.render;
 
 import net.minecraft.client.render.DimensionEffects;
 import net.minecraft.client.render.WorldRenderer;
