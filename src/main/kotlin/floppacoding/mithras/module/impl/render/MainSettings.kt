@@ -16,7 +16,7 @@ import java.awt.Color
  */
 @AlwaysActive
 object MainSettings: Module(
-    "ClickGUI",
+    "Main Settings",
     GLFW.GLFW_KEY_RIGHT_SHIFT,
     category = Category.RENDER,
     description = "Appearance settings for the click gui. \n" +
@@ -38,15 +38,15 @@ object MainSettings: Module(
     val showUsageInfo = BooleanSetting("Usage Info", true, visibility = Visibility.ADVANCED_ONLY, description = "Show info on how to use the GUI.")
     val apiKey = StringSetting("API Key", "", length = 100, visibility = Visibility.HIDDEN)
 
-    val panelX: MutableMap<Category, NumberSetting> = mutableMapOf()
-    val panelY: MutableMap<Category, NumberSetting> = mutableMapOf()
+    val panelX: MutableMap<Category, NumberSetting<Double>> = mutableMapOf()
+    val panelY: MutableMap<Category, NumberSetting<Double>> = mutableMapOf()
     val panelExtended: MutableMap<Category, BooleanSetting> = mutableMapOf()
 
     private const val pwidth = 120.0
     private const val pheight = 15.0
 
-    val panelWidth: NumberSetting  = NumberSetting("Panel width", default = pwidth, visibility = Visibility.HIDDEN)
-    val panelHeight: NumberSetting = NumberSetting("Panel height", default = pheight, visibility = Visibility.HIDDEN)
+    val panelWidth  = NumberSetting("Panel width", default = pwidth, visibility = Visibility.HIDDEN)
+    val panelHeight = NumberSetting("Panel height", default = pheight, visibility = Visibility.HIDDEN)
 
     const val advancedRelWidth = 0.5
     const val advancedRelHeight = 0.5

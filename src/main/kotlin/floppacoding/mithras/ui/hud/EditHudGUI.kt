@@ -152,8 +152,8 @@ object EditHudGUI : Screen(MutableText.of(LiteralTextContent("Edit Hud GUI"))) {
     }
 
     private fun isCursorOnElement(mouseX: Double, mouseY: Double, element: HudElement): Boolean {
-        return mouseX > element.x && mouseX < (element.x + element.width * element.scale.value)
-                && mouseY > element.y&& mouseY< (element.y + element.height * element.scale.value)
+        return mouseX > element.x && mouseX < (element.x + element.width * element.scale.doubleValue)
+                && mouseY > element.y&& mouseY< (element.y + element.height * element.scale.doubleValue)
     }
 
     private fun isCursorOnReset(mouseX: Int, mouseY: Int) : Boolean {

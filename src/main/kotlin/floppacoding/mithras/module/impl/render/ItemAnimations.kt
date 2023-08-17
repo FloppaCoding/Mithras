@@ -13,10 +13,6 @@ import kotlin.math.exp
 /**
  * Module to change the appearance of held items.
  *
- * This module uses the EntityLivingBase and ItemRenderer Mixins to function.
- * Because only this module and no others are supposed to modify their behavior direct references are used instead of
- * forge events.
- *
  * @author Aton
  */
 object ItemAnimations : Module(
@@ -25,23 +21,23 @@ object ItemAnimations : Module(
     description = "Changes the appearance of held items."
 ) {
 
-    private val size : Double by NumberSetting("Size", 0.0, -1.5, 1.5, 0.05, description = "Scales the size of your currently held item. Default: 0")
+    private val size : Float by NumberSetting("Size", 0.0f, -1.5f, 1.5f, 0.05f, description = "Scales the size of your currently held item. Default: 0")
     private val scaleSwing: Boolean by BooleanSetting("Scale Swing", true, description = "Also scale the size of the swing animation.")
     private val oldSwing: Boolean by BooleanSetting("1.8 Swing", true, description = "Uses the 1.8.9 swing animation.")
-    private val disableEquip: Boolean by BooleanSetting("Disable Equip", true, description = "Disables the Item Equip animation.")
+    private val disableEquip: Boolean by BooleanSetting("Disable Equip", false, description = "Disables the Item Equip animation.")
     private val x: Double by NumberSetting("X", 0.0, -3.0, 3.0, 0.05, description = "Moves the held item. Default: 0")
     private val y: Double by NumberSetting("Y", 0.0, -2.0, 2.0, 0.05, description = "Moves the held item. Default: 0")
     private val z: Double by NumberSetting("Z", 0.0, -0.5, 3.0, 0.05, description = "Moves the held item. Default: 0")
-    private val yaw   :Double by NumberSetting("Yaw", 0.0, -180.0, 180.0, 5.0, description = "Rotates your held item. Default: 0")
-    private val pitch :Double by NumberSetting("Pitch", 0.0, -180.0, 180.0, 5.0, description = "Rotates your held item. Default: 0")
-    private val roll  :Double by NumberSetting("Roll", 0.0, -180.0, 180.0, 5.0, description = "Rotates your held item. Default: 0")
+    private val yaw   : Float by NumberSetting("Yaw", 0.0f, -180.0f, 180.0f, 5.0f, description = "Rotates your held item. Default: 0")
+    private val pitch : Float by NumberSetting("Pitch", 0.0f, -180.0f, 180.0f, 5.0f, description = "Rotates your held item. Default: 0")
+    private val roll  : Float by NumberSetting("Roll", 0.0f, -180.0f, 180.0f, 5.0f, description = "Rotates your held item. Default: 0")
 
     /**
      * Modifies the position, angle and scale of the held item.
      */
     fun itemTransformHook(matrices: MatrixStack, hand: Hand, swingProgress: Float) {
         if (!this.enabled) return
-        val scale = exp(size).toFloat()
+        val scale = exp(size)
         if (this.scaleSwing) {
             val bl3 = hand == Hand.MAIN_HAND
             val i = if (bl3) 1 else -1
@@ -52,9 +48,9 @@ object ItemAnimations : Module(
         }
         if (hand == Hand.MAIN_HAND) {
             matrices.translate(x* 0.56, y*0.52, z* -0.72)
-            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yaw.toFloat()))
-            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch.toFloat()))
-            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll.toFloat()))
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yaw))
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch))
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll))
         }
         matrices.scale(scale, scale, scale)
     }
@@ -68,7 +64,7 @@ object ItemAnimations : Module(
         if (disableEquip) {
             matrices.translate(0f, - equipProgress * -0.6f, 0f)
         }else if (scaleSwing) {
-            val scale = exp(size).toFloat()
+            val scale = exp(size)
             matrices.translate(0f, -(1 - scale) * equipProgress * -0.6f, 0f)
         }
     }
