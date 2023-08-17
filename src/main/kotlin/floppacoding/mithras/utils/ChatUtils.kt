@@ -3,8 +3,11 @@ package floppacoding.mithras.utils
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.render.MainSettings
+import floppacoding.mithras.utils.ChatUtils.chatMessage
+import floppacoding.mithras.utils.ChatUtils.modMessage
+import floppacoding.mithras.utils.ChatUtils.sendChat
 import net.minecraft.text.Text
-import net.minecraft.util.*
+import net.minecraft.util.Formatting
 
 /**
  * ## A collection of utility functions for creating and sending or displaying chat messages.
@@ -15,7 +18,6 @@ import net.minecraft.util.*
  *
  * Use [sendChat] for sending a player message to the server.
  *
- * Use [command] to execute commands either client side or send them to the server.
  *
  * @author Aton
  */
@@ -64,7 +66,7 @@ object ChatUtils {
     }
 
     /**
-     * Remove control codes from the [receiver][String] with the [vanilla function][StringUtils.stripControlCodes] for it.
+     * Remove control codes from the [receiver][String] with the [vanilla function][Formatting.strip] for it.
      */
     fun String.stripControlCodes(): String {
         return Formatting.strip(this) ?: ""
@@ -86,9 +88,10 @@ object ChatUtils {
      */
     fun modMessage(message: Text) = chatMessage(
         Text.literal(
-            when (MainSettings.prefixStyle.index) {
-                0 -> Mithras.CHAT_PREFIX; 1 -> Mithras.SHORT_PREFIX
-                else -> reformatString( MainSettings.customPrefix.text)
+            when (MainSettings.prefixStyle.value) {
+                MainSettings.PrefixStyle.LONG   -> Mithras.CHAT_PREFIX
+                MainSettings.PrefixStyle.SHORT  -> Mithras.SHORT_PREFIX
+                MainSettings.PrefixStyle.CUSTOM -> reformatString( MainSettings.customPrefix.text)
             } + " "
         ).append(message)
     )

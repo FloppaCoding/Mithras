@@ -25,12 +25,12 @@ object MainSettings: Module(
             "§00...§ff§r are colors, l is §lBold§r, n is §nUnderlined§r, o is §oItalic§r, m is §mStrikethrough§r, k is §kObfuscated§r, r is Reset."
 ) {
 
-    val design: StringSelectorSetting
+    val design: SelectorSetting<Designs> = SelectorSetting("Design", Designs.JELLYLIKE, description = "Design theme of the gui.")
     val blur: BooleanSetting = BooleanSetting("Blur", false, description = "Toggles the background blur for the gui.")
     val color = ColorSetting("Color", Color(255,200,0), false, description = "Color theme in the gui.")
-    val colorSettingMode = StringSelectorSetting("Color Mode", "HSB", arrayListOf("HSB", "RGB"), description = "Mode for all color settings in the gui. Changes the way colors are put in.")
+    val colorSettingMode = SelectorSetting("Color Mode", ColorModes.HSB, description = "Mode for all color settings in the gui. Changes the way colors are put in.")
     val clientName: StringSetting = StringSetting("Name", "Project Mithras", description = "Name that will be rendered in the gui.")
-    val prefixStyle: StringSelectorSetting = StringSelectorSetting("Prefix Style", "Long", arrayListOf("Long", "Short", "Custom"), description = "Chat prefix selection for mod messages.")
+    val prefixStyle = SelectorSetting("Prefix Style", PrefixStyle.LONG, description = "Chat prefix selection for mod messages.")
     val customPrefix = StringSetting("Custom Prefix", "§0§l[§4§Project Mithras§0§l]§r", 40, description = "You can set a custom chat prefix that will be used when Custom is selected in the Prefix Style dropdown.")
     val chromaSize = NumberSetting("Chroma Size", 0.5, 0.0, 1.0, 0.01, description = "Determines how rapidly the chroma pattern changes spatially.")
     val chromaSpeed = NumberSetting("Chroma Speed", 0.5, 0.0, 1.0, 0.01, description = "Determines how fast the chroma changes with time.")
@@ -42,24 +42,32 @@ object MainSettings: Module(
     val panelY: MutableMap<Category, NumberSetting<Double>> = mutableMapOf()
     val panelExtended: MutableMap<Category, BooleanSetting> = mutableMapOf()
 
-    private const val pwidth = 120.0
-    private const val pheight = 15.0
+    private const val PANEL_WIDTH = 120.0
+    private const val PANEL_HEIGHT = 15.0
 
-    val panelWidth  = NumberSetting("Panel width", default = pwidth, visibility = Visibility.HIDDEN)
-    val panelHeight = NumberSetting("Panel height", default = pheight, visibility = Visibility.HIDDEN)
+    val panelWidth  = NumberSetting("Panel width", default = PANEL_WIDTH, visibility = Visibility.HIDDEN)
+    val panelHeight = NumberSetting("Panel height", default = PANEL_HEIGHT, visibility = Visibility.HIDDEN)
 
-    const val advancedRelWidth = 0.5
-    const val advancedRelHeight = 0.5
+    const val ADVANCED_GUI_RELATIVE_WIDTH = 0.5
+    const val ADVANCED_GUI_RELATIVE_HEIGHT = 0.5
 
-    val advancedRelX = NumberSetting("Advanced_RelX",(1 - advancedRelWidth)/2.0,0.0, (1- advancedRelWidth), 0.0001, visibility = Visibility.HIDDEN)
-    val advancedRelY = NumberSetting("Advanced_RelY",(1 - advancedRelHeight)/2.0,0.0, (1- advancedRelHeight), 0.0001, visibility = Visibility.HIDDEN)
+    val advancedRelX = NumberSetting("Advanced_RelX",(1 - ADVANCED_GUI_RELATIVE_WIDTH)/2.0,0.0, (1- ADVANCED_GUI_RELATIVE_WIDTH), 0.0001, visibility = Visibility.HIDDEN)
+    val advancedRelY = NumberSetting("Advanced_RelY",(1 - ADVANCED_GUI_RELATIVE_HEIGHT)/2.0,0.0, (1- ADVANCED_GUI_RELATIVE_HEIGHT), 0.0001, visibility = Visibility.HIDDEN)
+
+    enum class Designs(override val displayName: String): Options {
+        JELLYLIKE("Jellylike"), NEW("New")
+    }
+
+    enum class ColorModes(override val displayName: String): Options {
+        HSB("HSB"), RGB("RGB")
+    }
+
+    enum class PrefixStyle(override val displayName: String): Options {
+        LONG("Long"), SHORT("Short"), CUSTOM("Custom")
+    }
+
 
     init {
-        val options = java.util.ArrayList<String>()
-        options.add("JellyLike")
-        options.add("New")
-        design = StringSelectorSetting("Design","JellyLike", options, description = "Design theme of the gui.")
-
         addSettings(
             design,
             blur,
@@ -100,8 +108,8 @@ object MainSettings: Module(
      * Adds if missing and sets the default click gui positions for the category panels.
      */
     fun resetPositions() {
-        panelWidth.value = pwidth
-        panelHeight.value = pheight
+        panelWidth.value = PANEL_WIDTH
+        panelHeight.value = PANEL_HEIGHT
 
         var px = 10.0
         val py = 10.0

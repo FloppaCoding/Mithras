@@ -89,11 +89,11 @@ class Panel(
         context.fill(0, startY, width, startY + 5, ColorUtil.dropDownColor)
 
         // Render decor
-        if (MainSettings.design.isSelected("New")) {
+        if (MainSettings.design.isSelected(MainSettings.Designs.NEW)) {
             context.fill(0, 0,  2, height, ColorUtil.outlineColor)
             context.fill(0, startY,  2, startY+5, ColorUtil.outlineColor)
             FontUtil.drawStringWithShadow(context, title, 4.0, height / 2.0 - FontUtil.fontHeight / 2.0)
-        } else if (MainSettings.design.isSelected("JellyLike")) {
+        } else if (MainSettings.design.isSelected(MainSettings.Designs.JELLYLIKE)) {
             context.fill(4, 2, 5, height - 2, ColorUtil.jellyPanelColor)
             context.fill(width - 4, 2, width - 5, height - 2, ColorUtil.jellyPanelColor)
             FontUtil.drawTotalCenteredStringWithShadow(context, title, width / 2.0, height / 2.0)

@@ -13,17 +13,17 @@ object ColorUtil {
         get() = MainSettings.color.value
 
     val elementColor: Int
-     get() = if (MainSettings.design.isSelected("New"))
+     get() = if (MainSettings.design.isSelected(MainSettings.Designs.NEW))
              newColor
-         else if (MainSettings.design.isSelected("JellyLike"))
+         else if (MainSettings.design.isSelected(MainSettings.Designs.JELLYLIKE))
              jellyColor
          else
              0
 
     val bgColor: Int
-        get() = if (MainSettings.design.isSelected("New"))
+        get() = if (MainSettings.design.isSelected(MainSettings.Designs.NEW))
             newColor
-        else if (MainSettings.design.isSelected("JellyLike"))
+        else if (MainSettings.design.isSelected(MainSettings.Designs.JELLYLIKE))
             Color(255,255,255,50).rgb
         else
             0

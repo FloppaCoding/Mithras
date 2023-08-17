@@ -60,7 +60,6 @@ class AdvancedMenu(val module: Module) {
             when (setting) {
                 is BooleanSetting   -> elements.add(AdvancedElementCheckBox (this, module, setting))
                 is NumberSetting    -> elements.add(AdvancedElementSlider   (this, module, setting))
-                is StringSelectorSetting  -> elements.add(AdvancedElementStringSelector (this, module, setting))
                 is SelectorSetting  -> elements.add(AdvancedElementSelector (this, module, setting))
                 is StringSetting    -> elements.add(AdvancedElementTextField(this, module, setting))
                 is ColorSetting     -> elements.add(AdvancedElementColor    (this, module, setting))
@@ -107,8 +106,8 @@ class AdvancedMenu(val module: Module) {
         HUDRenderUtils.setUpScissor(
             (mc.window.width * MainSettings.advancedRelX.value).toInt(),
             (mc.window.height * MainSettings.advancedRelY.value + 15 * ClickGUI.CLICK_GUI_SCALE).toInt(),
-            (mc.window.width * MainSettings.advancedRelWidth).toInt(),
-            (mc.window.height * MainSettings.advancedRelHeight - (15+indent) * ClickGUI.CLICK_GUI_SCALE).toInt(),
+            (mc.window.width * MainSettings.ADVANCED_GUI_RELATIVE_WIDTH).toInt(),
+            (mc.window.height * MainSettings.ADVANCED_GUI_RELATIVE_HEIGHT - (15+indent) * ClickGUI.CLICK_GUI_SCALE).toInt(),
             1.0
         )
 //        GL11.glScissor(
@@ -193,8 +192,8 @@ class AdvancedMenu(val module: Module) {
         val s = mc.window
         x = (s.width  * MainSettings.advancedRelX.value   / ClickGUI.CLICK_GUI_SCALE).toInt()
         y = (s.height * MainSettings.advancedRelY.value   / ClickGUI.CLICK_GUI_SCALE).toInt()
-        width =  (s.width *MainSettings.advancedRelWidth  / ClickGUI.CLICK_GUI_SCALE).toInt()
-        height = (s.height*MainSettings.advancedRelHeight / ClickGUI.CLICK_GUI_SCALE).toInt()
+        width =  (s.width *MainSettings.ADVANCED_GUI_RELATIVE_WIDTH  / ClickGUI.CLICK_GUI_SCALE).toInt()
+        height = (s.height*MainSettings.ADVANCED_GUI_RELATIVE_HEIGHT / ClickGUI.CLICK_GUI_SCALE).toInt()
     }
 
     /**

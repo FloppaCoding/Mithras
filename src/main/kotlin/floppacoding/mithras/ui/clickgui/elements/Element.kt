@@ -4,7 +4,6 @@ import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.module.settings.impl.SelectorSetting
-import floppacoding.mithras.module.settings.impl.StringSelectorSetting
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil
@@ -57,7 +56,7 @@ abstract class Element<S: Setting<*>>(
         when (type) {
             ElementType.SELECTOR -> {
                 height = if (extended)
-                    (((setting as? StringSelectorSetting)?.options?.size ?: (setting as SelectorSetting<*>).options.size) * (FontUtil.fontHeight + 2) + DEFAULT_HEIGHT)
+                    ((setting as SelectorSetting<*>).options.size * (FontUtil.fontHeight + 2) + DEFAULT_HEIGHT)
                 else
                     DEFAULT_HEIGHT
             }
@@ -92,7 +91,7 @@ abstract class Element<S: Setting<*>>(
         /** Rendering the box */
         context.fill(0, 0, width, height, color)
         /** The decor */
-        if (MainSettings.design.isSelected("New")) {
+        if (MainSettings.design.isSelected(MainSettings.Designs.NEW)) {
             context.fill(width, 0, width + 2, height, ColorUtil.outlineColor)
         }
 
