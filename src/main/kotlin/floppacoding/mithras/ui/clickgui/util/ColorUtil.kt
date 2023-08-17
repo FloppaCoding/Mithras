@@ -14,15 +14,15 @@ object ColorUtil {
 
     val elementColor: Int
      get() = if (MainSettings.design.isSelected(MainSettings.Designs.NEW))
-             newColor
+             NEW_COLOR
          else if (MainSettings.design.isSelected(MainSettings.Designs.JELLYLIKE))
-             jellyColor
+             JELLY_COLOR
          else
              0
 
     val bgColor: Int
         get() = if (MainSettings.design.isSelected(MainSettings.Designs.NEW))
-            newColor
+            NEW_COLOR
         else if (MainSettings.design.isSelected(MainSettings.Designs.JELLYLIKE))
             Color(255,255,255,50).rgb
         else
@@ -47,19 +47,19 @@ object ColorUtil {
 
 
 
-    const val jellyColor = -0x44eaeaeb
-    const val newColor = -0xdcdcdd
-    const val moduleButtonColor = -0xe5e5e6
-    const val textcolor = -0x101011
+    const val JELLY_COLOR = -0x44eaeaeb
+    const val NEW_COLOR = -0xdcdcdd
+    const val MODULE_BUTTON_COLOR = -0xe5e5e6
+    const val TEXT_COLOR = -0x101011
 
-    const val jellyPanelColor = -0x555556
+    const val JELLY_PANEL_COLOR = -0x555556
 
-    const val tabColorBg = 0x77000000
-    const val dropDownColor = -0x55ededee
-    const val boxHoverColor = 0x55111111
-    const val sliderBackground = -0xefeff0
+    const val TAB_BACKGROUND_COLOR = 0x77000000
+    const val DROPDOWN_COLOR = -0x55ededee
+    const val BOX_HOVER_COLOR = 0x55111111
+    const val SLIDER_BACKGROUND_COLOR = -0xefeff0
 
-    const val buttonColor = -0x1000000
+    const val BUTTON_COLOR = -0x1000000
 
     private fun Color.withAlpha(alpha: Int) : Color {
         return Color(this.red, this.green, this.blue, alpha)

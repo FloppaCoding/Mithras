@@ -107,7 +107,7 @@ abstract class HudElement{
      * Override this method in your implementations.
      *
      * This method is responsible for rendering the HUD element.
-     * Within this method coordinates are already transformed regarding to the HUD position [x],[x] and [scale].
+     * Within this method coordinates are already transformed in regard to the HUD position [x],[x] and [scale].
      */
     abstract fun renderHud(context: DrawContext)
 

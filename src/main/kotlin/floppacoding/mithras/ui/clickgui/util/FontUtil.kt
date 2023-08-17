@@ -32,31 +32,31 @@ object FontUtil {
 
     val fontHeight: Int
         get() = fontRenderer!!.fontHeight
-    fun drawString(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.textcolor, shadow: Boolean = false) {
+    fun drawString(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.TEXT_COLOR, shadow: Boolean = false) {
         drawString(context, text, x.toInt(), y.toInt(), color, shadow)
     }
 
-    fun drawString(context: DrawContext, text: String, x: Int, y: Int, color: Int = ColorUtil.textcolor, shadow: Boolean = false) {
+    fun drawString(context: DrawContext, text: String, x: Int, y: Int, color: Int = ColorUtil.TEXT_COLOR, shadow: Boolean = false) {
         context.drawText(fontRenderer, text, x, y, color, shadow)
     }
 
-    fun drawStringWithShadow(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.textcolor) {
+    fun drawStringWithShadow(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.TEXT_COLOR) {
         context.drawTextWithShadow(fontRenderer, text, x.toInt(), y.toInt(), color)
     }
 
-    fun drawCenteredString(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.textcolor) {
+    fun drawCenteredString(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.TEXT_COLOR) {
         drawString(context, text, x - fontRenderer!!.getWidth(text) / 2, y, color)
     }
 
-    fun drawCenteredStringWithShadow(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.textcolor) {
+    fun drawCenteredStringWithShadow(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.TEXT_COLOR) {
         drawStringWithShadow(context, text, x - fontRenderer!!.getWidth(text) / 2, y, color)
     }
 
-    fun drawTotalCenteredString(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.textcolor) {
+    fun drawTotalCenteredString(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.TEXT_COLOR) {
         drawString(context, text, x - fontRenderer!!.getWidth(text) / 2, y - fontRenderer!!.fontHeight / 2, color)
     }
 
-    fun drawTotalCenteredStringWithShadow(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.textcolor) {
+    fun drawTotalCenteredStringWithShadow(context: DrawContext, text: String, x: Double, y: Double, color: Int = ColorUtil.TEXT_COLOR) {
         drawStringWithShadow(
             context,
             text,
@@ -69,7 +69,7 @@ object FontUtil {
     /**
      * Draws a string with line wrapping.
      */
-    fun drawSplitString(context: DrawContext, text: String, x: Int, y: Int, wrapWidth: Int, color: Int = ColorUtil.textcolor) {
+    fun drawSplitString(context: DrawContext, text: String, x: Int, y: Int, wrapWidth: Int, color: Int = ColorUtil.TEXT_COLOR) {
         context.drawTextWrapped(fontRenderer, StringVisitable.plain(text), x, y, wrapWidth, color)
     }
 

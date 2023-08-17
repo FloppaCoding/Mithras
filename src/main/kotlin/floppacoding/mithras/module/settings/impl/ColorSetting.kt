@@ -151,7 +151,7 @@ class ColorSetting(
      * This is the best solution I could come up with on the spot to circumvent that I cannot pass a reference to the
      * int values.
      */
-    enum class ColorComponent() {
+    enum class ColorComponent {
         RED, GREEN, BLUE, HUE, SATURATION, BRIGHTNESS, ALPHA;
 
         fun getName(): String {

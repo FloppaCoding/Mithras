@@ -13,6 +13,7 @@ import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
 import net.fabricmc.api.ModInitializer
 import net.minecraft.client.MinecraftClient
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.invoke.MethodHandles
@@ -20,7 +21,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 object Mithras : ModInitializer {
 
-    val logger = LoggerFactory.getLogger("mithras")
+    val logger: Logger = LoggerFactory.getLogger("mithras")
 
 	const val MOD_ID = "mithras"
 	const val MOD_NAME = "Project Mithras"

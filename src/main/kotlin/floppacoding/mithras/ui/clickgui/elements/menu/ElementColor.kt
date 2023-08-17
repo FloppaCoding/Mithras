@@ -31,12 +31,12 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
         context.fill(width - 26, 2, width - 1, 11, colorValue)
 
         /** Render the tab indicating the drop-down */
-        context.fill(0,  13, width, 15, ColorUtil.tabColorBg)
+        context.fill(0,  13, width, 15, ColorUtil.TAB_BACKGROUND_COLOR)
         context.fill((width * 0.4).toInt(), 12, (width * 0.6).toInt(), 15, ColorUtil.tabColor)
 
         /** Render the extended */
         if (extended) {
-            context.fill(0, DEFAULT_HEIGHT,  width, height, ColorUtil.dropDownColor)
+            context.fill(0, DEFAULT_HEIGHT,  width, height, ColorUtil.DROPDOWN_COLOR)
             var currentDrawY = DEFAULT_HEIGHT
             val increment = DEFAULT_HEIGHT
 

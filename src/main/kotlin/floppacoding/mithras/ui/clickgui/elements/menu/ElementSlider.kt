@@ -26,11 +26,11 @@ class ElementSlider(parent: ModuleButton, setting: NumberSetting<*>) :
         val percentBar = (setting.doubleValue - setting.minDouble) / (setting.maxDouble - setting.minDouble)
 
         /** Render the text */
-        FontUtil.drawString(context, displayName, 1, 2, )
+        FontUtil.drawString(context, displayName, 1, 2)
         FontUtil.drawString(context, displayval, width - FontUtil.getStringWidth(displayval), 2)
 
         /** Render the slider */
-        context.fill(0, 12, width, 13, ColorUtil.sliderBackground)
+        context.fill(0, 12, width, 13, ColorUtil.SLIDER_BACKGROUND_COLOR)
         context.fill(0, 12, (percentBar * width).toInt(), 13, ColorUtil.sliderColor(hoveredORdragged))
         if (percentBar > 0 && percentBar < 1) context.fill(
             (percentBar * width - 1).toInt(), 12, ((percentBar * width).toInt().coerceAtMost(width)), 13,

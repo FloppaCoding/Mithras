@@ -78,7 +78,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
         context.matrices.push()
         context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
 
-        context.fill(0, 0, width, height + 1, ColorUtil.moduleButtonColor)
+        context.fill(0, 0, width, height + 1, ColorUtil.MODULE_BUTTON_COLOR)
         if (MainSettings.design.isSelected(MainSettings.Designs.NEW)) {
             context.fill(0, 0, 2, height + 1, ColorUtil.outlineColor)
         }
