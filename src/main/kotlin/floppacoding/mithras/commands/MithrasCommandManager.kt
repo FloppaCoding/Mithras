@@ -10,15 +10,18 @@ import net.minecraft.command.CommandRegistryAccess
 /**
  * # This object handles all the commands of the mod.
  *
- * After making a [Command][CommandBase] it just has to be added to the [commands] list, and
+ * After making a [Command][Command] it just has to be added to the [commands] list, and
  * it will automatically be registered.
  *
  *
  * @author Aton
- * @see CommandBase
+ * @see Command
  */
 object MithrasCommandManager {
-    private val commands : ArrayList<CommandBase> = arrayListOf(
+    /**
+     * List of all commands.
+     */
+    private val commands: ArrayList<Command> = arrayListOf(
         MainCommand,
     )
 
@@ -29,10 +32,12 @@ object MithrasCommandManager {
      * Registering commands later can fail.
      */
     fun registerCommands() {
-        ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource?>, _: CommandRegistryAccess? ->
-            commands.forEach {
-                dispatcher.register(it.buildCommand())
+        ClientCommandRegistrationCallback.EVENT.register(
+            ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource>, _: CommandRegistryAccess? ->
+                commands.forEach {
+                    dispatcher.register(it.builder)
+                }
             }
-        })
+        )
     }
 }

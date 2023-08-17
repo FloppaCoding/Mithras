@@ -1,8 +1,8 @@
 package floppacoding.mithras.ui.hud
 
+//import floppacoding.mithras.floppamap.dungeon.MapRender
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
-//import floppacoding.mithras.floppamap.dungeon.MapRender
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil
 import net.minecraft.client.gui.DrawContext
