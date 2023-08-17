@@ -30,6 +30,29 @@ abstract class NVGScreen(
     private val clock = Clock()
 
     /**
+     * If this is false it will render FPS in bottom-right corner.
+     */
+    open val displayPerformance: Boolean = false
+
+    /** Used to show performance*/
+    private var frames = 0
+
+    /** Used to show performance */
+    private var performance: String = ""
+
+    /** Used to update fps */
+    private val perfUpdater = Executor(1.seconds) {
+        performance = "FPS : $frames, Frametime : ${clock.getTime() / 1000_000f}ms" // not avg frame time cuz too lazy for that
+        frames = 0
+    }
+
+    val windowWidth: Float
+        get() = mc.window.width / scale
+
+    val windowHeight: Float
+        get() = mc.window.height / scale
+
+    /**
      * Sets up the frame and scaling.
      */
     final override fun render(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
@@ -65,20 +88,7 @@ abstract class NVGScreen(
         NVGR.text(performance, mc.window.width - 2f, mc.window.height - 2f, 16f, -1, textAlign = TextAlign.RIGHT)
     }
 
-    /**
-     * If this is false it will render FPS in bottom-right corner.
-     */
-    open val displayPerformance: Boolean = false
+    fun getMouseX(): Double = mc.mouse.x / scale
 
-    /** Used to show performance*/
-    private var frames = 0
-
-    /** Used to show performance */
-    private var performance: String = ""
-
-    /** Used to update fps */
-    private val perfUpdater = Executor(1.seconds) {
-        performance = "FPS : $frames, Frametime : ${clock.getTime() / 1000_000f}ms" // not avg frame time cuz too lazy for that
-        frames = 0
-    }
+    fun getMouseY(): Double = mc.mouse.y / scale
 }

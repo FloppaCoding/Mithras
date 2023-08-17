@@ -5,8 +5,12 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
 import floppacoding.mithras.ui.nanovg.NVGR.endFrame
 import org.lwjgl.nanovg.NVGColor
+import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoVG.*
 import org.lwjgl.nanovg.NanoVGGL3
+import java.nio.FloatBuffer
+
+typealias TextAlign = NVGR.TextAlign
 
 /**
  * # NanoVG Renderer - 2D Rendering Library
@@ -29,7 +33,11 @@ import org.lwjgl.nanovg.NanoVGGL3
 object NVGR {
     val nanoContext: Long = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS)
 
+    /**
+     * Variables for storing temporary draw style data.
+     */
     private val nanoColor: NVGColor = NVGColor.calloc()
+    private val imgPaint: NVGPaint = NVGPaint.calloc()
 
     /**
      * Begins drawing a new frame.
@@ -60,6 +68,11 @@ object NVGR {
      * Translates the origin of the current coordinate system.
      */
     fun translate(x: Float, y: Float) = nvgTranslate(nanoContext, x, y)
+
+    /**
+     * Translates the origin of the current coordinate system.
+     */
+    fun translate(x: Double, y: Double) = nvgTranslate(nanoContext, x.toFloat(), y.toFloat())
 
     /**
      * Scales the current coordinate system.
@@ -121,7 +134,7 @@ object NVGR {
         y: Float,
         fontSize: Float,
         color: Int,
-        font: NVGFontManager.Font = NVGFontManager.ROBOTO,
+        font: NVGFont = NVGFontManager.ROBOTO,
         textAlign: TextAlign = TextAlign.LEFT
     ) {
         nvgBeginPath(nanoContext)
@@ -130,6 +143,33 @@ object NVGR {
         nvgTextAlign(nanoContext, textAlign.nvg)
         fillColor(color)
         nvgText(nanoContext, x, y, text)
+    }
+
+    /**
+     * Returns the width of the given [text].
+     */
+    fun textWidth(text: String, fontSize: Float, font: NVGFont = NVGFontManager.ROBOTO): Float {
+        nvgFontSize(nanoContext, fontSize)
+        nvgFontFaceId(nanoContext, font.id)
+//        nvgTextAlign(nanoContext, TextAlign.LEFT.nvg)
+//        val buffer = ByteBuffer.allocateDirect(4*4).asFloatBuffer()
+        return nvgTextBounds(nanoContext, 0f, 0f, text, null as FloatBuffer?)
+    }
+
+    /**
+     * Draws the [image] at [x],[y].
+     * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
+     * @param radius radius of the corner radius.
+     */
+    fun image(image: NVGImage, x: Float, y: Float, width: Float, height: Float, radius: Float = 0f, alpha: Float = 1f) {
+        nvgImagePattern(nanoContext, 0f, 0f, width, height, 0f, image.id, alpha, imgPaint)
+        push()
+        translate(x, y)
+        nvgBeginPath(nanoContext)
+        nvgRoundedRect(nanoContext,0f, 0f, width, height, radius)
+        nvgFillPaint(nanoContext, imgPaint)
+        nvgFill(nanoContext)
+        pop()
     }
 
     /**
@@ -175,5 +215,3 @@ object NVGR {
         MIDDLE(NVG_ALIGN_MIDDLE)
     }
 }
-
-typealias TextAlign = NVGR.TextAlign
