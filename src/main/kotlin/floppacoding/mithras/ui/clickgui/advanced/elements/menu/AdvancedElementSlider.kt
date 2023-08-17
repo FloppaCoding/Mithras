@@ -20,21 +20,21 @@ import kotlin.math.roundToInt
  * @author Aton
  */
 class AdvancedElementSlider(
-    parent: AdvancedMenu, module: Module, setting: NumberSetting,
-) : AdvancedElement<NumberSetting>(parent, module, setting, AdvancedElementType.SLIDER) {
+    parent: AdvancedMenu, module: Module, setting: NumberSetting<*>,
+) : AdvancedElement<NumberSetting<*>>(parent, module, setting, AdvancedElementType.SLIDER) {
     private var dragging: Boolean = false
 
     /**
 	 * Renders the element
 	 */
     override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) : Int{
-        val displayval = "" + (setting.value * 100.0).roundToInt() / 100.0
+        val displayval = "" + (setting.doubleValue * 100.0).roundToInt() / 100.0
         val hoveredORdragged = isSliderHovered(mouseX, mouseY) || dragging
         val temp = ColorUtil.clickGUIColor
         val color = Color(temp.red, temp.green, temp.blue, if (hoveredORdragged) 250 else 200).rgb
         val color2 = Color(temp.red, temp.green, temp.blue, if (hoveredORdragged) 255 else 230).rgb
 
-        val percentBar = (setting.value - setting.min) / (setting.max - setting.min)
+        val percentBar = (setting.doubleValue - setting.minDouble) / (setting.maxDouble - setting.minDouble)
 
         /** Render the text */
         FontUtil.drawString(context, setting.name, 1, 2, -0x1)
@@ -51,9 +51,9 @@ class AdvancedElementSlider(
 
         /** Calculate and set new value when dragging */
         if (dragging) {
-            val diff = setting.max - setting.min
-            val newVal = setting.min + MathHelper.clamp((mouseX - parent.x - x) / settingWidth.toDouble(), 0.0, 1.0) * diff
-            setting.value = newVal //Die Value im Setting updaten
+            val diff = setting.maxDouble - setting.minDouble
+            val newVal = setting.minDouble + MathHelper.clamp((mouseX - parent.x - x) / settingWidth.toDouble(), 0.0, 1.0) * diff
+            setting.doubleValue = newVal //Die Value im Setting updaten
         }
 
        return this.settingHeight
@@ -94,11 +94,11 @@ class AdvancedElementSlider(
 
         if (isSliderHovered(scaledMouseX, scaledMouseY)){
             if (keyCode == GLFW.GLFW_KEY_RIGHT){
-                setting.value += setting.increment
+                setting.doubleValue += setting.incrementDouble
                 return true
             }
             if (keyCode == GLFW.GLFW_KEY_LEFT){
-                setting.value -= setting.increment
+                setting.doubleValue -= setting.incrementDouble
                 return true
             }
         }

@@ -16,21 +16,21 @@ import kotlin.math.roundToInt
  *
  * @author Aton
  */
-class ElementSlider(parent: ModuleButton, setting: NumberSetting) :
-    Element<NumberSetting>(parent, setting, ElementType.SLIDER) {
+class ElementSlider(parent: ModuleButton, setting: NumberSetting<*>) :
+    Element<NumberSetting<*>>(parent, setting, ElementType.SLIDER) {
     var dragging: Boolean = false
 
     override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float): Int {
-        val displayval = "" + (setting.value * 100.0).roundToInt() / 100.0
+        val displayval = "" + (setting.doubleValue * 100.0).roundToInt() / 100.0
         val hoveredORdragged = isSliderHovered(mouseX, mouseY) || dragging
-        val percentBar = (setting.value - setting.min) / (setting.max - setting.min)
+        val percentBar = (setting.doubleValue - setting.minDouble) / (setting.maxDouble - setting.minDouble)
 
         /** Render the text */
-        FontUtil.drawString(context, displayName, 1, 2, )
+        FontUtil.drawString(context, displayName, 1, 2)
         FontUtil.drawString(context, displayval, width - FontUtil.getStringWidth(displayval), 2)
 
         /** Render the slider */
-        context.fill(0, 12, width, 13, ColorUtil.sliderBackground)
+        context.fill(0, 12, width, 13, ColorUtil.SLIDER_BACKGROUND_COLOR)
         context.fill(0, 12, (percentBar * width).toInt(), 13, ColorUtil.sliderColor(hoveredORdragged))
         if (percentBar > 0 && percentBar < 1) context.fill(
             (percentBar * width - 1).toInt(), 12, ((percentBar * width).toInt().coerceAtMost(width)), 13,
@@ -39,9 +39,9 @@ class ElementSlider(parent: ModuleButton, setting: NumberSetting) :
 
         /** Calculate and set new value when dragging */
         if (dragging) {
-            val diff = setting.max - setting.min
-            val newVal = setting.min + MathHelper.clamp(((mouseX - xAbsolute) / width.toDouble()), 0.0, 1.0) * diff
-            setting.value = newVal
+            val diff = setting.maxDouble - setting.minDouble
+            val newVal = setting.minDouble + MathHelper.clamp(((mouseX - xAbsolute) / width.toDouble()), 0.0, 1.0) * diff
+            setting.doubleValue = newVal
         }
 
         return super.renderElement(context, mouseX, mouseY, partialTicks)
@@ -75,11 +75,11 @@ class ElementSlider(parent: ModuleButton, setting: NumberSetting) :
 
         if (isSliderHovered(scaledMouseX, scaledMouseY)){
             if (keyCode == GLFW.GLFW_KEY_RIGHT){
-                setting.value += setting.increment
+                setting.doubleValue += setting.incrementDouble
                 return true
             }
             if (keyCode == GLFW.GLFW_KEY_LEFT){
-                setting.value -= setting.increment
+                setting.doubleValue -= setting.incrementDouble
                 return true
             }
         }

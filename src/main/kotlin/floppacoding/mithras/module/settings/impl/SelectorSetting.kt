@@ -8,6 +8,13 @@ import floppacoding.mithras.module.settings.Visibility
  *
  * In most cases it is more convenient to use the factory function which acts as a constructor which omits the [options]
  * parameter.
+ * Example use:
+ *
+ *     enum class Designs(override val displayName: String): Options {
+ *        JELLYLIKE("Jellylike"), NEW("New")
+ *     }
+ *     val design = SelectorSetting("Design", Designs.JELLYLIKE, description = "Design theme of the gui.")
+ *
  *
  * @author Aton
  */
@@ -55,13 +62,21 @@ class SelectorSetting<T>(
  *
  * If you want to limit the options to be a subset of the available constants, use the main constructor and specify those explicitly.
  */
-inline fun <reified L> SelectorSetting(name: String,
-                                       default: L,
-                                       visibility: Visibility = Visibility.VISIBLE,
-                                       description: String? = null
+inline fun <reified L> SelectorSetting(
+    name: String,
+    default: L,
+    visibility: Visibility = Visibility.VISIBLE,
+    description: String? = null
 ) : SelectorSetting<L> where L : Options, L: Enum<L> =
     SelectorSetting(name, default, enumValues(), visibility, description)
 
+/**
+ * The enum of the [SelectorSetting] needs to implement this. Example:
+ *
+ *      enum class Designs(override val displayName: String): Options {
+ *         JELLYLIKE("Jellylike"), NEW("New")
+ *      }
+ */
 interface Options {
     val displayName: String
 }

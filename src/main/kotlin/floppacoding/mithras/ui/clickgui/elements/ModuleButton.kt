@@ -54,7 +54,6 @@ class ModuleButton(val module: Module, val panel: Panel) {
                 val newElement = when (setting) {
                     is BooleanSetting ->    ElementCheckBox(this, setting)
                     is NumberSetting ->     ElementSlider(this, setting)
-                    is StringSelectorSetting ->   ElementStringSelector(this, setting)
                     is SelectorSetting ->   ElementSelector(this, setting)
                     is StringSetting ->     ElementTextField(this, setting)
                     is ColorSetting ->      ElementColor(this, setting)
@@ -79,8 +78,8 @@ class ModuleButton(val module: Module, val panel: Panel) {
         context.matrices.push()
         context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
 
-        context.fill(0, 0, width, height + 1, ColorUtil.moduleButtonColor)
-        if (MainSettings.design.isSelected("New")) {
+        context.fill(0, 0, width, height + 1, ColorUtil.MODULE_BUTTON_COLOR)
+        if (MainSettings.design.isSelected(MainSettings.Designs.NEW)) {
             context.fill(0, 0, 2, height + 1, ColorUtil.outlineColor)
         }
 

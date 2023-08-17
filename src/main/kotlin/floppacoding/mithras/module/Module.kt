@@ -94,7 +94,7 @@ import kotlin.reflect.full.hasAnnotation
  * @author Aton
  * @see ModuleManager
  * @param name The name of the Module. **This has to be unique!** This name is shown in the GUI and used to identify the module in the config.
- * @param keyBind Key code for the Modules key-bind.
+ * @param keyCode Key code for the Modules key-bind.
  * @param category Determines in which category Panel the module will appear in the GUI.
  * @param description A description of the module and its usage that is shown in the [Advanced GUI][floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu].
  */

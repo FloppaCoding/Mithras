@@ -47,7 +47,7 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
     }
 
     /**
-     * Register key strokes. Used to set the key bind.
+     * Register keystrokes. Used to set the key bind.
      */
     override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
         if (listening) {

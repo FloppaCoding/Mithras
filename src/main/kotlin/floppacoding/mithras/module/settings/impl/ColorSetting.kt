@@ -136,7 +136,7 @@ class ColorSetting(
      * Returns an array of the availiable settings. Those are either red, green and blue or red, green, blue and alpha.
      */
     fun colors(): Array<ColorComponent> {
-        val tempArr = if (MainSettings.colorSettingMode.isSelected("RGB"))
+        val tempArr = if (MainSettings.colorSettingMode.isSelected(MainSettings.ColorModes.RGB))
             arrayOf(ColorComponent.RED, ColorComponent.GREEN, ColorComponent.BLUE)
         else
             arrayOf(ColorComponent.HUE, ColorComponent.SATURATION, ColorComponent.BRIGHTNESS)
@@ -151,7 +151,7 @@ class ColorSetting(
      * This is the best solution I could come up with on the spot to circumvent that I cannot pass a reference to the
      * int values.
      */
-    enum class ColorComponent() {
+    enum class ColorComponent {
         RED, GREEN, BLUE, HUE, SATURATION, BRIGHTNESS, ALPHA;
 
         fun getName(): String {

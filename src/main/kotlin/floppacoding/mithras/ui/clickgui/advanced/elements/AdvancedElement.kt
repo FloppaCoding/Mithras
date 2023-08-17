@@ -78,7 +78,7 @@ abstract class AdvancedElement<S: Setting<*>>(
             FontUtil.drawSplitString(
                 context,
                 it, settingWidth + 10,
-                2, width - settingWidth - 10, ColorUtil.textcolor
+                2, width - settingWidth - 10, ColorUtil.TEXT_COLOR
             )
             descriptionHeight = FontUtil.getSplitHeight(it, width - settingWidth - 10)
         }

@@ -8,7 +8,7 @@ import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.menu.*
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.ColorUtil.textcolor
+import floppacoding.mithras.ui.clickgui.util.ColorUtil.TEXT_COLOR
 import floppacoding.mithras.ui.clickgui.util.FontUtil
 import floppacoding.mithras.utils.render.HUDRenderUtils
 import net.minecraft.client.gui.DrawContext
@@ -23,7 +23,7 @@ import java.awt.Color
 class AdvancedMenu(val module: Module) {
     private val elements: MutableList<AdvancedElement<*>> = mutableListOf()
 
-    // Position parameters, for simplicity all the logic is handled in the getters and setters, so that the values dont have to be updated once every render
+    // Position parameters, for simplicity all the logic is handled in the getters and setters, so that the values don't have to be updated once every render
     private val s
         get() = mc.window
     var x = 10
@@ -60,7 +60,6 @@ class AdvancedMenu(val module: Module) {
             when (setting) {
                 is BooleanSetting   -> elements.add(AdvancedElementCheckBox (this, module, setting))
                 is NumberSetting    -> elements.add(AdvancedElementSlider   (this, module, setting))
-                is StringSelectorSetting  -> elements.add(AdvancedElementStringSelector (this, module, setting))
                 is SelectorSetting  -> elements.add(AdvancedElementSelector (this, module, setting))
                 is StringSetting    -> elements.add(AdvancedElementTextField(this, module, setting))
                 is ColorSetting     -> elements.add(AdvancedElementColor    (this, module, setting))
@@ -100,15 +99,15 @@ class AdvancedMenu(val module: Module) {
 
         // Render a title bar containing the name of the module
         context.fill(0, 0, width, 15, color)
-        FontUtil.drawTotalCenteredStringWithShadow(context, module.name, width / 2.0,  1 + 15 / 2.0, textcolor)
+        FontUtil.drawTotalCenteredStringWithShadow(context, module.name, width / 2.0,  1 + 15 / 2.0, TEXT_COLOR)
 
         // Set up the Scissor Box
 //        val scale = mc.window.height /  mc.window.scaledHeight
         HUDRenderUtils.setUpScissor(
             (mc.window.width * MainSettings.advancedRelX.value).toInt(),
             (mc.window.height * MainSettings.advancedRelY.value + 15 * ClickGUI.CLICK_GUI_SCALE).toInt(),
-            (mc.window.width * MainSettings.advancedRelWidth).toInt(),
-            (mc.window.height * MainSettings.advancedRelHeight - (15+indent) * ClickGUI.CLICK_GUI_SCALE).toInt(),
+            (mc.window.width * MainSettings.ADVANCED_GUI_RELATIVE_WIDTH).toInt(),
+            (mc.window.height * MainSettings.ADVANCED_GUI_RELATIVE_HEIGHT - (15+indent) * ClickGUI.CLICK_GUI_SCALE).toInt(),
             1.0
         )
 //        GL11.glScissor(
@@ -125,7 +124,7 @@ class AdvancedMenu(val module: Module) {
         var dy = 20 - scrollOffs
 
         /** Render the module description text */
-        FontUtil.drawSplitString(context, module.description, indent, dy, width - 2 * indent , textcolor)
+        FontUtil.drawSplitString(context, module.description, indent, dy, width - 2 * indent , TEXT_COLOR)
         dy += FontUtil.getSplitHeight(module.description, width-2*indent) + 10
         //Render the settings.
         for (element in elements) {
@@ -136,7 +135,7 @@ class AdvancedMenu(val module: Module) {
         }
         length = dy + scrollOffs
 
-        // Resetting the scissor
+        // Resetting the scissor test
         HUDRenderUtils.endScissor()
         context.matrices.pop()
     }
@@ -193,8 +192,8 @@ class AdvancedMenu(val module: Module) {
         val s = mc.window
         x = (s.width  * MainSettings.advancedRelX.value   / ClickGUI.CLICK_GUI_SCALE).toInt()
         y = (s.height * MainSettings.advancedRelY.value   / ClickGUI.CLICK_GUI_SCALE).toInt()
-        width =  (s.width *MainSettings.advancedRelWidth  / ClickGUI.CLICK_GUI_SCALE).toInt()
-        height = (s.height*MainSettings.advancedRelHeight / ClickGUI.CLICK_GUI_SCALE).toInt()
+        width =  (s.width *MainSettings.ADVANCED_GUI_RELATIVE_WIDTH  / ClickGUI.CLICK_GUI_SCALE).toInt()
+        height = (s.height*MainSettings.ADVANCED_GUI_RELATIVE_HEIGHT / ClickGUI.CLICK_GUI_SCALE).toInt()
     }
 
     /**

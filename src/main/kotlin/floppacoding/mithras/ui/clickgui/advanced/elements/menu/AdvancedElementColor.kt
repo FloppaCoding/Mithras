@@ -50,7 +50,7 @@ class AdvancedElementColor(
             colorValue
         )
 
-        // Render the tab indicating the drop down
+        // Render the tab indicating the drop-down
         context.fill(0, 13, settingWidth, 15, 0x77000000)
         context.fill(
             (settingWidth * 0.4).toInt(),
@@ -71,7 +71,7 @@ class AdvancedElementColor(
             // Render the color sliders
             for (currentColor in setting.colors()) {
 
-                // If hue, render the hue bar.
+                // If hue selected, render the hue bar.
                 if (currentColor == ColorSetting.ColorComponent.HUE) {
                     hueScale.let {
                         context.matrices.push()

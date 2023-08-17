@@ -6,7 +6,7 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.ColorUtil.textcolor
+import floppacoding.mithras.ui.clickgui.util.ColorUtil.TEXT_COLOR
 import floppacoding.mithras.ui.clickgui.util.FontUtil
 import net.minecraft.client.gui.DrawContext
 import java.awt.Color
@@ -29,7 +29,7 @@ class AdvancedElementCheckBox(
         val color = Color(temp.red, temp.green, temp.blue, 200).rgb
 
         /** Rendering the name and the checkbox */
-        FontUtil.drawString(context, setting.name, 1, 2, textcolor)
+        FontUtil.drawString(context, setting.name, 1, 2, TEXT_COLOR)
         context.fill(
             (settingWidth - 13), 2, settingWidth - 1, 13,
             if (setting.enabled) color else -0x1000000

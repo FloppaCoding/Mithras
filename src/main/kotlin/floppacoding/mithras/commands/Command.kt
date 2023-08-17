@@ -20,7 +20,7 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
  * Then add an Instance of your command to the [commands][MithrasCommandManager.commands]
  * list in the [MithrasCommandManager].
  *
- * @sample floppacoding.mithras.commands.impl.MainCommand.build
+ * @sample floppacoding.mithras.commands.impl.MainCommand.builder
  * @author Aton
  */
 interface Command {
@@ -114,7 +114,7 @@ typealias CmdSource = FabricClientCommandSource
 typealias ArgBuilder = ArgumentBuilder<CmdSource, *>
 typealias Task = ArgumentBuilder<CmdSource, *>.() -> Unit 
 
-// The code below does not quite work so far. It cleans up some things tho and maybe it can be made to work but I cba to
+// The code below does not quite work so far. It cleans up some things though, and maybe it can be made to work but I cba to
 // fix it rn
 
     /*

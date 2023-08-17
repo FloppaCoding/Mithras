@@ -36,7 +36,7 @@ class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
         }
 
         // Render the tab indicating the drop-down
-        context.fill(0, 13, width, 15, ColorUtil.tabColorBg)
+        context.fill(0, 13, width, 15, ColorUtil.TAB_BACKGROUND_COLOR)
         context.fill((width * 0.4).toInt(), 12, (width * 0.6).toInt(), 15, ColorUtil.tabColor)
 
         // Render the dropdown
@@ -44,7 +44,7 @@ class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
             var ay = DEFAULT_HEIGHT
             val increment = FontUtil.fontHeight + 2
             for (option in setting.options) {
-                context.fill(0, ay, width, ay + increment, ColorUtil.dropDownColor)
+                context.fill(0, ay, width, ay + increment, ColorUtil.DROPDOWN_COLOR)
                 val optionName = option.displayName
                 val elementtitle =
                     optionName.substring(0, 1).uppercase(Locale.getDefault()) + optionName.substring(1, optionName.length)

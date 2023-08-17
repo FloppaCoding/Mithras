@@ -13,9 +13,9 @@ import net.minecraft.client.gui.DrawContext
  */
 abstract class HudElement{
 
-    private val xSett: NumberSetting
-    private val ySett: NumberSetting
-    val scale: NumberSetting
+    private val xSett: NumberSetting<*>
+    private val ySett: NumberSetting<*>
+    val scale: NumberSetting<*>
 
     var width: Int
     var height: Int
@@ -28,13 +28,13 @@ abstract class HudElement{
     var x: Int
      get() = xSett.value.toInt()
      set(value) {
-         xSett.value = value.toDouble()
+         xSett.doubleValue = value.toDouble()
      }
 
     var y: Int
         get() = ySett.value.toInt()
         set(value) {
-            ySett.value = value.toDouble()
+            ySett.doubleValue = value.toDouble()
         }
 
     /**
@@ -61,7 +61,7 @@ abstract class HudElement{
     /**
      * It is advised to use the other constructor unless this one is required.
      */
-    constructor(xHud: NumberSetting, yHud: NumberSetting, width: Int = 10, height: Int = 10, scale: NumberSetting) {
+    constructor(xHud: NumberSetting<*>, yHud: NumberSetting<*>, width: Int = 10, height: Int = 10, scale: NumberSetting<*>) {
         this.xSett = xHud
         this.ySett = yHud
         this.scale = scale
@@ -76,9 +76,9 @@ abstract class HudElement{
      * Can be overridden in the implementation.
      */
     open fun resetElement() {
-        xSett.value = xSett.default
-        ySett.value = ySett.default
-        scale.value = scale.default
+        xSett.reset()
+        ySett.reset()
+        scale.reset()
     }
 
     /**
@@ -86,7 +86,7 @@ abstract class HudElement{
      * Can be overridden in implementation.
      */
     open fun scroll(amount: Int) {
-        this.scale.value += amount * zoomIncrement
+        this.scale.doubleValue += amount * zoomIncrement
     }
 
     /**
@@ -107,7 +107,7 @@ abstract class HudElement{
      * Override this method in your implementations.
      *
      * This method is responsible for rendering the HUD element.
-     * Within this method coordinates are already transformed regarding to the HUD position [x],[x] and [scale].
+     * Within this method coordinates are already transformed in regard to the HUD position [x],[x] and [scale].
      */
     abstract fun renderHud(context: DrawContext)
 
