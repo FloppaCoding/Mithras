@@ -4,6 +4,7 @@ import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
 import floppacoding.mithras.module.impl.render.CoordinateDisplay
 import floppacoding.mithras.module.impl.render.EditHud
+import floppacoding.mithras.module.impl.render.ItemAnimations
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.ui.hud.EditHudGUI
@@ -41,7 +42,8 @@ object ModuleManager {
         //RENDER
         MainSettings,
         EditHud,
-        CoordinateDisplay
+        CoordinateDisplay,
+        ItemAnimations,
 
 
         //PLAYER
