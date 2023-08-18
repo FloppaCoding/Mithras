@@ -1,5 +1,6 @@
 package floppacoding.mithras.ui.clickgui.elements
 
+import floppacoding.mithras.module.impl.render.GUIDesign
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.module.settings.impl.ColorSetting
@@ -91,7 +92,7 @@ abstract class Element<S: Setting<*>>(
         /** Rendering the box */
         context.fill(0, 0, width, height, color)
         /** The decor */
-        if (MainSettings.design.isSelected(MainSettings.Designs.NEW)) {
+        if (MainSettings.design.isSelected(GUIDesign.NEW)) {
             context.fill(width, 0, width + 2, height, ColorUtil.outlineColor)
         }
 

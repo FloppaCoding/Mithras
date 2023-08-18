@@ -2,6 +2,7 @@ package floppacoding.mithras.ui.clickgui
 
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.ModuleManager
+import floppacoding.mithras.module.impl.render.GUIDesign
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementKeyBind
@@ -89,11 +90,11 @@ class Panel(
         context.fill(0, startY, width, startY + 5, ColorUtil.DROPDOWN_COLOR)
 
         // Render decor
-        if (MainSettings.design.isSelected(MainSettings.Designs.NEW)) {
+        if (MainSettings.design.isSelected(GUIDesign.NEW)) {
             context.fill(0, 0,  2, height, ColorUtil.outlineColor)
             context.fill(0, startY,  2, startY+5, ColorUtil.outlineColor)
             FontUtil.drawStringWithShadow(context, title, 4.0, height / 2.0 - FontUtil.fontHeight / 2.0)
-        } else if (MainSettings.design.isSelected(MainSettings.Designs.JELLYLIKE)) {
+        } else if (MainSettings.design.isSelected(GUIDesign.JELLYLIKE)) {
             context.fill(4, 2, 5, height - 2, ColorUtil.JELLY_PANEL_COLOR)
             context.fill(width - 4, 2, width - 5, height - 2, ColorUtil.JELLY_PANEL_COLOR)
             FontUtil.drawTotalCenteredStringWithShadow(context, title, width / 2.0, height / 2.0)

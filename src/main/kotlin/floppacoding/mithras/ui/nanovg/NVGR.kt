@@ -229,12 +229,12 @@ object NVGR {
      * Sets [imgPaint] to the currently selected chroma pattern.
      */
     private fun chromaPattern() {
-        val size = 4000f / MainSettings.chromaSize.value.coerceAtLeast(0.01).toFloat()
+        val size = 4000f / MainSettings.chromaSize.coerceAtLeast(0.01f)
 
-        val offset: Float = if(MainSettings.chromaSpeed.value < 1e-2) {
+        val offset: Float = if(MainSettings.chromaSpeed < 1e-2) {
             0f
         }else {
-            val period = (1000 / MainSettings.chromaSpeed.value).toInt()
+            val period = (1000 / MainSettings.chromaSpeed).toInt()
             val time = System.currentTimeMillis().mod(period)
             time / period.toFloat() * size / 20f
         }
@@ -249,7 +249,7 @@ object NVGR {
     private fun setupChroma() {
         chromaPattern()
         nvgReset(nanoContext)
-        val angle: Float = MainSettings.chromaAngle.value.toFloat()
+        val angle: Float = MainSettings.chromaAngle
         when (angle) {
             in 0f..90f -> {} // chroma goes i direction of top left corner
             in 90f..180f -> nvgTranslate(nanoContext, mc.window.width.toFloat(), 0f) // top right corner

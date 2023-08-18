@@ -2,6 +2,7 @@ package floppacoding.mithras.ui.clickgui.elements
 
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.impl.render.GUIDesign
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.impl.*
 import floppacoding.mithras.ui.clickgui.Panel
@@ -79,7 +80,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
         context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
 
         context.fill(0, 0, width, height + 1, ColorUtil.MODULE_BUTTON_COLOR)
-        if (MainSettings.design.isSelected(MainSettings.Designs.NEW)) {
+        if (MainSettings.design.isSelected(GUIDesign.NEW)) {
             context.fill(0, 0, 2, height + 1, ColorUtil.outlineColor)
         }
 
