@@ -14,6 +14,8 @@ typealias NVGImage = NVGImageManager.Image
 
 object NVGImageManager {
     val ICON: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/icon.png")
+    val HUE_SCALE: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale.png")
+    val CHROMA: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale20_lowres.png")
 
     /**
      * Image for NanoVG.

@@ -8,17 +8,13 @@ object Test : NVGScreen("Hello") {
 
     override fun render(mouseX: Double, mouseY: Double, delta: Float) {
         NVGR.roundedRect(100f, 500f, 200f, 200f, 8f, -1)
+        NVGR.image(NVGImageManager.ICON, 100f, 500f, 200f, 200f)
+        NVGR.chromaBorder(100f,500f,200f,200f, 5f, 0f)
 
         val text = "Floppa is best"
         val textWdith = NVGR.textWidth(text, 16f)
         NVGR.text(text, 100f, 100f, 16f, 0x654657a7)
         NVGR.rect(100f + textWdith, 50f, 100f, 100f, 0x65700491)
-
-
-        val imgSize = 120f
-
-
-        NVGR.image(NVGImageManager.ICON, windowWidth-150f, windowHeight - 150f, imgSize, imgSize)
 
     }
 
