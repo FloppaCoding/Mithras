@@ -227,6 +227,37 @@ object NVGR {
         strokeWithChroma(lineWidth)
     }
 
+    fun textField(text: String,
+                  x: Float,
+                  y: Float,
+                  width: Float,
+                  color: Int,
+                  fontSize: Float = DEFAULT_FONT_HEIGHT,
+                  radius: Float = 3f,
+                  font: NVGFont = NVGFontManager.ROBOTO
+    ) {
+        val height = fontSize* 1.5f
+        nvgBeginPath(nanoContext)
+        nvgRGBA(255.toByte(), 255.toByte(),255.toByte(), 32.toByte(), nanoColor)
+        nvgRGBA(23.toByte(), 32.toByte(),32.toByte(), 32.toByte(), nanoColor2)
+        nvgBoxGradient(nanoContext, x +1f, y+1f, width - 2f, height-4f, radius, 4f, nanoColor, nanoColor2, nanoPaint)
+        nvgRoundedRect(nanoContext, x+ 1f, y+1f, width-2f, height-4f, radius)
+        nvgFillPaint(nanoContext, nanoPaint)
+        nvgFill(nanoContext)
+
+        nvgBeginPath(nanoContext)
+        nvgRoundedRect(nanoContext, x+0.5f, y+0.5f, width-1f, height -1f, (radius-1f).coerceAtLeast(0f))
+        nvgRGBA( 0.toByte(), 0.toByte(),0.toByte(), 48.toByte(), nanoColor)
+        nvgStrokeColor(nanoContext, nanoColor)
+        nvgStroke(nanoContext)
+
+        nvgFontSize(nanoContext, fontSize)
+        nvgFontFaceId(nanoContext, font.id)
+        nvgTextAlign(nanoContext, NVG_ALIGN_LEFT or NVG_ALIGN_MIDDLE)
+        setFillColor(color)
+        nvgText(nanoContext, x + height * 0.3f, y + height*0.5f, text)
+    }
+
     /**
      * Sets up a scissor rectangle.
      *
