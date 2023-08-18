@@ -11,8 +11,11 @@
     "InGameHudMixin",
     "KeyboardMixin",
     "MainMixin",
+    "MinecraftClientMixin",
     "MouseMixin",
+    "render.GameRendererMixin",
     "render.HeldItemRendererMixin",
+    "render.InGameOverlayRendererMixin",
     "render.WorldRendererMixin"
   ]
 }

@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(WorldRenderer.class)
-public class WorldRendererMixin {
+public abstract class WorldRendererMixin {
     /**
      * Prevents the sunrise and sunset overriding the fog.
      * That sunset / sunrise fog gets bugged by using nanovg rendering.
