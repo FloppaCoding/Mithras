@@ -3,6 +3,8 @@ package floppacoding.mithras.ui.nanovg
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
 import floppacoding.mithras.ui.nanovg.NVGR.endFrame
+import floppacoding.mithras.ui.nanovg.NVGR.pop
+import floppacoding.mithras.ui.nanovg.NVGR.push
 import floppacoding.mithras.utils.Utils.seconds
 import floppacoding.mithras.utils.clock.Clock
 import floppacoding.mithras.utils.clock.Executor
@@ -11,9 +13,13 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
+import org.lwjgl.nanovg.NanoVG
 
 /**
  * ### Parent class for GUI screens using the [NanoVG rendering library][NVGR].
+ *
+ * All the methods from the superclass [Screen] which contain mouse coordinates are overridden and replaced with
+ * variants which receive the correct mouse coordinates for the NanoVG coordinate space.
  *
  * @param scale scale of the coordinate system in relation to the screen.
  * At scale = 2f a coordinate change of 1 will equal 2 pixels.
@@ -22,7 +28,7 @@ import net.minecraft.text.Text
  */
 abstract class NVGScreen(
     title: Text,
-    private val scale: Float = 1f
+    val scale: Float = 1f
 ) : Screen(title) {
 
     constructor(title: String, scale: Float = 1f) : this(MutableText.of(LiteralTextContent(title)), scale)
@@ -32,7 +38,7 @@ abstract class NVGScreen(
     /**
      * If this is false it will render FPS in bottom-right corner.
      */
-    open val displayPerformance: Boolean = false
+    protected open val displayPerformance: Boolean = false
 
     /** Used to show performance*/
     private var frames = 0
@@ -59,7 +65,9 @@ abstract class NVGScreen(
         clock.update()
         beginFrame()
         NVGR.scale(scale, scale)
-        render(mc.mouse.x / scale, mc.mouse.y / scale, partialTicks)
+        push()
+        render(getMouseX(), getMouseY(), partialTicks)
+        pop()
         if (displayPerformance) {
             displayPerformance()
         }
@@ -68,27 +76,73 @@ abstract class NVGScreen(
     }
 
     /**
+     * Renders the GUI.
+     *
+     * Override this with your rendering code.
+     * The frame is already set up and the mouse and rendering coordinates scaled to match the [scale] and be equal.
+     */
+    protected abstract fun render(mouseX: Float, mouseY: Float, delta: Float)
+
+    final override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+        if (mouseClicked(getMouseX(), getMouseY(), button)) return true
+
+        return super.mouseClicked(mouseX, mouseY, button)
+    }
+
+    protected open fun mouseClicked(mouseX: Float, mouseY: Float, button: Int) : Boolean { return false }
+
+    final override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
+        if (mouseReleased(getMouseX(), getMouseY(), button)) return true
+
+        return super.mouseReleased(mouseX, mouseY, button)
+    }
+
+    protected open fun mouseReleased(mouseX: Float, mouseY: Float, button: Int) : Boolean { return false }
+
+    final override fun mouseScrolled(mouseX: Double, mouseY: Double, amount: Double): Boolean {
+        if (mouseScrolled(getMouseX(), getMouseY(), amount.toFloat())) return true
+
+        return super.mouseScrolled(mouseX, mouseY, amount)
+    }
+
+    protected open fun mouseScrolled(mouseX: Float, mouseY: Float, amount: Float): Boolean { return false }
+
+    final override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
+        val scaledDeltaX = (deltaX * client!!.window.width / client!!.window.scaledWidth / scale).toFloat()
+        val scaledDeltaY = (deltaX * client!!.window.height / client!!.window.scaledHeight / scale).toFloat()
+
+        if (mouseDragged(getMouseX(), getMouseY(), button, scaledDeltaX, scaledDeltaY)) return true
+
+
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
+    }
+
+    protected open fun mouseDragged(mouseX: Float, mouseY: Float, button: Int, deltaX: Float, deltaY: Float): Boolean { return false }
+
+    final override fun mouseMoved(mouseX: Double, mouseY: Double) {
+        mouseMoved(getMouseX(), getMouseY())
+        super.mouseMoved(mouseX, mouseY)
+    }
+
+    protected open fun mouseMoved(mouseX: Float, mouseY: Float) {}
+
+    /**
      * Defaults this screen to not pause the game.
      */
     override fun shouldPause(): Boolean {
         return false
     }
 
-    /**
-     * Renders the GUI.
-     *
-     * Override this with your rendering code.
-     * The frame is already set up and the mouse and rendering coordinates scaled to match the [scale] and be equal.
-     */
-    abstract fun render(mouseX: Double, mouseY: Double, delta: Float)
-
     private fun displayPerformance() {
         frames++
         perfUpdater.run()
-        NVGR.text(performance, mc.window.width - 2f, mc.window.height - 2f, 16f, -1, textAlign = TextAlign.RIGHT)
+        push()
+        NanoVG.nvgReset(NVGR.nanoContext)
+        NVGR.text(performance, mc.window.width - 2f, mc.window.height - 2f, -1, 16f, textAlign = TextAlign.BOTTOM_RIGHT)
+        pop()
     }
 
-    fun getMouseX(): Double = mc.mouse.x / scale
+    fun getMouseX(): Float = mc.mouse.x.toFloat() / scale
 
-    fun getMouseY(): Double = mc.mouse.y / scale
+    fun getMouseY(): Float = mc.mouse.y.toFloat() / scale
 }
