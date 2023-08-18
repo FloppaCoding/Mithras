@@ -26,5 +26,10 @@ object MainCommand : Command {
                     Utils.setScreen(Test)
                 }
             }
+            literal("nanogui") {
+                execute {
+                    Utils.setScreen(Mithras.clickGUINano)
+                }
+            }
         }
 }
