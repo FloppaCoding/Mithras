@@ -10,6 +10,10 @@ import floppacoding.mithras.module.settings.impl.*
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
+typealias GUIDesign = MainSettings.Design
+typealias ColorMode = MainSettings.ColorMode
+typealias PrefixStyle = MainSettings.PrefixStyle
+
 /**
  * Settings for the CLick Gui
  * @author Aton
@@ -25,22 +29,24 @@ object MainSettings: Module(
             "§00...§ff§r are colors, l is §lBold§r, n is §nUnderlined§r, o is §oItalic§r, m is §mStrikethrough§r, k is §kObfuscated§r, r is Reset."
 ) {
 
-    val design: SelectorSetting<Designs> = SelectorSetting("Design", Designs.JELLYLIKE, description = "Design theme of the gui.")
-    val blur: BooleanSetting = BooleanSetting("Blur", false, description = "Toggles the background blur for the gui.")
-    val color = ColorSetting("Color", Color(255,200,0), false, description = "Color theme in the gui.")
-    val colorSettingMode = SelectorSetting("Color Mode", ColorModes.HSB, description = "Mode for all color settings in the gui. Changes the way colors are put in.")
-    val clientName: StringSetting = StringSetting("Name", "Project Mithras", description = "Name that will be rendered in the gui.")
-    val prefixStyle = SelectorSetting("Prefix Style", PrefixStyle.LONG, description = "Chat prefix selection for mod messages.")
-    val customPrefix = StringSetting("Custom Prefix", "§0§l[§4§Project Mithras§0§l]§r", 40, description = "You can set a custom chat prefix that will be used when Custom is selected in the Prefix Style dropdown.")
-    val chromaSize = NumberSetting("Chroma Size", 0.5, 0.0, 1.0, 0.01, description = "Determines how rapidly the chroma pattern changes spatially.")
-    val chromaSpeed = NumberSetting("Chroma Speed", 0.5, 0.0, 1.0, 0.01, description = "Determines how fast the chroma changes with time.")
-    val chromaAngle = NumberSetting("Chroma Angle", 45.0, 0.0, 360.0,1.0, description = "Determines the direction in which the chroma changes on your screen.")
-    val showUsageInfo = BooleanSetting("Usage Info", true, visibility = Visibility.ADVANCED_ONLY, description = "Show info on how to use the GUI.")
-    val apiKey = StringSetting("API Key", "", length = 100, visibility = Visibility.HIDDEN)
+    val design: SelectorSetting<Design> = +SelectorSetting("Design", Design.JELLYLIKE, description = "Design theme of the gui.")
+    val blur: BooleanSetting = +BooleanSetting("Blur", false, description = "Toggles the background blur for the gui.")
+    val color = +ColorSetting("Color", Color(255,200,0), false, description = "Color theme in the gui.")
+    val colorSettingMode = +SelectorSetting("Color Mode", ColorMode.HSB, description = "Mode for all color settings in the gui. Changes the way colors are put in.")
+    val clientName: StringSetting = +StringSetting("Name", "Project Mithras", description = "Name that will be rendered in the gui.")
+    val prefixStyle = +SelectorSetting("Prefix Style", PrefixStyle.LONG, description = "Chat prefix selection for mod messages.")
+    val customPrefix = +StringSetting("Custom Prefix", "§0§l[§4§Project Mithras§0§l]§r", 40, description = "You can set a custom chat prefix that will be used when Custom is selected in the Prefix Style dropdown.")
+    val chromaSize  by NumberSetting("Chroma Size",   0.5f, 0.0f,   1.0f, 0.01f, description = "Determines how rapidly the chroma pattern changes spatially.")
+    val chromaSpeed by NumberSetting("Chroma Speed",  0.5f, 0.0f,   1.0f, 0.01f, description = "Determines how fast the chroma changes with time.")
+    val chromaAngle by NumberSetting("Chroma Angle", 45.0f, 0.0f, 360.0f,  1.0f, description = "Determines the direction in which the chroma changes on your screen.")
+    val showUsageInfo = +BooleanSetting("Usage Info", true, visibility = Visibility.ADVANCED_ONLY, description = "Show info on how to use the GUI.")
+    val apiKey = +StringSetting("API Key", "", length = 100, visibility = Visibility.HIDDEN)
 
-    val panelX: MutableMap<Category, NumberSetting<Double>> = mutableMapOf()
-    val panelY: MutableMap<Category, NumberSetting<Double>> = mutableMapOf()
-    val panelExtended: MutableMap<Category, BooleanSetting> = mutableMapOf()
+    const val ADVANCED_GUI_RELATIVE_WIDTH = 0.5
+    const val ADVANCED_GUI_RELATIVE_HEIGHT = 0.5
+
+    val advancedRelX = +NumberSetting("Advanced_RelX",(1 - ADVANCED_GUI_RELATIVE_WIDTH)/2.0,0.0, (1- ADVANCED_GUI_RELATIVE_WIDTH), 0.0001, visibility = Visibility.HIDDEN)
+    val advancedRelY = +NumberSetting("Advanced_RelY",(1 - ADVANCED_GUI_RELATIVE_HEIGHT)/2.0,0.0, (1- ADVANCED_GUI_RELATIVE_HEIGHT), 0.0001, visibility = Visibility.HIDDEN)
 
     private const val PANEL_WIDTH = 120.0
     private const val PANEL_HEIGHT = 15.0
@@ -48,43 +54,14 @@ object MainSettings: Module(
     val panelWidth  = NumberSetting("Panel width", default = PANEL_WIDTH, visibility = Visibility.HIDDEN)
     val panelHeight = NumberSetting("Panel height", default = PANEL_HEIGHT, visibility = Visibility.HIDDEN)
 
-    const val ADVANCED_GUI_RELATIVE_WIDTH = 0.5
-    const val ADVANCED_GUI_RELATIVE_HEIGHT = 0.5
+    val panelX: MutableMap<Category, NumberSetting<Double>> = mutableMapOf()
+    val panelY: MutableMap<Category, NumberSetting<Double>> = mutableMapOf()
+    val panelExtended: MutableMap<Category, BooleanSetting> = mutableMapOf()
 
-    val advancedRelX = NumberSetting("Advanced_RelX",(1 - ADVANCED_GUI_RELATIVE_WIDTH)/2.0,0.0, (1- ADVANCED_GUI_RELATIVE_WIDTH), 0.0001, visibility = Visibility.HIDDEN)
-    val advancedRelY = NumberSetting("Advanced_RelY",(1 - ADVANCED_GUI_RELATIVE_HEIGHT)/2.0,0.0, (1- ADVANCED_GUI_RELATIVE_HEIGHT), 0.0001, visibility = Visibility.HIDDEN)
 
-    enum class Designs(override val displayName: String): Options {
-        JELLYLIKE("Jellylike"), NEW("New")
-    }
-
-    enum class ColorModes(override val displayName: String): Options {
-        HSB("HSB"), RGB("RGB")
-    }
-
-    enum class PrefixStyle(override val displayName: String): Options {
-        LONG("Long"), SHORT("Short"), CUSTOM("Custom")
-    }
 
 
     init {
-        addSettings(
-            design,
-            blur,
-            color,
-            colorSettingMode,
-            clientName,
-            prefixStyle,
-            customPrefix,
-            chromaSize,
-            chromaSpeed,
-            chromaAngle,
-            showUsageInfo,
-            apiKey,
-            advancedRelX,
-            advancedRelY
-        )
-
         // The Panels
 
         // this will set the default click gui panel settings. These will be overwritten by the config once it is loaded
@@ -139,5 +116,17 @@ object MainSettings: Module(
         mc.send { mc.setScreen(Mithras.clickGUI) }
         super.onEnable()
         toggle()
+    }
+
+    enum class Design(override val displayName: String): Options {
+        JELLYLIKE("Jellylike"), NEW("New")
+    }
+
+    enum class ColorMode(override val displayName: String): Options {
+        HSB("HSB"), RGB("RGB")
+    }
+
+    enum class PrefixStyle(override val displayName: String): Options {
+        LONG("Long"), SHORT("Short"), CUSTOM("Custom")
     }
 }

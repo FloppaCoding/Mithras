@@ -3,43 +3,52 @@ package floppacoding.mithras.ui.nanovg
 import floppacoding.mithras.Mithras
 import org.apache.commons.io.IOUtils
 import org.lwjgl.nanovg.NanoVG
+import org.lwjgl.stb.STBImage
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-typealias NVGFont = NVGFontManager.Font
+typealias NVGImage = NVGImageManager.Image
 
-/**
- * Provides fonts for the [VanoVG Renderer][NVGR].
- *
- * When a font file is not present when it is being loaded in the game will crash.
- * @author Aton
- */
-object NVGFontManager {
-
-    val ROBOTO: Font = Font("roboto", "/assets/${Mithras.RESOURCE_DOMAIN}/gui/fonts/roboto-regular.ttf")
+object NVGImageManager {
+    val ICON: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/icon.png")
+    val HUE_SCALE: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale.png")
+    val CHROMA: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale20_lowres.png")
 
     /**
-     * Font for NanoVG.
+     * Image for NanoVG.
      * @param path path to the resource. It looks like:
      *
-     *      "/assets/mithras/gui/fonts/roboto-regular.ttf"
+     *      "/assets/mithras/gui/icon.png"
      */
-    class Font(val name: String, val path: String) {
-        val fontBuffer : ByteBuffer = resourceToByteBuffer(path)
+    class Image(val path: String) {
+        val imageBuffer : ByteBuffer = resourceToByteBuffer(path)
 
         /**
-         * Font id according to NanoVG.
+         * Image id according to NanoVG.
          */
-        val id = NanoVG.nvgCreateFontMem(NVGR.nanoContext, "roboto", fontBuffer, 0)
+        val id: Int
+
+        init {
+            val w = IntArray(1)
+            val h = IntArray(1)
+            val data: ByteBuffer =  STBImage.stbi_load_from_memory(
+                imageBuffer,
+                w,
+                h,
+                IntArray(1),
+                4
+            ) ?: throw FileNotFoundException(path)
+            id = NanoVG.nvgCreateImageRGBA(NVGR.nanoContext, w[0], h[0], 0, data)
+        }
 
         /**
          * Loads the resource as a byte buffer for use with NanoVG.
          * For mod assets the path has to look like:
          *
-         *      "/assets/mithras/gui/fonts/roboto-regular.ttf"
+         *      "/assets/mithras/gui/icon.png"
          *
          * @throws FileNotFoundException when the file does not exist.
          */

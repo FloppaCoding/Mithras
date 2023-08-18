@@ -1,5 +1,6 @@
 package floppacoding.mithras.module.settings.impl
 
+import floppacoding.mithras.module.impl.render.ColorMode
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.module.settings.Visibility
@@ -136,7 +137,7 @@ class ColorSetting(
      * Returns an array of the availiable settings. Those are either red, green and blue or red, green, blue and alpha.
      */
     fun colors(): Array<ColorComponent> {
-        val tempArr = if (MainSettings.colorSettingMode.isSelected(MainSettings.ColorModes.RGB))
+        val tempArr = if (MainSettings.colorSettingMode.isSelected(ColorMode.RGB))
             arrayOf(ColorComponent.RED, ColorComponent.GREEN, ColorComponent.BLUE)
         else
             arrayOf(ColorComponent.HUE, ColorComponent.SATURATION, ColorComponent.BRIGHTNESS)

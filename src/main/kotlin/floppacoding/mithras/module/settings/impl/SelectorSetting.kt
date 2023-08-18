@@ -10,10 +10,10 @@ import floppacoding.mithras.module.settings.Visibility
  * parameter.
  * Example use:
  *
- *     enum class Designs(override val displayName: String): Options {
+ *     enum class Design(override val displayName: String): Options {
  *        JELLYLIKE("Jellylike"), NEW("New")
  *     }
- *     val design = SelectorSetting("Design", Designs.JELLYLIKE, description = "Design theme of the gui.")
+ *     val design = SelectorSetting("Design", Design.JELLYLIKE, description = "Design theme of the gui.")
  *
  *
  * @author Aton
@@ -73,7 +73,7 @@ inline fun <reified L> SelectorSetting(
 /**
  * The enum of the [SelectorSetting] needs to implement this. Example:
  *
- *      enum class Designs(override val displayName: String): Options {
+ *      enum class Design(override val displayName: String): Options {
  *         JELLYLIKE("Jellylike"), NEW("New")
  *      }
  */

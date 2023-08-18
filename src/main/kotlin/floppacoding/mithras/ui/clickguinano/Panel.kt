@@ -1,16 +1,15 @@
-package floppacoding.mithras.ui.clickgui
+package floppacoding.mithras.ui.clickguinano
 
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.impl.render.GUIDesign
 import floppacoding.mithras.module.impl.render.MainSettings
-import floppacoding.mithras.ui.clickgui.elements.ModuleButton
-import floppacoding.mithras.ui.clickgui.elements.menu.ElementKeyBind
-import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil.capitalizeOnlyFirst
-import floppacoding.mithras.utils.render.HUDRenderUtils
-import net.minecraft.client.gui.DrawContext
+import floppacoding.mithras.ui.clickguinano.elements.ModuleButton
+import floppacoding.mithras.ui.clickguinano.elements.menu.ElementKeyBind
+import floppacoding.mithras.ui.clickguinano.util.ColorUtil
+import floppacoding.mithras.ui.clickguinano.util.FontUtil.capitalizeOnlyFirst
+import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.ui.nanovg.TextAlign
 
 /**
  * Provides a category panel for the click gui.
@@ -19,7 +18,7 @@ import net.minecraft.client.gui.DrawContext
  */
 class Panel(
     var category: Category,
-    var clickgui: ClickGUI
+    var clickgui: ClickGUINano
 ) {
     private val title: String = category.name.capitalizeOnlyFirst()
 
@@ -27,22 +26,22 @@ class Panel(
     val visible = true // Currently unused, but can be used in future for hiding categories
     val moduleButtons: ArrayList<ModuleButton> = ArrayList()
 
-    val width = MainSettings.panelWidth.value.toInt()
-    val height = MainSettings.panelHeight.value.toInt()
+    val width = MainSettings.panelWidth.value.toFloat()
+    val height = MainSettings.panelHeight.value.toFloat()
     /** Absolute position of the panel on the screen. */
-    var x = MainSettings.panelX[category]!!.value.toInt()
+    var x = MainSettings.panelX[category]!!.value.toFloat()
     /** Absolute position of the panel on the screen. */
-    var y = MainSettings.panelY[category]!!.value.toInt()
+    var y = MainSettings.panelY[category]!!.value.toFloat()
     var extended: Boolean = MainSettings.panelExtended[category]!!.enabled
 
-    private var scrollOffset = 0
+    private var scrollOffset = 0f
 
     /** The length of the extended panel */
-    private var length = 0
+    private var length = 0f
     /** Used as temporary reference for dragging the panel. */
-    private var x2 = 0
+    private var x2 = 0f
     /** Used as temporary reference for dragging the panel. */
-    private var y2 = 0
+    private var y2 = 0f
 
     init {
         for (module in ModuleManager.modules) {
@@ -55,7 +54,7 @@ class Panel(
 	 * Renders the panel and dispatches the rendering of its [moduleButtons].
      * @see ModuleButton.drawScreen
 	 */
-    fun drawScreen(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    fun drawScreen(mouseX: Float, mouseY: Float, partialTicks: Float) {
         if (!visible) return
         if (dragging) {
             x = x2 + mouseX
@@ -63,11 +62,11 @@ class Panel(
         }
 
         // Set up Transform
-        context.matrices.push()
-        context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
+        NVGR.push()
+        NVGR.translate(x, y)
 
         // Set up the Scissor Box
-        HUDRenderUtils.setUpScissor(x - 1, y, width + 2, 4000, ClickGUI.CLICK_GUI_SCALE)
+        NVGR.scissor(1f, height, width + 2f, 4000f)
 
         /** Render the module buttons and the Settings elements */
         var startY = height
@@ -77,37 +76,37 @@ class Panel(
                 // Render the module Button
                 moduleButton.y = startY
 
-                startY += moduleButton.drawScreen(context, mouseX, mouseY, partialTicks)
+                startY += moduleButton.drawScreen(mouseX, mouseY, partialTicks)
             }
-            length = startY+5
+            length = startY+5f
         }
 
         // Resetting the scissor
-        HUDRenderUtils.endScissor()
+        NVGR.endScissor()
 
         // Render the Panel
-        context.fill(0, 0, width, height, ColorUtil.DROPDOWN_COLOR)
-        context.fill(0, startY, width, startY + 5, ColorUtil.DROPDOWN_COLOR)
+        NVGR.rect(0f, 0f, width, height,  ColorUtil.DROPDOWN_COLOR)
+        NVGR.rect(0f, startY, width, 5f,  ColorUtil.DROPDOWN_COLOR)
 
         // Render decor
         if (MainSettings.design.isSelected(GUIDesign.NEW)) {
-            context.fill(0, 0,  2, height, ColorUtil.outlineColor)
-            context.fill(0, startY,  2, startY+5, ColorUtil.outlineColor)
-            FontUtil.drawStringWithShadow(context, title, 4.0, height / 2.0 - FontUtil.fontHeight / 2.0)
+            NVGR.rect(0f, 0f,  2f, height, ColorUtil.outlineColor)
+            NVGR.rect(0f, startY,  2f, 5f, ColorUtil.outlineColor)
+            NVGR.text(title, 4f, height/2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.LEFT_MIDDLE)
         } else if (MainSettings.design.isSelected(GUIDesign.JELLYLIKE)) {
-            context.fill(4, 2, 5, height - 2, ColorUtil.JELLY_PANEL_COLOR)
-            context.fill(width - 4, 2, width - 5, height - 2, ColorUtil.JELLY_PANEL_COLOR)
-            FontUtil.drawTotalCenteredStringWithShadow(context, title, width / 2.0, height / 2.0)
+            NVGR.rect(4f, 2f,  1f, height-4f, ColorUtil.JELLY_PANEL_COLOR)
+            NVGR.rect(width - 4f, 2f,  -1f, height - 4f, ColorUtil.JELLY_PANEL_COLOR)
+            NVGR.text(title, width/2f, height/2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_MIDDLE)
         }
 
-        context.matrices.pop()
+        NVGR.pop()
     }
 
     /**
 	 * Handles clicks on the panel and disptaches the click to its [moduleButtons].
      * @see ModuleButton.mouseClicked
 	 */
-    fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         if (!visible) {
             return false
         }
@@ -138,7 +137,7 @@ class Panel(
      *
      * @see ModuleButton.mouseReleased
 	 */
-    fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
+    fun mouseReleased(mouseX: Float, mouseY: Float, state: Int) {
         if (!visible) {
             return
         }
@@ -178,12 +177,12 @@ class Panel(
      *
      * @param amount The amount to scroll
      */
-    fun scroll(amount: Int, mouseX: Int, mouseY: Int): Boolean {
+    fun scroll(amount: Int, mouseX: Float, mouseY: Float): Boolean {
         if (!visible) return false
         if (isMouseOverExtended(mouseX, mouseY)) {
-            val diff = (-amount * SCROLL_DISTANCE).coerceAtMost(length - height - 16)
+            val diff = (-amount * SCROLL_DISTANCE).coerceAtMost(length - height - 16f)
 
-            val realDiff = (scrollOffset + diff).coerceAtLeast(0) - scrollOffset
+            val realDiff = (scrollOffset + diff).coerceAtLeast(0f) - scrollOffset
 
             length -= realDiff
             scrollOffset += realDiff
@@ -195,19 +194,19 @@ class Panel(
     /**
 	 * Returns true when the mouse is hovering the top Panel Button.
 	 */
-    private fun isHovered(mouseX: Int, mouseY: Int): Boolean {
+    private fun isHovered(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
     }
 
     /**
      * Returns true when the Panel is extended and the mouse is over the Panel or its extended part.
      */
-    private fun isMouseOverExtended(mouseX: Int, mouseY: Int): Boolean {
+    private fun isMouseOverExtended(mouseX: Float, mouseY: Float): Boolean {
         if (!extended) return false
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + length
     }
 
     companion object {
-        private const val SCROLL_DISTANCE = 11
+        private const val SCROLL_DISTANCE = 11f
     }
 }

@@ -3,6 +3,7 @@ package floppacoding.mithras.utils
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.render.MainSettings
+import floppacoding.mithras.module.impl.render.PrefixStyle
 import floppacoding.mithras.utils.ChatUtils.chatMessage
 import floppacoding.mithras.utils.ChatUtils.modMessage
 import floppacoding.mithras.utils.ChatUtils.sendChat
@@ -89,9 +90,9 @@ object ChatUtils {
     fun modMessage(message: Text) = chatMessage(
         Text.literal(
             when (MainSettings.prefixStyle.value) {
-                MainSettings.PrefixStyle.LONG   -> Mithras.CHAT_PREFIX
-                MainSettings.PrefixStyle.SHORT  -> Mithras.SHORT_PREFIX
-                MainSettings.PrefixStyle.CUSTOM -> reformatString( MainSettings.customPrefix.text)
+                PrefixStyle.LONG   -> Mithras.CHAT_PREFIX
+                PrefixStyle.SHORT  -> Mithras.SHORT_PREFIX
+                PrefixStyle.CUSTOM -> reformatString( MainSettings.customPrefix.text)
             } + " "
         ).append(message)
     )

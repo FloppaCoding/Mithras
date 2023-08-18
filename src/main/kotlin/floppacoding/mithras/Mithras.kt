@@ -5,6 +5,7 @@ import floppacoding.mithras.config.ModuleConfig
 import floppacoding.mithras.events.GameStartEvent
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.ui.clickgui.ClickGUI
+import floppacoding.mithras.ui.clickguinano.ClickGUINano
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,6 +47,7 @@ object Mithras : ModInitializer {
 
 
 	lateinit var clickGUI: ClickGUI
+	lateinit var clickGUINano: ClickGUINano
 
 
 	override fun onInitialize() {
@@ -74,7 +76,7 @@ object Mithras : ModInitializer {
 	fun onGameStart(event: GameStartEvent) {
 
 		// Moved here from onInitialize because at that time some minecraft classes are not yet loaded in.
-		// Loads in all modules and sets up automatically generated funtionality
+		// Loads in all modules and sets up automatically generated functionality
 		ModuleManager.loadModules()
 
 		// Load in the config
@@ -89,5 +91,6 @@ object Mithras : ModInitializer {
 		ModuleManager.initializeModules()
 
 		clickGUI = ClickGUI()
+		clickGUINano = ClickGUINano()
 	}
 }
