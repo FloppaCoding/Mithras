@@ -9,9 +9,12 @@ import org.lwjgl.nanovg.NVGColor
 import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoVG.*
 import org.lwjgl.nanovg.NanoVGGL3
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
 typealias TextAlign = NVGR.TextAlign
+typealias BoundigBox = NVGR.BoundingBox
 
 /**
  * # NanoVG Renderer - 2D Rendering Library
@@ -159,7 +162,6 @@ object NVGR {
         color: Int,
         fontSize: Float = DEFAULT_FONT_HEIGHT,
         font: NVGFont = NVGFontManager.ROBOTO,
-        textAlign: TextAlign = TextAlign.LEFT
         textAlign: TextAlign = TextAlign.TOP_LEFT,
         splitWidth: Float? = null
     ) {
