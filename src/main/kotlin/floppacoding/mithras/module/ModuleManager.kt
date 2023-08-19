@@ -43,6 +43,7 @@ object ModuleManager {
         CoordinateDisplay,
         ItemAnimations,
         Camera,
+        ItemPhysics,
 
 
         //PLAYER

@@ -14,9 +14,11 @@
     "MainMixin",
     "MinecraftClientMixin",
     "MouseMixin",
+    "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",
     "render.HeldItemRendererMixin",
     "render.InGameOverlayRendererMixin",
+    "render.ItemEntityRendererMixin",
     "render.WorldRendererMixin"
   ]
 }
