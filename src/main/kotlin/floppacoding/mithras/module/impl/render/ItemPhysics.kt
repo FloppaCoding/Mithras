@@ -15,10 +15,14 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.math.RotationAxis
 import net.minecraft.util.math.random.Random
 
-
+/**
+ * This module makes it looks as if dropped items would follow collision physics.
+ * @author Aton
+ */
 object ItemPhysics : Module(
     "Item Physics",
     category = Category.RENDER,
+    description = "Makes dropped items look as if they obey collision physics."
 ) {
 
     /**

@@ -9,6 +9,7 @@
   },
   "client": [
     "ClientPlayerEntityMixin",
+    "GameOptionsMixin",
     "InGameHudMixin",
     "KeyboardMixin",
     "MainMixin",
