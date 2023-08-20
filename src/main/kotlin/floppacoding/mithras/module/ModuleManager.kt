@@ -45,6 +45,7 @@ object ModuleManager {
         Camera,
         ItemPhysics,
         Fullbright,
+        Zoom,
 
 
         //PLAYER
