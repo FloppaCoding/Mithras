@@ -44,6 +44,7 @@ object ModuleManager {
         ItemAnimations,
         Camera,
         ItemPhysics,
+        Fullbright,
 
 
         //PLAYER
@@ -86,6 +87,7 @@ object ModuleManager {
      */
     @EventHandler
     fun activateModuleKeyBinds(event: InputEvent) {
+        if (event.action != InputEvent.PRESSED) return
         modules.stream().filter { module -> module.keyBind == event.key }.forEach { module -> module.onKeyBind() }
     }
 

@@ -19,6 +19,7 @@
     "render.HeldItemRendererMixin",
     "render.InGameOverlayRendererMixin",
     "render.ItemEntityRendererMixin",
+    "render.LightmapTextureManagerMixin",
     "render.WorldRendererMixin"
   ]
 }

@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ClientPlayerEntity.class)
-public class ClientPlayerEntityMixin {
+public abstract class ClientPlayerEntityMixin {
     /**
      * Enables auto sprint.
      */
