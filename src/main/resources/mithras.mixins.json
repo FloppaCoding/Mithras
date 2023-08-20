@@ -3,6 +3,7 @@
   "package": "floppacoding.mithras.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "PlayerInventoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1
