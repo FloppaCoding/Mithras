@@ -12,6 +12,7 @@
     "ClientPlayerEntityMixin",
     "GameOptionsMixin",
     "InGameHudMixin",
+    "KeyBindingMixin",
     "KeyboardMixin",
     "MainMixin",
     "MinecraftClientMixin",
