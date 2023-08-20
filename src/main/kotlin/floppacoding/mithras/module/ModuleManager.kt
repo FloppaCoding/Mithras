@@ -3,6 +3,7 @@ package floppacoding.mithras.module
 import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
 import floppacoding.mithras.module.impl.player.AutoSprint
+import floppacoding.mithras.module.impl.player.DisableHotbarScroll
 import floppacoding.mithras.module.impl.render.*
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.ui.hud.EditHudGUI
@@ -50,6 +51,7 @@ object ModuleManager {
 
         //PLAYER
         AutoSprint,
+        DisableHotbarScroll,
 
 
         //MISC
