@@ -1,9 +1,11 @@
 package floppacoding.mithras.ui.hud
 
+import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.events.HudRenderEvent
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.NumberSetting
+import floppacoding.mithras.ui.nanovg.NVGR
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.gui.DrawContext
 
@@ -11,42 +13,38 @@ import net.minecraft.client.gui.DrawContext
  * Provides functionality for game overlay elements.
  * @author Aton
  */
-abstract class HudElement{
+abstract class HudElement  {
 
-    private val xSett: NumberSetting<*>
-    private val ySett: NumberSetting<*>
-    val scale: NumberSetting<*>
+    private val xSett: NumberSetting<Float>
+    private val ySett: NumberSetting<Float>
+    val scale: NumberSetting<Float>
 
-    var width: Int
-    var height: Int
+    var width: Float
+    var height: Float
 
-    private val zoomIncrement = 0.05
+    private val zoomIncrement = 0.05f
 
     /**
      * Use these instead of a direct reference to the NumberSetting
      */
-    var x: Int
-     get() = xSett.value.toInt()
-     set(value) {
-         xSett.doubleValue = value.toDouble()
-     }
+    var x: Float
+        get() = xSett.value
+        set(value) { xSett.value = value }
 
-    var y: Int
-        get() = ySett.value.toInt()
-        set(value) {
-            ySett.doubleValue = value.toDouble()
-        }
+    var y: Float
+        get() = ySett.value
+        set(value) { ySett.value = value }
 
     /**
      * Sets up a hud Element.
      * This constructor takes care of creating the [NumberSetting]s required to save the position and scale of the hud
      * element to the config.
      */
-    constructor(module: Module, xDefault: Int = 0, yDefault: Int = 0, width: Int = 10, height: Int = 10, defaultScale: Double = 1.0) {
+    constructor(module: Module, xDefault: Float = 0f, yDefault: Float = 0f, width: Float = 10f, height: Float = 10f, defaultScale: Float = 1.0f) {
         val id = module.settings.count { it.name.startsWith("xHud") }
-        val xHud = NumberSetting("xHud_$id", default = xDefault.toDouble(), visibility = Visibility.HIDDEN)
-        val yHud = NumberSetting("yHud_$id", default = yDefault.toDouble(), visibility = Visibility.HIDDEN)
-        val scaleHud = NumberSetting("scaleHud_$id",defaultScale,0.1,4.0, 0.01, visibility = Visibility.HIDDEN)
+        val xHud = NumberSetting("xHud_$id", default = xDefault, increment = 0.01f, visibility = Visibility.HIDDEN)
+        val yHud = NumberSetting("yHud_$id", default = yDefault, increment = 0.01f, visibility = Visibility.HIDDEN)
+        val scaleHud = NumberSetting("scaleHud_$id",defaultScale,0.1f,4.0f, 0.01f, visibility = Visibility.HIDDEN)
 
         module.addSettings(xHud, yHud, scaleHud)
 
@@ -61,7 +59,7 @@ abstract class HudElement{
     /**
      * It is advised to use the other constructor unless this one is required.
      */
-    constructor(xHud: NumberSetting<*>, yHud: NumberSetting<*>, width: Int = 10, height: Int = 10, scale: NumberSetting<*>) {
+    constructor(xHud: NumberSetting<Float>, yHud: NumberSetting<Float>, width: Float = 10f, height: Float = 10f, scale: NumberSetting<Float>) {
         this.xSett = xHud
         this.ySett = yHud
         this.scale = scale
@@ -86,7 +84,7 @@ abstract class HudElement{
      * Can be overridden in implementation.
      */
     open fun scroll(amount: Int) {
-        this.scale.doubleValue += amount * zoomIncrement
+        this.scale.value += amount * zoomIncrement
     }
 
     /**
@@ -94,20 +92,32 @@ abstract class HudElement{
      */
     @EventHandler
     fun onOverlay(event: HudRenderEvent) {
+        // Set up both a nonovg draw context and the vanilla context.
+        NVGR.beginFrame()
+        NVGR.scale(mc.options.guiScale.value.toFloat(), mc.options.guiScale.value.toFloat())
+        NVGR.push()
+        NVGR.translate(x, y)
+        NVGR.scale(scale.value, scale.value)
+
         event.context.matrices.push()
-        event.context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
-        event.context.matrices.scale(scale.value.toFloat(), scale.value.toFloat(), 1f)
+        event.context.matrices.translate(x, y, 0f)
+        event.context.matrices.scale(scale.value, scale.value, 1f)
 
         renderHud(event.context)
 
         event.context.matrices.pop()
+
+        NVGR.pop()
+        NVGR.endFrame()
     }
 
     /**
      * Override this method in your implementations.
      *
      * This method is responsible for rendering the HUD element.
-     * Within this method coordinates are already transformed in regard to the HUD position [x],[x] and [scale].
+     * Within this method coordinates are already transformed in regard to the HUD position [x],[y] and [scale].
+     * You can use [NVGR] for nice rendering, but the vanilla [context] is also available and properly transformed.
+     * So the vanilla rendering can be used as well.
      */
     abstract fun renderHud(context: DrawContext)
 
@@ -115,19 +125,13 @@ abstract class HudElement{
      * Used for moving the hud element.
      * Draws a rectangle in place of the actual element
      */
-    fun renderPreview(context: DrawContext) {
-        context.matrices.push()
-        context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
-        context.matrices.scale(scale.value.toFloat(), scale.value.toFloat(), 1f)
+    fun renderPreview() {
+        NVGR.push()
+        NVGR.translate(x, y)
+        NVGR.scale(scale.value, scale.value)
 
-        context.fill(
-            0,
-            0,
-            width,
-            height,
-            -0x44eaeaeb
-        )
+        NVGR.rect(0f, 0f, width, height, -0x44eaeaeb)
 
-        context.matrices.pop()
+        NVGR.pop()
     }
 }
