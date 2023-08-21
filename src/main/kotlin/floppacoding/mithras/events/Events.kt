@@ -2,6 +2,8 @@ package floppacoding.mithras.events
 
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.util.InputUtil.Key
+import net.minecraft.client.world.ClientWorld
+import net.minecraft.text.Text
 
 //
 // A collection of all basic events for this mod.
@@ -15,14 +17,19 @@ class GameStartEvent
 
 /**
  * Fired at the start and end of a client tick.
- * @see floppacoding.mithras.mixin.MinecraftClientMixin.onStartTick
- * @see floppacoding.mithras.mixin.MinecraftClientMixin.onEndTick
+ * @see floppacoding.mithras.events.FabricEventMapper.registerEvents
  */
 class ClientTickEvent(val phase: Phase) {
     enum class Phase {
         START, END
     }
 }
+
+/**
+ * Fired when a new world is loaded.
+ * @see floppacoding.mithras.mixin.MinecraftClientMixin.onSSetWorld
+ */
+class WorldChangeEvent(val newWorld: ClientWorld)
 
 /**
  * Posted when a key or mouse button is pressed, before the inputs are evaluated.
@@ -52,4 +59,30 @@ class MouseScrollEvent(val amount: Double) : Cancellable()
  * @see floppacoding.mithras.mixin.InGameHudMixin.onRenderCrosshair
  */
 class HudRenderEvent(val context: DrawContext, val partialTicks: Float)
+
+
+/**
+ * Fired when a message is received. [type] signals whether it was a player message, game message or action bar message.
+ * When the event is cancelled the message will not be displayed.
+ * According to the Fabric API this is not supposed to be used to modify message contents.
+ * @see floppacoding.mithras.events.FabricEventMapper.registerEvents
+ */
+class ChatReceivedEvent(val text: Text, val type: Type) : Cancellable() {
+    enum class Type {
+        /**
+         * Game message.
+         */
+        GAME_MESSAGE,
+
+        /**
+         * Game message to be displayed in the action bar.
+         */
+        ACTION_BAR,
+
+        /**
+         * Message sent by a player.
+         */
+        PLAYER_MESSAGE
+    }
+}
 

@@ -2,6 +2,7 @@ package floppacoding.mithras
 
 import floppacoding.mithras.commands.MithrasCommandManager
 import floppacoding.mithras.config.ModuleConfig
+import floppacoding.mithras.events.FabricEventMapper
 import floppacoding.mithras.events.GameStartEvent
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.ui.clickgui.ClickGUI
@@ -60,6 +61,8 @@ object Mithras : ModInitializer {
 		EVENT_BUS.registerLambdaFactory("floppacoding.mithras") { lookupInMethod, klass ->
 			lookupInMethod.invoke(null, klass, MethodHandles.lookup()) as MethodHandles.Lookup
 		}
+
+		FabricEventMapper.registerEvents()
 
 		listOf(
 			this,

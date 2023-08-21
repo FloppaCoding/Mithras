@@ -1,10 +1,11 @@
 package floppacoding.mithras.mixin;
 
 import floppacoding.mithras.Mithras;
-import floppacoding.mithras.events.ClientTickEvent;
+import floppacoding.mithras.events.WorldChangeEvent;
 import floppacoding.mithras.module.impl.render.Camera;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
+import net.minecraft.client.world.ClientWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,14 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MinecraftClient.class)
 abstract class MinecraftClientMixin {
 
-    @Inject(at = @At("HEAD"), method = "tick")
-    private void onStartTick(CallbackInfo info) {
-        Mithras.EVENT_BUS.post(new ClientTickEvent(ClientTickEvent.Phase.START));
-    }
-
-    @Inject(at = @At("RETURN"), method = "tick")
-    private void onEndTick(CallbackInfo info) {
-        Mithras.EVENT_BUS.post(new ClientTickEvent(ClientTickEvent.Phase.END));
+    @Inject(at = @At("HEAD"), method = "setWorld")
+    private void onSSetWorld(ClientWorld world, CallbackInfo ci) {
+        Mithras.EVENT_BUS.post(new WorldChangeEvent(world));
     }
 
     /**
