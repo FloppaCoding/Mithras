@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(GameOptions.class)
-public class GameOptionsMixin {
+public abstract class GameOptionsMixin {
     @Inject(method = "getFov", at = @At("HEAD"), cancellable = true)
     private void onGetFov(CallbackInfoReturnable<SimpleOption<Integer>> cir) {
         SimpleOption<Integer> fovOverride = Zoom.INSTANCE.fovOverride();

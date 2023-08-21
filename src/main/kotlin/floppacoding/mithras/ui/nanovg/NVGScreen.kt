@@ -28,7 +28,7 @@ import org.lwjgl.nanovg.NanoVG
  */
 abstract class NVGScreen(
     title: Text,
-    val scale: Float = 1f
+    var scale: Float = 1f
 ) : Screen(title) {
 
     constructor(title: String, scale: Float = 1f) : this(MutableText.of(LiteralTextContent(title)), scale)

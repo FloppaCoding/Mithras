@@ -41,10 +41,6 @@ class ClickGUINano : NVGScreen("Mithras GUI", 2f) {
      * Used to create the advanced menu for modules
      */
     var advancedMenu: AdvancedMenu? = null
-        get() = field
-        set(value) {
-            field = value
-        }
 
     init {
         setUpPanels()
@@ -103,17 +99,11 @@ class ClickGUINano : NVGScreen("Mithras GUI", 2f) {
     override fun mouseScrolled(mouseX: Float, mouseY: Float, amount: Float): Boolean {
         var i = MathHelper.clamp(amount, -1f, 1f).toInt()
         if (i != 0) {
-            if (i > 1) {
-                i = 1
-            }
-            if (i < -1) {
-                i = -1
-            }
             if (hasShiftDown()) {
                 i *= 7
             }
             // Scroll the advanced gui
-//            if (advancedMenu?.scroll(i, mouseX, mouseY) == true) return true
+            if (advancedMenu?.scroll(i, mouseX, mouseY) == true) return true
 
             /** Checking all panels for scroll action.
              * Reversed order is used to guarantee that the panel rendered on top will be handled first. */

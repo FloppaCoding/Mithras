@@ -3,6 +3,8 @@ package floppacoding.mithras.module.settings.impl
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.module.settings.Visibility
 import kotlin.math.round
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 
 /**
  * A Double Setting for Modules.
@@ -14,20 +16,25 @@ import kotlin.math.round
  *
  * @author Aton, Stivais
  */
-@Suppress("UNCHECKED_CAST")
 class NumberSetting<E> @Throws(java.lang.IllegalArgumentException::class) constructor(
     name: String,
-    override val default: E = 1.0 as E, // This type cast works in kotlin, but not in java.
-    val min: E = -10000.0 as E,
-    val max: E = 10000.0 as E,
-    val increment: E = 1.0 as E,
+    default: Number = 1.0,
+    min: Number = -10000.0,
+    max: Number = 10000.0,
+    increment: Number = 1.0,
     visibility: Visibility = Visibility.VISIBLE,
     description: String? = null,
+    private val clazz: KClass<E>
 ) : Setting<E>(name, visibility, description) where E : Number, E : Comparable<E> {
 
-    override var value: E = default
+    override val default: E = default.toValueType()
+    val min: E = min.toValueType()
+    val max: E = max.toValueType()
+    val increment: E = increment.toValueType()
+
+    override var value: E = this.default
         set(newVal) {
-            field = (roundToIncrement(processInput(newVal)).toValueType()).coerceIn(min, max)
+            field = roundToIncrement(processInput(newVal)).toValueType().coerceIn(min, max)
         }
 
     /**
@@ -43,21 +50,22 @@ class NumberSetting<E> @Throws(java.lang.IllegalArgumentException::class) constr
     val incrementDouble = increment.toDouble()
 
     init {
-        if (default !is Double && default !is Float && default !is Int && default !is Long && default !is Short && default !is Byte)
+        if (clazz != Double::class && clazz != Float::class && clazz != Int::class && clazz != Long::class && clazz != Short::class && clazz != Byte::class)
             throw IllegalArgumentException("Disallowed Number type used for NumberSetting. Allowed: Double, Float, Int, Long, Byte, Short; Used: ${default.javaClass}.")
     }
 
     @Throws(java.lang.IllegalArgumentException::class)
-    private fun Double.toValueType(): E {
-        return when (default::class) {
-            Double::class -> this
+    private fun Number.toValueType(): E {
+        val temp = when (clazz) {
+            Double::class -> this.toDouble()
             Float::class -> this.toFloat()
             Long::class -> this.toLong()
             Int::class -> this.toInt()
             Short::class -> this.toInt().toShort()
             Byte::class -> this.toInt().toByte()
             else -> throw IllegalArgumentException("Disallowed Number type used for NumberSetting. Allowed: Double, Float, Int, Long, Byte, Short; Used: ${default.javaClass}.")
-        } as E
+        }
+        return clazz.cast(temp)
     }
 
     private fun roundToIncrement(x: E): Double {
@@ -69,4 +77,16 @@ class NumberSetting<E> @Throws(java.lang.IllegalArgumentException::class) constr
         if (this > max) return max
         return this
     }
+}
+
+inline fun <reified E> NumberSetting(
+    name: String,
+    default: E = E::class.cast(1.0),
+    min: Number = -10000.0,
+    max: Number = 10000.0,
+    increment: Number = 1.0,
+    visibility: Visibility = Visibility.VISIBLE,
+    description: String? = null,
+): NumberSetting<E> where E : Number, E : Comparable<E> {
+    return NumberSetting(name, default, min, max, increment, visibility, description, E::class)
 }

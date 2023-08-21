@@ -6,6 +6,7 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.RegisterHudElement
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.ui.hud.HudElement
+import floppacoding.mithras.ui.nanovg.NVGR
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.util.hit.HitResult
@@ -24,9 +25,9 @@ object CoordinateDisplay : Module(
     private val showLookingAt by BooleanSetting("Looking At", false, description = "Displays the coordinates of the block you are looking at in a second line.")
 
     @RegisterHudElement
-    object CoordinateHUD : HudElement(this, 0, 150,
-        mc.textRenderer.getWidth("123 / 12 / 123 (12.3 / 12.3)"),
-        mc.textRenderer.fontHeight * 2 + 1,
+    object CoordinateHUD : HudElement(this, 0f, 150f,
+        NVGR.textWidth("123 / 12 / 123 (12.3 / 12.3)"),
+        NVGR.DEFAULT_FONT_HEIGHT,
     ) {
         override fun renderHud(context: DrawContext) {
 
@@ -40,7 +41,7 @@ object CoordinateDisplay : Module(
             val coordText =
                 "${floor(player.x).toInt()} / ${floor(player.y).toInt()} / ${floor(player.z).toInt()} ($xDir / $yDir)"
 
-            context.drawText(mc.textRenderer, coordText, 0, 0, 0xffffff, false)
+            NVGR.text(coordText, 0f, 0f, -1)
 
             // handle looking at
             if (showLookingAt) {
@@ -48,11 +49,11 @@ object CoordinateDisplay : Module(
 
                 if (la != null && la.type == HitResult.Type.BLOCK) {
                     val laText = "Looking at: ${la.pos.x.format(2)} / ${la.pos.y.format(2)} / ${la.pos.z.format(2)}"
-                    context.drawText(mc.textRenderer, laText, 0, mc.textRenderer.fontHeight + 1, 0xffffff, false)
+                    NVGR.text(laText, 0f, NVGR.DEFAULT_FONT_HEIGHT + 1, -1)
                 }
             }
 
-            this.width = mc.textRenderer.getWidth(coordText)
+            this.width = NVGR.textWidth(coordText)
         }
         private fun Double.format(digits: Int) = "%.${digits}f".format(this)
     }
