@@ -14,6 +14,17 @@ import net.minecraft.client.util.InputUtil.Key
 class GameStartEvent
 
 /**
+ * Fired at the start and end of a client tick.
+ * @see floppacoding.mithras.mixin.MinecraftClientMixin.onStartTick
+ * @see floppacoding.mithras.mixin.MinecraftClientMixin.onEndTick
+ */
+class ClientTickEvent(val phase: Phase) {
+    enum class Phase {
+        START, END
+    }
+}
+
+/**
  * Posted when a key or mouse button is pressed, before the inputs are evaluated.
  * Only posted when not in a GUI.
  * @param action Signals whether the key was pressed or released. 1 = pressed, 0 = released.
