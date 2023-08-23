@@ -2,6 +2,8 @@ package floppacoding.mithras.ui.nanovg
 
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
+import floppacoding.mithras.mixin.PlayerSkinAccessor
+import net.minecraft.client.texture.PlayerSkinTexture
 import net.minecraft.util.Identifier
 import org.apache.commons.io.IOUtils
 import org.lwjgl.nanovg.NanoVG
@@ -11,6 +13,7 @@ import java.io.IOException
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.file.Files
 
 typealias NVGImage = NVGImageManager.Image
 
@@ -129,8 +132,15 @@ object NVGImageManager {
         @Throws(IOException::class)
         private fun byteBufferFromIdentifier(identifier: Identifier): ByteBuffer {
             val resource = mc.resourceManager.getResource(identifier)
-            if (!resource.isPresent) throw FileNotFoundException(identifier.namespace +":"+identifier.path)
-            val inputStream = resource.get().inputStream
+            val inputStream = if (resource.isPresent) {
+                resource.get().inputStream
+            }else { // try to get from skin cache
+                val texture = mc.textureManager.getTexture(identifier)
+                val cacheFile = ((texture as? PlayerSkinTexture) as? PlayerSkinAccessor)?.cacheFile
+                if (cacheFile != null) {
+                    Files.newInputStream(cacheFile.toPath())
+                } else throw FileNotFoundException(identifier.namespace +":"+identifier.path)
+            }
             val bytes = IOUtils.toByteArray(inputStream)
             val data = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder())
                 .put(bytes)
@@ -149,6 +159,7 @@ object NVGImageManager {
          */
         @Throws(IOException::class)
         private fun resourceToByteBuffer(path: String): ByteBuffer {
+            // This works for mod assets, otherwise "Files.newInputStream(file.toPath())" should be used.
             val stream = this.javaClass.getResourceAsStream(path) ?: throw FileNotFoundException(path)
             val bytes = IOUtils.toByteArray(stream)
             val data = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).put(bytes)

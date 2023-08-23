@@ -18,6 +18,8 @@ import floppacoding.mithras.utils.ScoreboardUtils
 import floppacoding.mithras.utils.TabListUtils
 import net.minecraft.client.texture.PlayerSkinTexture
 import java.io.IOException
+import java.io.InputStream
+import java.nio.file.Files
 
 object DebugCommand : Command {
     override val builder: LiteralArgumentBuilder<CmdSource> =
@@ -209,7 +211,23 @@ object DebugCommand : Command {
 //                                val identifier = Identifier("skins/$string")
                                 val newTexture = mc.textureManager.getTexture(texture)
                                 val cacheFile = ((newTexture as PlayerSkinTexture) as PlayerSkinAccessor).cacheFile
-                                ChatUtils.chatMessage("Chace file ${if (cacheFile == null) "does not exist." else "exists."}")
+                                ChatUtils.chatMessage("Cache file ${if (cacheFile == null) "does not exist." else "exists."}")
+                                if (cacheFile != null) {
+                                    ChatUtils.chatMessage("path: ${cacheFile.path}")
+                                    ChatUtils.chatMessage("absolute path: ${cacheFile.absolutePath}")
+                                    try {
+                                        var stream: InputStream? = null
+                                        if (cacheFile.exists() && cacheFile.isFile()) {
+                                            stream = Files.newInputStream(cacheFile.toPath());
+                                            ChatUtils.chatMessage("created input stream")
+                                        }else {
+                                            ChatUtils.chatMessage("cache file is not file ?!")
+                                        }
+                                        stream?.close()
+                                    }catch (_: Exception){
+                                        ChatUtils.chatMessage("Error loading resource")
+                                    }
+                                }
                                 return@execute
                             }
 

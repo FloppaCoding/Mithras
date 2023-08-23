@@ -362,7 +362,7 @@ object MapRender: HudElement(
             val skinImage  = player.skinImage ?: return
             NVGR.image(skinImage,-6f, -6f, 12f, 12f, 1f, 8f, 8f, 8f, 8f)
             if (player.player.isPartVisible(PlayerModelPart.HAT)) {
-                NVGR.image(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 12f, 12f)
+                NVGR.image(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 8f, 8f)
             }
         } catch (_: Exception) {
         }
