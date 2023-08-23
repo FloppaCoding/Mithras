@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 abstract class MinecraftClientMixin {
 
     @Inject(at = @At("HEAD"), method = "setWorld")
-    private void onSSetWorld(ClientWorld world, CallbackInfo ci) {
+    private void onSetWorld(ClientWorld world, CallbackInfo ci) {
         Mithras.EVENT_BUS.post(new WorldChangeEvent(world));
     }
 

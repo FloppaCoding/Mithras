@@ -25,6 +25,7 @@
     "render.InGameOverlayRendererMixin",
     "render.ItemEntityRendererMixin",
     "render.LightmapTextureManagerMixin",
+    "render.ProgressScreenMixin",
     "render.WorldRendererMixin"
   ]
 }
