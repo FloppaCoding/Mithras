@@ -7,7 +7,6 @@ import floppacoding.mithras.module.RegisterHudElement
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.ui.hud.HudElement
 import floppacoding.mithras.ui.nanovg.NVGR
-import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.util.hit.HitResult
 import kotlin.math.floor
@@ -29,7 +28,7 @@ object CoordinateDisplay : Module(
         NVGR.textWidth("123 / 12 / 123 (12.3 / 12.3)"),
         NVGR.DEFAULT_FONT_HEIGHT,
     ) {
-        override fun renderHud(context: DrawContext) {
+        override fun renderHud() {
 
             val player: ClientPlayerEntity = mc.player ?: return
 

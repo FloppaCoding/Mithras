@@ -9,6 +9,7 @@ import org.lwjgl.nanovg.NVGColor
 import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoVG.*
 import org.lwjgl.nanovg.NanoVGGL3
+import org.lwjgl.opengl.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -57,19 +58,38 @@ object NVGR {
     private val nanoColor2: NVGColor = NVGColor.calloc()
     private val nanoPaint: NVGPaint = NVGPaint.calloc()
 
+    private var oldCull: Boolean = true
+    private var oldSrcAlpha: Int = 0
+    private var oldBlend: Boolean = true
+    private var oldProgramm: Int = 0
+    private var oldCullMode: Int = 0
+    private var oldFrontFace: Int = 0
+    private var oldDepth: Boolean = true
+    private var oldStencilMask: Int = -1
+    private var oldStencilFunc: Int = 0
+    private var oldStencilRef: Int = 0
+    private var oldStencilValueMask: Int = 0
+    private var oldTexture: Int = GL20.GL_TEXTURE0
+    private var oldUniformBuffer = 0
+    private var oldArrayBuffer = 0
+    private var oldTexture2D = 0
+
     /**
      * Begins drawing a new frame.
      *
      * All further rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
      */
     fun beginFrame() {
+//        saveCurrentState()
         nvgBeginFrame(
             nanoContext,
             mc.window.width.toFloat(),
             mc.window.height.toFloat(),
             1f
         )
+        //Cull has to be disabled, otherwise sprites (grass, etc.) will be rendered incorrectly.
         RenderSystem.disableCull()
+//        RenderSystem.disableBlend() // Do not disable blend or thing might not show up correctly
     }
 
 
@@ -80,6 +100,54 @@ object NVGR {
      */
     fun endFrame() {
         nvgEndFrame(nanoContext)
+
+//        restoreOldState()
+    }
+
+    /**
+     * Saves the current rendering attributes.
+     * THis should cover pretty much every state which may be changed by NanoVG.
+     */
+    private fun saveCurrentState() {
+        oldCull     = GL11.glGetBoolean(GL20.GL_CULL_FACE)
+        oldSrcAlpha = GL11.glGetInteger(GL20.GL_BLEND_SRC_ALPHA)
+        oldBlend    = GL11.glGetBoolean(GL20.GL_BLEND)
+        oldProgramm = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM)
+        oldCullMode = GL11.glGetInteger(GL20.GL_CULL_FACE_MODE)
+        oldFrontFace = GL11.glGetInteger(GL20.GL_FRONT_FACE)
+        oldDepth = GL11.glGetBoolean(GL20.GL_DEPTH_TEST)
+        // NOT checking
+        // glDisable(GL_SCISSOR_TEST);
+        //	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        oldStencilMask = GL11.glGetInteger(GL20.GL_STENCIL_WRITEMASK)
+        // Skipping glStencilOP
+        oldStencilFunc = GL11.glGetInteger(GL20.GL_STENCIL_FUNC)
+        oldStencilRef = GL11.glGetInteger(GL20.GL_STENCIL_REF)
+        oldStencilValueMask = GL11.glGetInteger(GL20.GL_STENCIL_VALUE_MASK)
+        oldTexture = GL11.glGetInteger(GL20.GL_ACTIVE_TEXTURE)
+        oldUniformBuffer = GL11.glGetInteger(GL31.GL_UNIFORM_BUFFER_BINDING)
+        // Skipping glBindVertexArray
+        oldArrayBuffer = GL11.glGetInteger(GL31.GL_ARRAY_BUFFER_BINDING)
+        oldTexture2D = GL11.glGetInteger(GL20.GL_TEXTURE_BINDING_2D)
+    }
+
+    /**
+     * Restores the states set in [saveCurrentState].
+     */
+    private fun restoreOldState() {
+        if (oldCull) GL11.glEnable(GL20.GL_CULL_FACE) else GL11.glDisable(GL20.GL_CULL_FACE)
+        GL11.glBlendFunc(GL20.GL_SRC_ALPHA, oldSrcAlpha)
+        if (oldBlend) GL11.glEnable(GL20.GL_BLEND) else GL11.glDisable(GL20.GL_BLEND)
+        GL20.glUseProgram(oldProgramm)
+        GL11.glCullFace(oldCullMode)
+        GL11.glFrontFace(oldFrontFace)
+        if (oldDepth) GL11.glEnable(GL20.GL_DEPTH_TEST) else GL11.glDisable(GL20.GL_DEPTH_TEST)
+        GL11.glStencilMask(oldStencilMask)
+        GL11.glStencilFunc(oldStencilFunc, oldStencilRef, oldStencilValueMask)
+        GL13.glActiveTexture(oldTexture)
+        GL15.glBindBuffer(GL31.GL_UNIFORM_BUFFER, oldUniformBuffer)
+        GL15.glBindBuffer(GL31.GL_ARRAY_BUFFER, oldArrayBuffer)
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, oldTexture2D)
     }
 
     /**
@@ -96,6 +164,11 @@ object NVGR {
      * Scales the current coordinate system.
      */
     fun scale(x: Float, y: Float) = nvgScale(nanoContext, x, y)
+
+    /**
+     * Rotates by the given [angle] in degrees.
+     */
+    fun rotate(angle: Float) = nvgRotate(nanoContext, nvgDegToRad( angle ))
 
     /**
      * Pushes the current rendering state to a stack.
@@ -153,7 +226,7 @@ object NVGR {
      * @param font Font to use.
      * @param textAlign The align type for the text.
      * @param splitWidth The width at which the test will be split into a new line. If this value is null, the text will
-     * not be split.
+     * not be split. If this value is set, the alignment will be relative to a box from [x],[y] to [x]+[splitWidth],[y]+hieght.
      */
     fun text(
         text: String,
@@ -202,13 +275,21 @@ object NVGR {
         return BoundingBox(buffer[0], buffer[1], buffer[2], buffer[3])
     }
 
+    // TODO split this in two methods maybe.
+    // one for resized images and one for just full res
     /**
      * Draws the [image] at [x],[y].
      * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
      * @param radius radius of the corner radius.
      */
-    fun image(image: NVGImage, x: Float, y: Float, width: Float, height: Float, radius: Float = 0f, alpha: Float = 1f) {
-        nvgImagePattern(nanoContext, 0f, 0f, width, height, 0f, image.id, alpha, nanoPaint)
+    fun image(image: NVGImage, x: Float, y: Float, width: Float, height: Float, radius: Float = 0f, imageX: Float = 0f, imageY: Float = 0f, imageWidth: Float = image.width.toFloat(), imageHeight: Float = image.height.toFloat(), alpha: Float = 1f) {
+        val xScale = width / imageWidth
+        val yScale = height / imageHeight
+        val scaledImageWidth = image.width * xScale
+        val scaledImageHeight = image.height * yScale
+        val scaledImageX = imageX * xScale
+        val scaledImageY = imageY * yScale
+        nvgImagePattern(nanoContext, -scaledImageX, -scaledImageY, scaledImageWidth, scaledImageHeight, 0f, image.id, alpha, nanoPaint)
         push()
         translate(x, y)
         nvgBeginPath(nanoContext)
@@ -220,11 +301,23 @@ object NVGR {
 
     /**
      * Draws a chroma border with rounded corner and the given dimensions.
+     * @param color does nothing but gives this method the same signature as [border], so that both can be used with the
+     * same syntax through a KFunction.
      */
-    fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float) {
+    @Suppress("UNUSED_PARAMETER")
+    fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int = 0) {
         nvgBeginPath(nanoContext)
         nvgRoundedRect(nanoContext,x, y, width, height, radius)
         strokeWithChroma(lineWidth)
+    }
+
+    /**
+     * Draws a border with rounded corner and the given dimensions.
+     */
+    fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
+        nvgBeginPath(nanoContext)
+        nvgRoundedRect(nanoContext,x, y, width, height, radius)
+        strokeWithColor(lineWidth, color)
     }
 
     fun textField(text: String,
@@ -296,8 +389,9 @@ object NVGR {
     /**
      * Strokes the current path with the given color.
      */
-    fun strokeWithColor(color: Int) {
+    fun strokeWithColor(width: Float, color: Int) {
         setStrokeColor(color)
+        nvgStrokeWidth(nanoContext, width)
         nvgStroke(nanoContext)
     }
 

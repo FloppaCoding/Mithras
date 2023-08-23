@@ -20,6 +20,8 @@ object Test : NVGScreen("Hello") {
         NVGR.roundedRect(780f, 150f, 440f, 700f,8f, Color(28, 30, 32, 240).rgb)
         NVGR.textField("Enter  credit card number here!",800f, 200f, 400f, Color(255, 255, 255, 64).rgb, 20f)
 
+        NVGR.rect(400f, 100f, 100f, 100f, Color(107, 58, 17).rgb)
+        NVGR.text("✔✖?", 450f, 150f, -1, fontSize = 40f)
     }
 
     override val displayPerformance: Boolean = true

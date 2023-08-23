@@ -8,7 +8,7 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.module.settings.impl.NumberSetting
-import floppacoding.mithras.utils.Extensions
+import floppacoding.mithras.utils.JavaExtensions
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.option.SimpleOption
 
@@ -36,7 +36,7 @@ object Zoom : Module(
     /**
      * Used as a stand in for the games fov setting when zoomed in.
      */
-    private val fakeFov = Extensions.provideFakeFov(MIN_FOV, BASE_FOV)
+    private val fakeFov = JavaExtensions.provideFakeFov(MIN_FOV, BASE_FOV)
 
 
     /**

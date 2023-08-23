@@ -2,6 +2,7 @@ package floppacoding.mithras.ui.hud
 
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.MapRender
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.nanovg.NVGR
 import floppacoding.mithras.ui.nanovg.NVGScreen
@@ -16,7 +17,7 @@ import java.awt.Color
 object EditHudGUI : NVGScreen("Edit Hud GUI", mc.options.guiScale.value.toFloat()) {
 
     private val hudElements: ArrayList<HudElement> = arrayListOf(
-
+        MapRender
     )
     private var draggingElement: HudElement? = null
     private var startOffsetX : Float = 0f

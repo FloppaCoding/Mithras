@@ -10,7 +10,7 @@ import net.minecraft.client.option.SimpleOption;
  *
  * @author Aton
  */
-public abstract class Extensions {
+public abstract class JavaExtensions {
 
     /**
      * The compiler will add a type cast for SimpleOption.ValidatingIntSliderCallbacks to SimpleOption.Callback,

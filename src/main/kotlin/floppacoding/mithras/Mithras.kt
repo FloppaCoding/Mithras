@@ -2,16 +2,21 @@ package floppacoding.mithras
 
 import floppacoding.mithras.commands.MithrasCommandManager
 import floppacoding.mithras.config.ModuleConfig
+import floppacoding.mithras.events.ClientTickEvent
+import floppacoding.mithras.events.FabricEventMapper
 import floppacoding.mithras.events.GameStartEvent
 import floppacoding.mithras.module.ModuleManager
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickguinano.ClickGUINano
+import floppacoding.mithras.utils.LocationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
+import meteordevelopment.orbit.EventPriority
 import net.fabricmc.api.ModInitializer
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
@@ -45,6 +50,8 @@ object Mithras : ModInitializer {
 
 	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
 
+	var tickRamp = 0
+
 
 	lateinit var clickGUI: ClickGUI
 	lateinit var clickGUINano: ClickGUINano
@@ -61,9 +68,13 @@ object Mithras : ModInitializer {
 			lookupInMethod.invoke(null, klass, MethodHandles.lookup()) as MethodHandles.Lookup
 		}
 
+		FabricEventMapper.registerEvents()
+
 		listOf(
 			this,
-			ModuleManager
+			ModuleManager,
+			LocationManager,
+			Dungeon
 		).forEach { EVENT_BUS.subscribe(it) }
 
 
@@ -92,5 +103,11 @@ object Mithras : ModInitializer {
 
 		clickGUI = ClickGUI()
 		clickGUINano = ClickGUINano()
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	fun onTick(event: ClientTickEvent) {
+		if (event.phase != ClientTickEvent.Phase.START) return
+		tickRamp = (tickRamp+1) % 20
 	}
 }

@@ -7,7 +7,6 @@ import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.mithras.ui.nanovg.NVGR
 import meteordevelopment.orbit.EventHandler
-import net.minecraft.client.gui.DrawContext
 
 /**
  * Provides functionality for game overlay elements.
@@ -94,18 +93,12 @@ abstract class HudElement  {
     fun onOverlay(event: HudRenderEvent) {
         // Set up both a nonovg draw context and the vanilla context.
         NVGR.beginFrame()
-        NVGR.scale(mc.options.guiScale.value.toFloat(), mc.options.guiScale.value.toFloat())
         NVGR.push()
+        NVGR.scale(mc.options.guiScale.value.toFloat(), mc.options.guiScale.value.toFloat())
         NVGR.translate(x, y)
         NVGR.scale(scale.value, scale.value)
 
-        event.context.matrices.push()
-        event.context.matrices.translate(x, y, 0f)
-        event.context.matrices.scale(scale.value, scale.value, 1f)
-
-        renderHud(event.context)
-
-        event.context.matrices.pop()
+        renderHud()
 
         NVGR.pop()
         NVGR.endFrame()
@@ -119,7 +112,7 @@ abstract class HudElement  {
      * You can use [NVGR] for nice rendering, but the vanilla [context] is also available and properly transformed.
      * So the vanilla rendering can be used as well.
      */
-    abstract fun renderHud(context: DrawContext)
+    abstract fun renderHud()
 
     /**
      * Used for moving the hud element.
