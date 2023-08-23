@@ -5,7 +5,7 @@ import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
 import floppacoding.mithras.ui.nanovg.NVGR.endFrame
 import floppacoding.mithras.ui.nanovg.NVGR.pop
 import floppacoding.mithras.ui.nanovg.NVGR.push
-import floppacoding.mithras.utils.Utils.seconds
+import floppacoding.mithras.utils.Extensions.seconds
 import floppacoding.mithras.utils.clock.Clock
 import floppacoding.mithras.utils.clock.Executor
 import net.minecraft.client.gui.DrawContext

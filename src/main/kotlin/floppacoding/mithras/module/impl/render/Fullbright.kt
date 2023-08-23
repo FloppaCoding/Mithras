@@ -13,7 +13,7 @@ object Fullbright : Module(
     category = Category.RENDER,
     description = "Increases the games brightness."
 ) {
-    private var gamma by NumberSetting("Gamma", 2f, 0f, 3f, increment = 0.01f, description = "Tha gamma value to use.")
+    private var gamma by NumberSetting("Gamma", 2f, 0f, 15f, increment = 0.01f, description = "Tha gamma value to use.")
 
     /**
      * Returns the value that the games gamma option should be overridden to.
