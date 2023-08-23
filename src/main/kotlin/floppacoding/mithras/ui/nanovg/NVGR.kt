@@ -80,15 +80,16 @@ object NVGR {
      * All further rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
      */
     fun beginFrame() {
-        saveCurrentState()
+//        saveCurrentState()
         nvgBeginFrame(
             nanoContext,
             mc.window.width.toFloat(),
             mc.window.height.toFloat(),
             1f
         )
+        //Cull has to be disabled, otherwise sprites (grass, etc.) will be rendered incorrectly.
         RenderSystem.disableCull()
-//        RenderSystem.disableBlend()
+//        RenderSystem.disableBlend() // Do not disable blend or thing might not show up correctly
     }
 
 
@@ -103,6 +104,10 @@ object NVGR {
 //        restoreOldState()
     }
 
+    /**
+     * Saves the current rendering attributes.
+     * THis should cover pretty much every state which may be changed by NanoVG.
+     */
     private fun saveCurrentState() {
         oldCull     = GL11.glGetBoolean(GL20.GL_CULL_FACE)
         oldSrcAlpha = GL11.glGetInteger(GL20.GL_BLEND_SRC_ALPHA)
@@ -126,6 +131,9 @@ object NVGR {
         oldTexture2D = GL11.glGetInteger(GL20.GL_TEXTURE_BINDING_2D)
     }
 
+    /**
+     * Restores the states set in [saveCurrentState].
+     */
     private fun restoreOldState() {
         if (oldCull) GL11.glEnable(GL20.GL_CULL_FACE) else GL11.glDisable(GL20.GL_CULL_FACE)
         GL11.glBlendFunc(GL20.GL_SRC_ALPHA, oldSrcAlpha)
@@ -267,6 +275,8 @@ object NVGR {
         return BoundingBox(buffer[0], buffer[1], buffer[2], buffer[3])
     }
 
+    // TODO split this in two methods maybe.
+    // one for resized images and one for just full res
     /**
      * Draws the [image] at [x],[y].
      * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.

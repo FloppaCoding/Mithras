@@ -16,7 +16,8 @@ typealias NameMode = DungeonMap.NameMode
 object DungeonMap : Module(
     "Dungeon Map",
     category = Category.DUNGEON,
-    description = "Shows the full dungeon map."
+    description = "Renders the map from the Magical Map item in Dungeons on your screen." +
+            "Check the ${MapRooms.name} module for more settings."
 ){
     // General
     val trackSecrets = BooleanSetting("Track Secrets", false, visibility = Visibility.HIDDEN, description = "Uses the Hypixel API to track how many secrets are collected in which room.")
