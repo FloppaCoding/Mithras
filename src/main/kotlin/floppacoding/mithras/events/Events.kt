@@ -1,6 +1,5 @@
 package floppacoding.mithras.events
 
-import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.util.InputUtil.Key
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.text.Text
@@ -29,7 +28,7 @@ class ClientTickEvent(val phase: Phase) {
  * Fired when a new world is loaded.
  * @see floppacoding.mithras.mixin.MinecraftClientMixin.onSSetWorld
  */
-class WorldChangeEvent(val newWorld: ClientWorld)
+class WorldChangeEvent(val newWorld: ClientWorld?)
 
 /**
  * Posted when a key or mouse button is pressed, before the inputs are evaluated.
@@ -56,9 +55,9 @@ class MouseScrollEvent(val amount: Double) : Cancellable()
  * Posted when the in game hud is being rendered.
  * Posted right after the hotbar is rendered but before everything else is rendered.
  * Does not get posted when the hud is hidden but does get posted in spectator
- * @see floppacoding.mithras.mixin.InGameHudMixin.onRenderCrosshair
+ * @see floppacoding.mithras.mixin.InGameHudMixin.onRenderHUD
  */
-class HudRenderEvent(val context: DrawContext, val partialTicks: Float)
+class HudRenderEvent(val partialTicks: Float)
 
 
 /**
@@ -86,3 +85,16 @@ class ChatReceivedEvent(val text: Text, val type: Type) : Cancellable() {
     }
 }
 
+
+class ConnectionEvent {
+    /**
+     * Fired when disconnection from a server.
+     * @see FabricEventMapper.registerEvents
+     */
+    class Disconnect
+
+    /**
+     * Fired when joining a serer.
+     */
+    class Join
+}
