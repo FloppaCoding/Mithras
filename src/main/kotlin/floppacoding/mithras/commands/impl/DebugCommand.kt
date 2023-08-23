@@ -170,6 +170,15 @@ object DebugCommand : Command {
                         }
                     }
                 }
+                literal("mapcolors") {
+                    execute {
+                        val colors = MapUtils.getMapData()?.colors ?: return@execute Unit.also { ChatUtils.chatMessage("Could not get map info.") }
+                        ChatUtils.chatMessage("Printing map data to logs.")
+                        for (row in 0..127) {
+                            Mithras.logger.info(colors.copyOfRange(row*128, (row+1)*128).joinToString(",","row $row:: ") { it.toString() })
+                        }
+                    }
+                }
             }
             literal("loadskin") {
                 execute {
@@ -218,7 +227,7 @@ object DebugCommand : Command {
                                     try {
                                         var stream: InputStream? = null
                                         if (cacheFile.exists() && cacheFile.isFile()) {
-                                            stream = Files.newInputStream(cacheFile.toPath());
+                                            stream = Files.newInputStream(cacheFile.toPath())
                                             ChatUtils.chatMessage("created input stream")
                                         }else {
                                             ChatUtils.chatMessage("cache file is not file ?!")

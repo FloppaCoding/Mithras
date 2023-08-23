@@ -13,6 +13,8 @@ import floppacoding.mithras.ui.nanovg.NVGR
 import floppacoding.mithras.utils.Extensions.equalsOneOf
 import floppacoding.mithras.utils.Extensions.withAlpha
 import floppacoding.mithras.utils.LocationManager.inDungeons
+import floppacoding.mithras.utils.inventory.InventoryUtils.isHoldingInMainHand
+import floppacoding.mithras.utils.inventory.SkyblockItem
 import net.minecraft.client.render.entity.PlayerModelPart
 import java.awt.Color
 
@@ -56,7 +58,7 @@ object MapRender: HudElement(
         }
         // Scissor
         NVGR.push()
-        NVGR.scissor(x, y, width, 128f)
+        NVGR.scissor(0f, 0f, width, 128f)
         // Spinny map
         if (DungeonMap.spinnyMap.enabled || DungeonMap.centerOnPlayer.enabled) {
             NVGR.translate(64.0f, 64.0f)
@@ -159,14 +161,14 @@ object MapRender: HudElement(
         NVGR.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
 
         val connectorSize = roomSize shr 2
-        val showCheckmarks = MapRooms.mapCheckmark.value != MapRooms.CheckmarkMode.NONE && MapRooms.mapRoomSecrets.value != MapRooms.SecretsMode.OFF
+        val showCheckmarks = MapRooms.mapCheckmark.value != MapRooms.CheckmarkMode.NONE && MapRooms.mapRoomSecrets.value != MapRooms.SecretsMode.REPLACE_CHECKMARK
 
         for (x in 0..10 step 2) {
             for (y in 0..10 step 2) {
 
                 val room = Dungeon.getDungeonTile<Room>(x, y) ?: continue
 
-                // If legit mode is enabled filter whether the information should be visible.
+                // filter whether the information should be visible.
                 if (room.state == RoomState.UNDISCOVERED && !room.visited) continue
 
                 val xOffset = (x shr 1) * (roomSize + connectorSize)
@@ -211,9 +213,10 @@ object MapRender: HudElement(
 
                     // Offset + half of roomsize
                     NVGR.text(name.joinToString(separator = " "),
-                        xOffset + (roomSize shr 1).toFloat(), yOffset + (roomSize shr 1).toFloat(), color,
+                        xOffset.toFloat()- roomSize *0.15f, yOffset.toFloat() + roomSize*0.1f, color,
                         NVGR.DEFAULT_FONT_HEIGHT*DungeonMap.textScale.value,
-                        textAlign = NVGR.TextAlign.CENTER_MIDDLE
+                        textAlign = NVGR.TextAlign.CENTER_TOP,
+                        splitWidth = roomSize.toFloat() * 1.3f
                     )
                     // TODO make this split lines or just a string
                 }
@@ -260,6 +263,7 @@ object MapRender: HudElement(
      * containing information about the rooms secrets or null if nothing should be shown.
      */
     private fun getRoomSecerts(room: Room): String? {
+        if (MapRooms.mapRoomSecrets.value == MapRooms.SecretsMode.OFF ) return null
         val shouldShowSecrets = if (room.state == RoomState.QUESTION_MARK) {
             false
         } else when(room.data.type) {
@@ -341,14 +345,15 @@ object MapRender: HudElement(
             }
 
             if (DungeonMap.playerNameMode.value == DungeonMap.NameMode.ALWAYS || DungeonMap.playerNameMode.value == DungeonMap.NameMode.HOLDING_LEAP
-                // && mc.player.isHolding(SkyblockItem.SPIRIT_LEAP, SkyblockItem.INFINILEAP) TODO Implemetn this
+                 && mc.player.isHoldingInMainHand(SkyblockItem.SPIRIT_LEAP, SkyblockItem.INFINILEAP)
             ) {
                 NVGR.push()
-                NVGR.scale(0.8f, 0.8f)
+//                NVGR.scale(0.8f, 0.8f)
                 if (DungeonMap.spinnyMap.enabled) NVGR.rotate(mc.player!!.renderYaw + 180f)
                 NVGR.text(
-                    player.name, 0f, 10f, -1,
-                    textAlign = NVGR.TextAlign.CENTER_TOP
+                    player.name, 0f, 10f * DungeonMap.playerHeadScale.value, -1,
+                    NVGR.DEFAULT_FONT_HEIGHT*DungeonMap.textScale.value,
+                    textAlign = NVGR.TextAlign.CENTER_TOP,
                 )
                 NVGR.pop()
             }

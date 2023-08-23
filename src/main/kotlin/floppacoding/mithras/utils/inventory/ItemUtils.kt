@@ -1,0 +1,108 @@
+package floppacoding.mithras.utils.inventory
+
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.AbstractNbtNumber
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtElement
+
+/**
+ * ## A collection of methods for accessing NBT data of Skyblock items.
+ *
+ * Based on [SBC by Harry282](https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/utils/Utils.kt)
+ *
+ * @author Aton
+ */
+@Suppress("unused")
+object ItemUtils {
+
+    private val ItemStack.extraAttributes: NbtCompound?
+        get() = this.getSubNbt("ExtraAttributes")
+
+    val ItemStack.isDungeonMobDrop: Boolean
+        get() {
+            val attributes = this.extraAttributes
+            return attributes.hasKey("baseStatBoostPercentage") && !attributes.hasKey("dungeon_item_level")
+        }
+
+    val ItemStack.rarityBoost: Int?
+        get() {
+            return this.extraAttributes?.getInteger("baseStatBoostPercentage")
+        }
+
+    val ItemStack.isRarityUpgraded: Boolean
+        get() {
+            return (this.extraAttributes?.getInt("rarity_upgrades") ?: 0) > 0
+        }
+
+    val ItemStack.isStarred: Boolean
+        get() {
+            return (this.extraAttributes?.getInt("upgrade_level") ?: 0) > 0
+        }
+
+    /**
+     * The skyblock item ID
+     *
+     * See [SkyblockItem] for an incomplete list of itemIDs.
+     */
+    val ItemStack.itemID: String
+        get() {
+            return this.extraAttributes?.getString("id") ?: ""
+        }
+
+    val ItemStack.reforge : String
+        get() {
+            return this.extraAttributes?.getString("modifier") ?: ""
+        }
+
+    val ItemStack.lore: List<String>
+        get() {
+            val display = this.getSubNbt("display") ?: return emptyList()
+            if (display.contains("Lore", NbtElement.LIST_TYPE.toInt())) {
+                val nbtList = display.getList("Lore", NbtElement.STRING_TYPE.toInt())
+                val lore = ArrayList<String>()
+                for (ii in 0 until nbtList.size) {
+                    lore.add(nbtList.getString(ii))
+                }
+                return lore
+            }
+            return emptyList()
+        }
+
+    /**
+     * Checks whether the item has a right click ability.
+     */
+    val ItemStack?.hasAbility: Boolean
+        get() {
+            return this?.lore?.any {it.contains("Ability:") && it.endsWith("RIGHT CLICK")} == true
+        }
+
+/**
+ * Checks the item's lore for whether it is a shortbow.
+ *
+ * See also [SkyblockItem] for a list of skyblock items.
+ */
+    val ItemStack?.isShortbow: Boolean
+        get() {
+            return this?.lore?.any { it.contains("Shortbow: Instantly shoots!") } == true
+        }
+
+    private fun NbtCompound?.hasKey(key: String) : Boolean {
+        return this?.contains(key) ?: false
+    }
+
+    /**
+     * Returns the interger value associanted with the [key].
+     * If the associated value is of a different number type than integer, it will be converted.
+     * If the value is not a number or, there is no entry for the key null is returned.
+     *
+     * This behaves differently than the vanilla method [NbtCompound.getInt], which returns 0 instead of null.
+     */
+    private fun NbtCompound.getInteger(key: String): Int? {
+        try {
+            if (this.contains(key, NbtElement.NUMBER_TYPE.toInt())) {
+                return (this.get(key) as AbstractNbtNumber).intValue()
+            }
+        } catch (_: ClassCastException) { }
+        return null
+    }
+}

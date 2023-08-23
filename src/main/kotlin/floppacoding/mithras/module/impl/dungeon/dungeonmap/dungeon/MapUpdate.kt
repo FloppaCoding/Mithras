@@ -107,7 +107,7 @@ object MapUpdate {
     fun updateRooms() {
         if (!MapUtils.calibrated) return
         val mapColors = MapUtils.getMapData()?.colors ?: return
-        if (mapColors[0].toInt() != 0) return
+        if (mapColors[0].toInt() != 0) return // value of 0 signals an unexplored /empty spot on the map.
         /** Used to signal that connected rooms should be updated. */
         var shouldConnectRooms = false
 

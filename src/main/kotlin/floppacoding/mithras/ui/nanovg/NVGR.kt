@@ -218,7 +218,7 @@ object NVGR {
      * @param font Font to use.
      * @param textAlign The align type for the text.
      * @param splitWidth The width at which the test will be split into a new line. If this value is null, the text will
-     * not be split.
+     * not be split. If this value is set, the alignment will be relative to a box from [x],[y] to [x]+[splitWidth],[y]+hieght.
      */
     fun text(
         text: String,

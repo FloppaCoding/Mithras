@@ -26,14 +26,14 @@ object NVGImageManager {
     val CHROMA: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale20_lowres.png")
 
     //Dungeon Map
-    val NEU_GREEN        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/green_check.png")
-    val NEU_WHITE        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/white_check.png")
-    val NEU_CROSS        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/cross.png")
-    val NEU_QUESTION     : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/question.png")
-    val DEFAULT_GREEN    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/green_check.png")
-    val DEFAULT_WHITE    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/white_check.png")
-    val DEFAULT_CROSS    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/cross.png")
-    val DEFAULT_QUESTION : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/question.png")
+    val NEU_GREEN        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/green_check.png", NanoVG.NVG_IMAGE_NEAREST)
+    val NEU_WHITE        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/white_check.png", NanoVG.NVG_IMAGE_NEAREST)
+    val NEU_CROSS        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/cross.png", NanoVG.NVG_IMAGE_NEAREST)
+    val NEU_QUESTION     : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/question.png", NanoVG.NVG_IMAGE_NEAREST)
+    val DEFAULT_GREEN    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/green_check.png", NanoVG.NVG_IMAGE_NEAREST)
+    val DEFAULT_WHITE    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/white_check.png", NanoVG.NVG_IMAGE_NEAREST)
+    val DEFAULT_CROSS    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/cross.png", NanoVG.NVG_IMAGE_NEAREST)
+    val DEFAULT_QUESTION : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/question.png", NanoVG.NVG_IMAGE_NEAREST)
 
     private val bufferedImages = mutableMapOf<Identifier, NVGImage>()
 

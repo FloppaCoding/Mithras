@@ -21,7 +21,7 @@ class Room(x: Int, z: Int, var data: RoomData) : Tile(x, z) {
      * This corresponds to the most west and north tile of a room. (west prioritized over north)
      * The unique tile is the one which has the checkmark on the map.
      */
-    var isUnique: Boolean = false
+    var isUnique: Boolean = data.type != RoomType.NORMAL
 
     override val color: Color
         get() = if (this.state == RoomState.QUESTION_MARK && !visited)

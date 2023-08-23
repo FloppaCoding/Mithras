@@ -1,10 +1,8 @@
 package floppacoding.mithras.ui.hud
 
-import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.ui.nanovg.NVGImageManager
 import floppacoding.mithras.ui.nanovg.NVGR
 import floppacoding.mithras.ui.nanovg.NVGScreen
-import org.lwjgl.nanovg.NanoVG
 import java.awt.Color
 
 object Test : NVGScreen("Hello") {
@@ -22,13 +20,8 @@ object Test : NVGScreen("Hello") {
         NVGR.roundedRect(780f, 150f, 440f, 700f,8f, Color(28, 30, 32, 240).rgb)
         NVGR.textField("Enter  credit card number here!",800f, 200f, 400f, Color(255, 255, 255, 64).rgb, 20f)
 
-        val skinResource = mc.networkHandler?.getPlayerListEntry(mc.player!!.uuid)?.skinTexture
-        if (skinResource != null) {
-            val skinImage = NVGImageManager.createImage(skinResource, NanoVG.NVG_IMAGE_NEAREST)
-
-            NVGR.border(10f, 10f, 70f, 70f, 3.0f, 2f, Color(0, 0, 0, 255).rgb)
-            NVGR.image(skinImage, 10f, 10f, 70f, 70f, 2f, 8f, 8f, 8f, 8f)
-        }
+        NVGR.rect(400f, 100f, 100f, 100f, Color(107, 58, 17).rgb)
+        NVGR.text("✔✖?", 450f, 150f, -1, fontSize = 40f)
     }
 
     override val displayPerformance: Boolean = true

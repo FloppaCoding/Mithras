@@ -2,6 +2,7 @@ package floppacoding.mithras.module.impl.dungeon
 
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.*
 import java.awt.Color
 
@@ -13,13 +14,13 @@ object MapRooms : Module(
     category = Category.DUNGEON,
     description = "Appearance settings for the dungeon map."
 ){
-    val darkenUndiscovered  = BooleanSetting("Darken Undiscovered",true, description = "Darkens unentered rooms.")
+    val darkenUndiscovered  = BooleanSetting("Darken Undiscovered",true, visibility = Visibility.HIDDEN, description = "Darkens unentered rooms.")
     val mapRoomNames        = SelectorSetting("Room Names", RoomNameMode.SPECIAL, description = "Shows names of rooms on map.")
-    val mapRoomSecrets      = SelectorSetting("Room Secrets", SecretsMode.OFF, description = "Shows total secrets of rooms on map. REPLACE CHECKMARKS NOT ADDED!")
+    val mapRoomSecrets      = SelectorSetting("Room Secrets", SecretsMode.OFF, visibility = Visibility.HIDDEN, description = "Shows total secrets of rooms on map. REPLACE CHECKMARKS NOT ADDED!")
     val mapColorText        = BooleanSetting("Color Text",false, description = "Colors name and secret count based on room state.")
-    val mapCheckmark        = SelectorSetting("Room Checkmarks", CheckmarkMode.DEFAULT, description = "Adds room checkmarks based on room state.")
-    val mapRoomTransparency = NumberSetting("Room Opacity",1.0,0.0, 1.0, 0.01)
-    val mapDarkenPercent    = NumberSetting("DarkenMultiplier",0.4,0.0, 1.0, 0.01, description = "How much to darken undiscovered rooms")
+    val mapCheckmark        = SelectorSetting("Room Checkmarks", CheckmarkMode.NEU, description = "Adds room checkmarks based on room state.")
+    val mapRoomTransparency = NumberSetting("Room Opacity",1.0,0.0, 1.0, 0.01, visibility = Visibility.HIDDEN)
+    val mapDarkenPercent    = NumberSetting("DarkenMultiplier",0.4,0.0, 1.0, 0.01, visibility = Visibility.HIDDEN, description = "How much to darken undiscovered rooms")
     val colorBloodDoor      = ColorSetting("Blood Door", Color(231, 0, 0), true)
     val colorEntranceDoor   = ColorSetting("Entrance Door", Color(20, 133, 0), true)
     val colorRoomDoor       = ColorSetting("Normal Door", Color(92, 52, 14), true)

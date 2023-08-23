@@ -31,8 +31,8 @@ object Dungeon {
     const val startX = -185
     const val startZ = -185
 
+    // Currently always false! Could maybe be used when the entire map has been revealed.
     var fullyScanned = false
-    var fullyScannedRotation = false
 
     var hasRunStarted = false
     var inBoss = false
@@ -51,26 +51,12 @@ object Dungeon {
      */
     private val dungeonList = Array<Tile?>(121) { null }
 
-    var mimicFound = false
-
     /**
      * Contains all the teammates in the current dungeon.
      * Also contains the Player.
      */
     val dungeonTeammates = mutableListOf<DungeonPlayer>()
 
-    // Used for chat info
-    /**
-     * @see [RunInformation.puzzles]
-     */
-    val puzzles = mutableListOf<String>()
-    var trapType = ""
-    var witherDoors = 0
-    /**
-     * @see [RunInformation.totalSecrets]
-     */
-    var totalSecrets = 0
-    var cryptCount = 0
 
     var currentRoom: Room? = null
         private set
@@ -187,7 +173,6 @@ object Dungeon {
         hasRunStarted = false
         inBoss = false
         fullyScanned = false
-        fullyScannedRotation = false
     }
 
     fun getDungeonTabList(): List<Pair<PlayerListEntry, String>>? {
@@ -271,13 +256,6 @@ object Dungeon {
         dungeonTeammates.clear()
 
         dungeonList.fill(null)
-        mimicFound = false
-
-        puzzles.clear()
-        trapType = ""
-        witherDoors = 0
-        totalSecrets = 0
-        cryptCount = 0
     }
 
     private val deathPattern = Regex("^ ☠ (?<name>\\w+) .+ and became a ghost")
