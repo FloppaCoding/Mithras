@@ -18,6 +18,7 @@
     "MainMixin",
     "MinecraftClientMixin",
     "MouseMixin",
+    "ParticleManagerMixin",
     "PlayerSkinAccessor",
     "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",

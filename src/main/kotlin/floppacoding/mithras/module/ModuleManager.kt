@@ -53,6 +53,7 @@ object ModuleManager {
         ItemPhysics,
         Fullbright,
         Zoom,
+        Particles,
 
 
         //PLAYER
