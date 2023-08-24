@@ -3,6 +3,7 @@ package floppacoding.mithras.utils
 import floppacoding.mithras.Mithras.mc
 import net.minecraft.client.gui.screen.Screen
 import java.awt.Color
+import java.util.*
 
 object Extensions {
 
@@ -36,6 +37,38 @@ object Extensions {
         }
     }
 
+    /**
+     * Test whether the String contains one of the stings in the list.
+     */
+    fun String.containsOneOf(options: List<String>, ignoreCase: Boolean = false): Boolean {
+        return this.containsOneOf(options.toSet(),ignoreCase)
+
+    }
+
+    /**
+     * Test whether the String contains one of the stings in the list.
+     */
+    fun String.containsOneOf(options: Set<String>, ignoreCase: Boolean = false): Boolean {
+        options.forEach{
+            if (this.contains(it, ignoreCase)) return true
+        }
+        return false
+    }
+
+    fun <K, V> MutableMap<K, V>.removeIf(filter: (Map.Entry<K, V>) -> Boolean) : Boolean {
+        Objects.requireNonNull(filter)
+        var removed = false
+        val each: MutableIterator<Map.Entry<K, V>> = this.iterator()
+        while (each.hasNext()) {
+            if (filter(each.next())) {
+                each.remove()
+                removed = true
+            }
+        }
+        return removed
+    }
+
+
     fun Color.withAlpha(alpha: Int) = Color(this.red, this.green, this.blue, alpha)
 
 
@@ -46,6 +79,7 @@ object Extensions {
     inline val Int.seconds: Long
         get() = (this * 1_000_000_000).toLong()
 
+    // TODO move this to a fitting class and maybe rename it?.
     fun setScreen(screen: Screen) {
         mc.send {
             mc.setScreen(screen)

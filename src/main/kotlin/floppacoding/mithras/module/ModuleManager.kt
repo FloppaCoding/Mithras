@@ -4,6 +4,7 @@ import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
 import floppacoding.mithras.module.impl.dungeon.DungeonMap
 import floppacoding.mithras.module.impl.dungeon.MapRooms
+import floppacoding.mithras.module.impl.misc.ChatCleaner
 import floppacoding.mithras.module.impl.misc.KeepMousePosition
 import floppacoding.mithras.module.impl.misc.SmoothTransfer
 import floppacoding.mithras.module.impl.player.AutoSprint
@@ -64,6 +65,7 @@ object ModuleManager {
         //MISC
         SmoothTransfer,
         KeepMousePosition,
+        ChatCleaner,
 
 
         //KEYBIND
