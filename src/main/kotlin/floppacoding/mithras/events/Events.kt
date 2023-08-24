@@ -34,7 +34,7 @@ class WorldChangeEvent(val newWorld: ClientWorld?)
  * Posted when a key or mouse button is pressed, before the inputs are evaluated.
  * Only posted when not in a GUI.
  * @param action Signals whether the key was pressed or released. 1 = pressed, 0 = released.
- * @see floppacoding.mithras.mixin.MouseMixin.onMouseClick
+ * @see floppacoding.mithras.mixin.MouseMixin.mithras
  * @see floppacoding.mithras.mixin.KeyboardMixin.onKeyPress
  */
 class InputEvent(val key: Key, val action: Int) : Cancellable() {

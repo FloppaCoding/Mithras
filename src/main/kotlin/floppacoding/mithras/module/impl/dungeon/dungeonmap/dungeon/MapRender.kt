@@ -62,7 +62,7 @@ object MapRender: HudElement(
         // Spinny map
         if (DungeonMap.spinnyMap.enabled || DungeonMap.centerOnPlayer.enabled) {
             NVGR.translate(64.0f, 64.0f)
-            if (DungeonMap.spinnyMap.enabled) NVGR.rotate(-mc.player!!.renderYaw + 180f)
+            if (DungeonMap.spinnyMap.enabled) NVGR.rotate(-mc.player!!.headYaw + 180f)
         }
         // Room scale
         NVGR.scale(DungeonMap.roomScale.value, DungeonMap.roomScale.value)
@@ -349,7 +349,7 @@ object MapRender: HudElement(
             ) {
                 NVGR.push()
 //                NVGR.scale(0.8f, 0.8f)
-                if (DungeonMap.spinnyMap.enabled) NVGR.rotate(mc.player!!.renderYaw + 180f)
+                if (DungeonMap.spinnyMap.enabled) NVGR.rotate(mc.player!!.headYaw + 180f)
                 NVGR.text(
                     player.name, 0f, 10f * DungeonMap.playerHeadScale.value, -1,
                     NVGR.DEFAULT_FONT_HEIGHT*DungeonMap.textScale.value,

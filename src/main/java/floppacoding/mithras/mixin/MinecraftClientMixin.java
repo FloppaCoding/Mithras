@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 abstract class MinecraftClientMixin {
 
     @Inject(at = @At("HEAD"), method = "setWorld")
-    private void onSetWorld(ClientWorld world, CallbackInfo ci) {
+    private void mithras$onSetWorld(ClientWorld world, CallbackInfo ci) {
         Mithras.EVENT_BUS.post(new WorldChangeEvent(world));
     }
 
@@ -24,7 +24,7 @@ abstract class MinecraftClientMixin {
      * Allows for skipping the front view perspective.
      */
     @ModifyArg(method = "handleInputEvents", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/GameOptions;setPerspective(Lnet/minecraft/client/option/Perspective;)V"))
-    private Perspective modifyPerspective(Perspective perspective) {
+    private Perspective mithras$modifyPerspective(Perspective perspective) {
         if(Camera.INSTANCE.shouldSkipPerspective(perspective))
             return perspective.next();
         return perspective;
