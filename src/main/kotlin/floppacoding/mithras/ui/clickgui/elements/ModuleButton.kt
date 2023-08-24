@@ -2,6 +2,7 @@ package floppacoding.mithras.ui.clickgui.elements
 
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.impl.keybinds.KeyBind
 import floppacoding.mithras.module.impl.render.GUIDesign
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.impl.*
@@ -98,12 +99,11 @@ class ModuleButton(val module: Module, val panel: Panel) {
         }
 
         /** Rendering the name in the middle */
-//        val displayName = if (module is KeyBind){
-//            module.bindName.text
-//        } else {
-//            module.name
-//        }
-        val displayName = module.name
+        val displayName = if (module is KeyBind){
+            module.bindName.text
+        } else {
+            module.name
+        }
         FontUtil.drawTotalCenteredStringWithShadow(context, displayName, width / 2.0, 1 + height / 2.0)
 
         /** Render the settings elements */

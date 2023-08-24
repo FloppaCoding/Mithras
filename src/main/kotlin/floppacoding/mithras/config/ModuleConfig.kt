@@ -12,9 +12,8 @@ import floppacoding.mithras.config.jsonutils.SettingSerializer
 import floppacoding.mithras.module.ConfigModule
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.settings.Setting
-import floppacoding.mithras.module.settings.impl.*
+import floppacoding.mithras.module.settings.impl.BooleanSetting
 import net.minecraft.client.util.InputUtil.Key
-import java.awt.Color
 import java.io.File
 import java.io.IOException
 
@@ -69,13 +68,11 @@ class ModuleConfig(path: File) {
             configModules.forEach { configModule ->
                 ModuleManager.getModuleByName(configModule.name).run updateModule@{
                     // If the module was not found check whether it can be a keybind
-                    // Keybind support removed for now
-                    val module = this ?: return@updateModule
-//                    if (configModule.settings.find { (it is BooleanSetting) && it.name == "THIS_IS_A_KEY_BIND" } != null) {
-//                        ModuleManager.addNewKeybind()
-//                    }else {
-//                        return@updateModule
-//                    }
+                    val module = this ?: if (configModule.settings.find { (it is BooleanSetting) && it.name == "THIS_IS_A_KEY_BIND" } != null) {
+                        ModuleManager.addNewKeybind()
+                    }else {
+                        return@updateModule
+                    }
                     if (module.enabled != configModule.enabled) module.toggle()
                     module.keyBind = configModule.keyBind
                     for (configSetting in configModule.settings) {
@@ -85,13 +82,7 @@ class ModuleConfig(path: File) {
                         @Suppress("SENSELESS_COMPARISON")
                         if (configSetting == null) continue
                         val setting = module.getSettingByName(configSetting.name) ?: continue
-                        when (setting) {
-                            is BooleanSetting -> setting.enabled = (configSetting as BooleanSetting).enabled
-                            is NumberSetting -> setting.doubleValue = (configSetting as NumberSetting).doubleValue
-                            is ColorSetting -> setting.value = Color((configSetting as NumberSetting).doubleValue.toInt(), true)
-                            is SelectorSetting -> setting.selected = (configSetting as StringSetting).text
-                            is StringSetting -> setting.text = (configSetting as StringSetting).text
-                        }
+                        setting.updateFromConfigSetting(configSetting)
                     }
                 }
             }

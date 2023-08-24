@@ -23,6 +23,10 @@ class BooleanSetting (
 
         }
 
+    override fun updateFromConfigSetting(configSetting: Setting<*>) {
+        this.enabled = (configSetting as BooleanSetting).enabled
+    }
+
     var enabled: Boolean by this::value
 
     fun toggle() {

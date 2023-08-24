@@ -1,6 +1,7 @@
 package floppacoding.mithras.ui.clickguinano.elements
 
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.impl.keybinds.KeyBind
 import floppacoding.mithras.module.impl.render.GUIDesign
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.impl.*
@@ -97,12 +98,11 @@ class ModuleButton(val module: Module, val panel: Panel) {
         }
 
         /** Rendering the name in the middle */
-//        val displayName = if (module is KeyBind){
-//            module.bindName.text
-//        } else {
-//            module.name
-//        }
-        val displayName = module.name
+        val displayName = if (module is KeyBind){
+            module.bindName.text
+        } else {
+            module.name
+        }
         NVGR.text(displayName, width / 2f, 1f + height / 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_MIDDLE)
 
         /** Render the settings elements */

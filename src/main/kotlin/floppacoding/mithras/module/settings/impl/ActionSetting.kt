@@ -18,6 +18,11 @@ class ActionSetting(
 
     override var value: () -> Unit = default
 
+    /**
+     * Nothing to read here.
+     */
+    override fun updateFromConfigSetting(configSetting: Setting<*>) {}
+
     var action: () -> Unit by this::value
 
     fun doAction() {

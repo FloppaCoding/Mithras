@@ -31,6 +31,10 @@ class SelectorSetting<T>(
             field = processInput(input)
         }
 
+    override fun updateFromConfigSetting(configSetting: Setting<*>) {
+        this.selected = (configSetting as StringSetting).text
+    }
+
     var index: Int
         get() = value.ordinal
         set(newVal) {

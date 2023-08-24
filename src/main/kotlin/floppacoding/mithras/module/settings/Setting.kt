@@ -55,6 +55,13 @@ abstract class Setting<T>(
         }
 
     /**
+     * Updates the [value] of this Setting from [configSetting].
+     * @throws ClassCastException If [configSetting] cannot be cast to a type from which the desired information can be read.
+     */
+    @Throws(ClassCastException::class)
+    abstract fun updateFromConfigSetting(configSetting: Setting<*>)
+
+    /**
      * Sets [value] to [default].
      */
     open fun reset() {
