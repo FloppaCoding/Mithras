@@ -16,6 +16,10 @@ import floppacoding.mithras.utils.ChatUtils
 import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.ScoreboardUtils
 import floppacoding.mithras.utils.TabListUtils
+import floppacoding.mithras.utils.inventory.ItemUtils.formattedLore
+import floppacoding.mithras.utils.inventory.ItemUtils.lore
+import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
+import floppacoding.mithras.utils.inventory.NBTStringWriter
 import net.minecraft.client.texture.PlayerSkinTexture
 import java.io.IOException
 import java.io.InputStream
@@ -265,8 +269,54 @@ object DebugCommand : Command {
                     }
                 }
             }
-            literal("sleeptimer") {
-                execute { ChatUtils.chatMessage(mc.player?.sleepTimer?.toString() ?: "null") }
+            literal("item") {
+                literal("heldnbt") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val nbtString = NBTStringWriter.creatNbtString(stack)
+                        mc.keyboard.clipboard = nbtString
+                        ChatUtils.chatMessage("Copied held item nbt data to clipboard.")
+                    }
+                }
+                literal("lore") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val lore = stack.lore
+                        mc.keyboard.clipboard = lore.joinToString(System.lineSeparator())
+                        ChatUtils.chatMessage("Copied held item lore to clipboard.")
+                    }
+                }
+                literal("formatted-lore") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val lore = stack.formattedLore
+                        mc.keyboard.clipboard = lore.joinToString(System.lineSeparator())
+                        ChatUtils.chatMessage("Copied held item lore to clipboard.")
+                    }
+                }
+                literal("rarity") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val rarity = stack.skyblockRarity
+                        ChatUtils.chatMessage("Held item rarity is: ${rarity.name}.")
+                    }
+                }
             }
             literal("test") {
                 execute { Mithras.logger.info("Test info") }

@@ -118,15 +118,15 @@ object MainSettings: Module(
         toggle()
     }
 
-    enum class Design(override val displayName: String): Options {
+    enum class Design(override val displayName: String): SelectorOptions {
         JELLYLIKE("Jellylike"), NEW("New")
     }
 
-    enum class ColorMode(override val displayName: String): Options {
+    enum class ColorMode(override val displayName: String): SelectorOptions {
         HSB("HSB"), RGB("RGB")
     }
 
-    enum class PrefixStyle(override val displayName: String): Options {
+    enum class PrefixStyle(override val displayName: String): SelectorOptions {
         LONG("Long"), SHORT("Short"), CUSTOM("Custom")
     }
 }

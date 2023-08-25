@@ -1,7 +1,7 @@
 package floppacoding.mithras.ui.clickguinano.advanced.elements.menu
 
 import floppacoding.mithras.module.Module
-import floppacoding.mithras.module.settings.impl.Options
+import floppacoding.mithras.module.settings.impl.SelectorOptions
 import floppacoding.mithras.module.settings.impl.SelectorSetting
 import floppacoding.mithras.ui.clickguinano.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickguinano.advanced.elements.AdvancedElement
@@ -18,7 +18,7 @@ import java.util.*
 class AdvancedElementSelector<T>(
     parent: AdvancedMenu, module: Module, setting: SelectorSetting<T>,
 ) : AdvancedElement<SelectorSetting<T>>(parent, module, setting, AdvancedElementType.SELECTOR)
-        where T : Options, T: Enum<T> {
+        where T : SelectorOptions, T: Enum<T> {
 
 
     /**

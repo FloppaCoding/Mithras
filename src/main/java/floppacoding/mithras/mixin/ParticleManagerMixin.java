@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ParticleManager.class)
-public class ParticleManagerMixin {
+public abstract class ParticleManagerMixin {
 
     @Inject(method = "addBlockBreakParticles", at = @At("HEAD"), cancellable = true)
     private void mithras$hideBlockBreakParticles(BlockPos pos, BlockState state, CallbackInfo ci) {

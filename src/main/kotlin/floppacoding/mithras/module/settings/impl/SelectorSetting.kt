@@ -10,7 +10,7 @@ import floppacoding.mithras.module.settings.Visibility
  * parameter.
  * Example use:
  *
- *     enum class Design(override val displayName: String): Options {
+ *     enum class Design(override val displayName: String): SelectorOptions {
  *        JELLYLIKE("Jellylike"), NEW("New")
  *     }
  *     val design = SelectorSetting("Design", Design.JELLYLIKE, description = "Design theme of the gui.")
@@ -24,7 +24,7 @@ class SelectorSetting<T>(
     val options: Array<out T>,
     visibility: Visibility = Visibility.VISIBLE,
     description: String? = null,
-) : Setting<T>(name, visibility, description) where T : Options, T: Enum<T> {
+) : Setting<T>(name, visibility, description) where T : SelectorOptions, T: Enum<T> {
 
     override var value: T = default
         set(input) {
@@ -43,7 +43,7 @@ class SelectorSetting<T>(
         }
 
     /**
-     * [displayName][Options.displayName] of the selected Enum.
+     * [displayName][SelectorOptions.displayName] of the selected Enum.
      * Can be used to set [value] based on the displayName of the Enum.
      * This is required for loading data from the config.
      * If possible [value] should be directly instead.
@@ -54,7 +54,7 @@ class SelectorSetting<T>(
             value = options.find { it.displayName.equals(input, ignoreCase = true) } ?: return
         }
 
-    fun isSelected(option: Options): Boolean {
+    fun isSelected(option: SelectorOptions): Boolean {
         return  this.value === option
     }
 }
@@ -71,16 +71,16 @@ inline fun <reified L> SelectorSetting(
     default: L,
     visibility: Visibility = Visibility.VISIBLE,
     description: String? = null
-) : SelectorSetting<L> where L : Options, L: Enum<L> =
+) : SelectorSetting<L> where L : SelectorOptions, L: Enum<L> =
     SelectorSetting(name, default, enumValues(), visibility, description)
 
 /**
  * The enum of the [SelectorSetting] needs to implement this. Example:
  *
- *      enum class Design(override val displayName: String): Options {
+ *      enum class Design(override val displayName: String): SelectorOptions {
  *         JELLYLIKE("Jellylike"), NEW("New")
  *      }
  */
-interface Options {
+interface SelectorOptions {
     val displayName: String
 }
