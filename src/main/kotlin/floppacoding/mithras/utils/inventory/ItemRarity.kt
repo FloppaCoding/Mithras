@@ -22,6 +22,6 @@ enum class ItemRarity(val inGameName: String, val colorCode: Formatting): Select
     override val displayName: String = inGameName
 
     companion object {
-        val RARITY_PATTERN = Regex("^(?<rarity>${entries.joinToString("|") { it.inGameName }})(?: (?<type>[A-Z]+(?: +[A-Z]+)*))?$")
+        val RARITY_PATTERN = Regex("^(?:SHINY )?(?<rarity>${entries.joinToString("|") { it.inGameName }})(?: (?<type>[A-Z]+(?: +[A-Z]+)*))?$")
     }
 }
