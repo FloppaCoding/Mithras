@@ -1,7 +1,12 @@
 package floppacoding.mithras.events
 
+import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.util.InputUtil.Key
 import net.minecraft.client.world.ClientWorld
+import net.minecraft.item.ItemStack
+import net.minecraft.screen.ScreenHandler
+import net.minecraft.screen.slot.Slot
+import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.text.Text
 
 //
@@ -26,7 +31,7 @@ class ClientTickEvent(val phase: Phase) {
 
 /**
  * Fired when a new world is loaded.
- * @see floppacoding.mithras.mixin.MinecraftClientMixin.onSSetWorld
+ * @see floppacoding.mithras.mixin.MinecraftClientMixin
  */
 class WorldChangeEvent(val newWorld: ClientWorld?)
 
@@ -34,7 +39,7 @@ class WorldChangeEvent(val newWorld: ClientWorld?)
  * Posted when a key or mouse button is pressed, before the inputs are evaluated.
  * Only posted when not in a GUI.
  * @param action Signals whether the key was pressed or released. 1 = pressed, 0 = released.
- * @see floppacoding.mithras.mixin.MouseMixin.mithras
+ * @see floppacoding.mithras.mixin.MouseMixin
  * @see floppacoding.mithras.mixin.KeyboardMixin.onKeyPress
  */
 class InputEvent(val key: Key, val action: Int) : Cancellable() {
@@ -47,7 +52,7 @@ class InputEvent(val key: Key, val action: Int) : Cancellable() {
 /**
  * Posted when the mouse is scrolled, before the input is evaluated by the vanilla methods.
  * Only posted when not in a GUI.
- * @see floppacoding.mithras.mixin.MouseMixin.onScroll
+ * @see floppacoding.mithras.mixin.MouseMixin
  */
 class MouseScrollEvent(val amount: Double) : Cancellable()
 
@@ -59,6 +64,18 @@ class MouseScrollEvent(val amount: Double) : Cancellable()
  */
 class HudRenderEvent(val partialTicks: Float)
 
+/**
+ * Posted when a slot is clicked in a [HandledScreen][net.minecraft.client.gui.screen.ingame.HandledScreen].
+ * Should work for basically all inventory types.
+ * @see floppacoding.mithras.mixin.HandledScreenMixin
+ */
+class GuiSlotClickEvent<T : ScreenHandler>(val slot: Slot?, val slotId: Int, val button: Int, val actionType: SlotActionType, val handler: T, val handledScreen: HandledScreen<T>, val inventoryName: Text) : Cancellable()
+
+/**
+ * Posted whenever the player tries to drop an item from the hotbar by pressing the drop key.
+ * @see floppacoding.mithras.mixin.ClientPlayerEntityMixin
+ */
+class HotbarDropEvent(val stack: ItemStack): Cancellable()
 
 /**
  * Fired when a message is received. [type] signals whether it was a player message, game message or action bar message.

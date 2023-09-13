@@ -12,6 +12,7 @@
   "client": [
     "ClientPlayerEntityMixin",
     "GameOptionsMixin",
+    "HandledScreenMixin",
     "InGameHudMixin",
     "KeyBindingMixin",
     "KeyboardMixin",

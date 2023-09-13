@@ -5,6 +5,12 @@ import net.minecraft.client.gui.screen.Screen
 import java.awt.Color
 import java.util.*
 
+/**
+ * A collection of generally useful extension functions.
+ *
+ * @author Aton
+ * @author Stivais
+ */
 object Extensions {
 
     /**
@@ -40,15 +46,14 @@ object Extensions {
     /**
      * Test whether the String contains one of the stings in the list.
      */
-    fun String.containsOneOf(options: List<String>, ignoreCase: Boolean = false): Boolean {
+    fun String.containsOneOf(vararg options: String, ignoreCase: Boolean = false): Boolean {
         return this.containsOneOf(options.toSet(),ignoreCase)
-
     }
 
     /**
      * Test whether the String contains one of the stings in the list.
      */
-    fun String.containsOneOf(options: Set<String>, ignoreCase: Boolean = false): Boolean {
+    fun String.containsOneOf(options: Collection<String>, ignoreCase: Boolean = false): Boolean {
         options.forEach{
             if (this.contains(it, ignoreCase)) return true
         }

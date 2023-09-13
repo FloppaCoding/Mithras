@@ -9,14 +9,15 @@ import net.minecraft.text.Text
 /**
  * ## A collection of methods for accessing NBT data of Skyblock items.
  *
- * Based on [SBC by Harry282](https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/utils/Utils.kt)
+ * Parts of this class are based on
+ * [SBC by Harry282](https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/utils/Utils.kt) -
+ * [APGL-3.0 license](https://github.com/Harry282/Skyblock-Client/blob/main/LICENSE)
  *
  * @author Aton
  */
 @Suppress("unused")
 object ItemUtils {
-
-    private val ItemStack.extraAttributes: NbtCompound?
+    val ItemStack.extraAttributes: NbtCompound?
         get() = this.getSubNbt("ExtraAttributes")
 
     val ItemStack.isDungeonMobDrop: Boolean
@@ -33,6 +34,9 @@ object ItemUtils {
             return this.extraAttributes?.getInteger("baseStatBoostPercentage")
         }
 
+    /**
+     * Returns true if the Skbylock item is recombobulated, false otherwise.
+     */
     val ItemStack.isRarityUpgraded: Boolean
         get() {
             return (this.extraAttributes?.getInt("rarity_upgrades") ?: 0) > 0

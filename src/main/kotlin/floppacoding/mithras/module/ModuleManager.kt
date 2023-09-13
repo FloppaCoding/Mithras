@@ -7,7 +7,7 @@ import floppacoding.mithras.module.impl.dungeon.MapRooms
 import floppacoding.mithras.module.impl.keybinds.AddKeybind
 import floppacoding.mithras.module.impl.keybinds.KeyBind
 import floppacoding.mithras.module.impl.misc.ChatCleaner
-import floppacoding.mithras.module.impl.misc.DropProtection
+import floppacoding.mithras.module.impl.misc.ItemProtection
 import floppacoding.mithras.module.impl.misc.KeepMousePosition
 import floppacoding.mithras.module.impl.misc.SmoothTransfer
 import floppacoding.mithras.module.impl.player.AutoSprint
@@ -71,7 +71,7 @@ object ModuleManager {
         SmoothTransfer,
         KeepMousePosition,
         ChatCleaner,
-        DropProtection,
+        ItemProtection,
 
 
         //KEYBIND
