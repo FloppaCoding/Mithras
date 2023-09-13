@@ -5,6 +5,8 @@ import floppacoding.mithras.Mithras
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.network.ClientPlayNetworkHandler
@@ -42,6 +44,11 @@ object FabricEventMapper {
         }
         ClientPlayConnectionEvents.JOIN.register { _: ClientPlayNetworkHandler, _: PacketSender, _: MinecraftClient ->
             Mithras.EVENT_BUS.post(ConnectionEvent.Join())
+        }
+
+        // Rendering
+        WorldRenderEvents.LAST.register {context: WorldRenderContext ->
+            Mithras.EVENT_BUS.post(RenderWorldOverlayEvent(context))
         }
     }
 }

@@ -1,5 +1,6 @@
 package floppacoding.mithras.events
 
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.util.InputUtil.Key
 import net.minecraft.client.world.ClientWorld
@@ -115,3 +116,12 @@ class ConnectionEvent {
      */
     class Join
 }
+
+/**
+ * Posted on [WorldRenderEvents.BEFORE_DEBUG_RENDER][net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BEFORE_DEBUG_RENDER]
+ * after blocks and entities are drawn, but before the games debug rendering, player hand and hud are drawn.
+ *
+ * Use this for rendering things like wire frames or lines in the world.
+ * @see net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BEFORE_DEBUG_RENDER
+ */
+class RenderWorldOverlayEvent(val context: WorldRenderContext)

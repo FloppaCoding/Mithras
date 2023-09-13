@@ -2,6 +2,7 @@ package floppacoding.mithras.module
 
 import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
+import floppacoding.mithras.module.impl.debug.DebugModule
 import floppacoding.mithras.module.impl.dungeon.DungeonMap
 import floppacoding.mithras.module.impl.dungeon.MapRooms
 import floppacoding.mithras.module.impl.keybinds.AddKeybind
@@ -72,6 +73,7 @@ object ModuleManager {
         KeepMousePosition,
         ChatCleaner,
         ItemProtection,
+        DebugModule,
 
 
         //KEYBIND
