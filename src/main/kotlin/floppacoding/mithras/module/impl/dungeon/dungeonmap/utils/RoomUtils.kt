@@ -1,8 +1,16 @@
 package floppacoding.mithras.module.impl.dungeon.dungeonmap.utils
 
-import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.RoomData
+import com.google.gson.Gson
+import com.google.gson.JsonIOException
+import com.google.gson.JsonSyntaxException
+import com.google.gson.reflect.TypeToken
+import floppacoding.mithras.Mithras
+import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.RoomConfigData
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.RoomData
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.RoomType
+import net.minecraft.util.Identifier
 
 /**
  * A collection of methods for dungeon room specific information.
@@ -12,6 +20,21 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.RoomType
  * @author Aton
  */
 object RoomUtils {
+    val roomList: Set<RoomConfigData> = try {
+        val resource = mc.resourceManager.getResource(Identifier(Mithras.RESOURCE_DOMAIN, "dungeonmap/rooms.json"))
+        val stream = resource.get().inputStream
+        Gson().fromJson(
+            stream.bufferedReader(),
+            object : TypeToken<Set<RoomConfigData>>() {}.type
+        )
+    } catch (e: JsonSyntaxException) {
+        Mithras.logger.error("Error parsing Mithras  room data.")
+        setOf()
+    } catch (e: JsonIOException) {
+        Mithras.logger.error("Error reading Mithras room data.")
+        setOf()
+    }
+
 
 
     fun instanceBossRoom(floor: Int): Room {

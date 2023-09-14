@@ -1,5 +1,7 @@
 package floppacoding.mithras.module.impl.dungeon.dungeonmap.core
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Data for rooms retrieved from rooms.json.
  *
@@ -8,9 +10,22 @@ package floppacoding.mithras.module.impl.dungeon.dungeonmap.core
 data class RoomConfigData(
     val name: String,
     val type: RoomType,
+    val shape: RoomShape,
+    val doors: DoorLayout?,
     val secrets: Int,
-    val size: Int,
-    val cores: List<Int>,
     val crypts: Int,
-    val trappedChests: Int
+    @SerializedName("revive_stones")
+    val reviveStones: Int,
+    val journals: Int,
+    @SerializedName("spiders")
+    val hasLonelySpiders: Boolean,
+    @SerializedName("secret_details")
+    val secretDetails: SecretDetails?,
+    @SerializedName("soul")
+    val hasFairySoul: Boolean,
+    @SerializedName("id")
+    val scoreboardIDs: List<String>,
+    val cores: List<Int>?,
+    @SerializedName("secret_coords")
+    val secretPositions: SecretPositions?
 )

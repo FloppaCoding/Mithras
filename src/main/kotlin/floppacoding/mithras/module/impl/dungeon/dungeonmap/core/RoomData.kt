@@ -25,13 +25,11 @@ class RoomData(
     var maxSecrets: Int? = null
         get() = configData?.secrets ?: field
     var size: Int? = null
-        get() = configData?.size ?: field
+        get() = configData?.shape?.size ?: field
     val cores: List<Int>?
         get() = configData?.cores
     val crypts: Int?
         get() = configData?.crypts
-    val trappedChests: Int?
-        get() = configData?.trappedChests
 
     // room specific variables.
     var currentSecrets = 0
