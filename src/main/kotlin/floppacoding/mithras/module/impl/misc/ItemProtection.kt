@@ -251,6 +251,9 @@ object ItemProtection : Module(
         "DUNGEON_DISC_5",
         "DUNGEON_STONE",
 
+        // Mostly for inf quiver, feather falling and bank
+        "ENCHANTED_BOOK",
+
         // Dungeon Drops
         "DUNGEON_LORE_PAPER",
         "REVIVE_STONE",
