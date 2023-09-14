@@ -12,15 +12,19 @@ import net.minecraft.client.render.VertexFormat
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
+import net.minecraft.util.math.RotationAxis
 import net.minecraft.util.math.Vec3d
 import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import java.awt.Color
+import kotlin.math.acos
+import kotlin.math.cos
+import kotlin.math.sin
 
 
 /**
- * A collection of methods for rendering §D objects in the world.
+ * # A collection of methods for rendering objects in the 3D world.
  *
  * The methods use the standard Minecraft world coordinates.
  *
@@ -30,7 +34,7 @@ import java.awt.Color
  * @author Aton
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-object WorldRenderer {
+object Renderer3D {
     /* Some of the methods here could be a lot simpler if vanilla rendering layers were used, so that all the gl states do not have to be set individually.
     // However, those do not offer enough flexibility. The LINES and LINE_STRIP layers both do not support line widths other than 1.
     // And the DEBUG_LINE_STRIP layer technically should support custom line widths, however that does not seem to work.
@@ -72,7 +76,7 @@ object WorldRenderer {
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
         val normalMatrix = matrices.peek().normalMatrix
 
-        RenderSystem.depthMask(false)
+        RenderSystem.depthMask(true)
         RenderSystem.disableCull()
         if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
         RenderSystem.lineWidth(lineWidth)
@@ -103,7 +107,131 @@ object WorldRenderer {
         matrices.pop()
         RenderSystem.lineWidth(1.0f)
         RenderSystem.enableCull()
+        RenderSystem.depthMask(false)
+        RenderSystem.disableBlend()
+        RenderSystem.defaultBlendFunc()
+    }
+
+    /**
+     * ## Draws a circle that can be filled in and/or outlined.
+     *
+     * ### Coloring
+     * If you do not want the outline or the filled plane to show set the corresponding color parameter to null.
+     * This is more efficient than just setting the alpha of the color to 0.
+     *
+     * At least one of [outlineColor] or [fillColor] has to be not null for anything to be drawn.
+     *
+     * ### Orientation
+     * The circle is centered at [[xCenter], [yCenter], [zCenter]].
+     * It will be drawn in the plane defined by the [normal] vector. (That means the plane orthogonal to that vector.)
+     *
+     * ### Polygons
+     * The circle is drawn as an approximation through a polygon with [segments] as side/edge number.
+     *
+     * Therefore, this method can also be used to render polygons if [segments] is set sufficiently low.
+     * The polygon will be aligned with one corner in positive X-direction.
+     * From there it is rotated into the plane given by the [normal].
+     * If the polygon needs to be further rotated in the plane [drawEllipse] can be used along with its angle parameter.
+     *
+     * @param radius The radius of the circle.
+     * @param outlineColor The color of the outline, transparency is supported. Set to null to not render the outline.
+     * @param fillColor The fill color, transparency is supported. Set to null to not fill the circle.
+     * @param segments The number of line / triangle segments used to approximate the circle.
+     * @param lineWidth The outline width.
+     * @param phase Makes the circle visible through blocks.
+     *
+     * @see drawEllipse
+     */
+    fun drawCircle(context: WorldRenderContext, xCenter: Float, yCenter: Float, zCenter:Float, radius: Float, normal: Vector3f, outlineColor: Color? = null, fillColor: Color? = null, segments: Int = 100, lineWidth: Float = 1f, phase: Boolean = false) {
+        drawEllipse(context, xCenter, yCenter, zCenter, radius, radius, 0f, normal, outlineColor, fillColor, segments, lineWidth, phase)
+    }
+
+    /**
+     * ## Draws an ellipse that can be filled in and/or outlined.
+     *
+     * ### Coloring
+     * If you do not want the outline or the filled plane to show set the corresponding color parameter to null.
+     * This is more efficient than just setting the alpha of the color to zero.
+     *
+     * At least one of [outlineColor] or [fillColor] has to be not null for anything to be drawn.
+     *
+     * The ellipse is centered at [[xCenter], [yCenter], [zCenter]].
+     * It will be drawn in the plane defined by the [normal] vector. (That means the plane orthogonal to that vector.)
+     *
+     * ### Orientation
+     * The ellipse is centered at [[xCenter], [yCenter], [zCenter]].
+     * It will be drawn in the plane defined by the [normal] vector. (That means the plane orthogonal to that vector.)
+     *
+     * The Ellipse is drawn into X-Z-plane, it then is rotated by [angle] around the Y-axis.
+     * (The X-axis gets rotated in direction of the -Z-axis by a 90° rotation.)
+     * Finally, the polygon is rotated into the plane defined by teh [normal].
+     * This is achieved by rotation the Y-axis into the direction of [normal].
+     *
+     *
+     * ### Polygons
+     * The ellipse is drawn as an approximation through a polygon with [segments] as side/edge number.
+     *
+     * Therefore, this method can also be used to render polygons if [segments] is set sufficiently low.
+     * The polygon will be aligned with one corner in the direction defined by [angle].
+     *
+     * @param majorSemiaxis The length of the major semiaxis of the ellipse.
+     * @param minor The length of the minor semiaxis of the ellipse.
+     * @param outlineColor The color of the outline, transparency is supported. Set to null to not render the outline.
+     * @param fillColor The fill color, transparency is supported. Set to null to not fill the circle.
+     * @param segments The number of line / triangle segments used to approximate the circle.
+     * @param lineWidth The outline width.
+     * @param phase Makes the circle visible through blocks.
+     *
+     * @see drawCircle
+     */
+    fun drawEllipse(context: WorldRenderContext, xCenter: Float, yCenter: Float, zCenter: Float, majorSemiaxis: Float, minor: Float, angle: Float, normal: Vector3f, outlineColor: Color? = null, fillColor: Color? = null, segments: Int = 100, lineWidth: Float = 1f, phase: Boolean = false) {
+        RenderSystem.assertOnRenderThread()
+
         RenderSystem.depthMask(true)
+        RenderSystem.disableCull()
+        if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
+        RenderSystem.lineWidth(lineWidth)
+        RenderSystem.enableBlend()
+        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA)
+
+        val cameraPosition: Vec3d = context.camera().pos
+        val cameraX = cameraPosition.getX()
+        val cameraY = cameraPosition.getY()
+        val cameraZ = cameraPosition.getZ()
+
+        val matrices = context.matrixStack()
+        matrices.push()
+        matrices.translate(-cameraX, -cameraY, -cameraZ)
+
+        // Translate to circle corresponding coordinate
+        matrices.translate(xCenter,yCenter,zCenter)
+
+        val rotationAxis = Vector3f(normal.normalize()).cross(0f,1f,0f)
+        val angleZ = acos( normal.dot(0f,1f,0f) )
+        if (angleZ > 0.0001f) {
+            matrices.multiply(RotationAxis.of(rotationAxis).rotation(-angleZ))
+        }
+        if (angle > 0.0001f) {
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotation(angle))
+        }
+        // After this the z-axis is orthogonal to the ellipse.
+
+        val positionMatrix: Matrix4f = matrices.peek().positionMatrix
+        val normalMatrix = matrices.peek().normalMatrix
+        val tessellator = RenderSystem.renderThreadTesselator()
+
+        if (fillColor != null) {
+            fillEllipse(tessellator, positionMatrix, majorSemiaxis, minor, fillColor.rgb, segments)
+        }
+
+        if (outlineColor != null) {
+            outlineEllipse(tessellator, positionMatrix, normalMatrix, majorSemiaxis, minor, outlineColor.rgb, segments)
+        }
+
+        matrices.pop()
+        RenderSystem.lineWidth(1.0f)
+        RenderSystem.enableCull()
+        RenderSystem.depthMask(false)
         RenderSystem.disableBlend()
         RenderSystem.defaultBlendFunc()
     }
@@ -126,9 +254,10 @@ object WorldRenderer {
      * @see drawFilledBox
      * @see drawOutlinedFilledBox
      */
-    fun drawBlockBoundingBox(context: WorldRenderContext, position: BlockPos, outlineColor: Color? = Color(0xff0000), fillColor: Color? = null, lineWidth: Float = 1f, phase: Boolean = false) {
+    fun drawBlockBoundingBox(context: WorldRenderContext, position: BlockPos, outlineColor: Color? = null, fillColor: Color? = null, lineWidth: Float = 1f, phase: Boolean = false) {
         val state: BlockState = Mithras.mc.world?.getBlockState(position)?: return
         val shape = state.getOutlineShape(Mithras.mc.world, position, ShapeContext.of(Mithras.mc.player))
+        if (shape.isEmpty) return
         val box = shape.boundingBox.offset(position)
         drawBox(context, box, outlineColor, fillColor, lineWidth, phase)
     }
@@ -152,7 +281,7 @@ object WorldRenderer {
      * @see drawFilledBox
      * @see drawOutlinedFilledBox
      */
-    fun drawBox(context: WorldRenderContext, box: Box, outlineColor: Color? = Color(0xff0000), fillColor: Color? = null, lineWidth: Float = 1f, phase: Boolean = false) {
+    fun drawBox(context: WorldRenderContext, box: Box, outlineColor: Color? = null, fillColor: Color? = null, lineWidth: Float = 1f, phase: Boolean = false) {
         if (outlineColor != null && fillColor == null) {
             drawBoxOutline(context,box, outlineColor, lineWidth, phase)
         }
@@ -209,7 +338,7 @@ object WorldRenderer {
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
         val normalMatrix = matrices.peek().normalMatrix
 
-        RenderSystem.depthMask(false)
+        RenderSystem.depthMask(true)
         RenderSystem.disableCull()
         if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
         RenderSystem.lineWidth(lineWidth)
@@ -228,7 +357,7 @@ object WorldRenderer {
         matrices.pop()
         RenderSystem.lineWidth(1.0f)
         RenderSystem.enableCull()
-        RenderSystem.depthMask(true)
+        RenderSystem.depthMask(false)
         RenderSystem.disableBlend()
         RenderSystem.defaultBlendFunc()
 
@@ -275,7 +404,7 @@ object WorldRenderer {
         matrices.translate(-cameraX, -cameraY, -cameraZ)
         val matrix4f: Matrix4f = matrices.peek().positionMatrix
 
-        RenderSystem.depthMask(false)
+        RenderSystem.depthMask(true)
         RenderSystem.disableCull()
         if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
         RenderSystem.enableBlend()
@@ -292,7 +421,7 @@ object WorldRenderer {
 
         matrices.pop()
         RenderSystem.enableCull()
-        RenderSystem.depthMask(true)
+        RenderSystem.depthMask(false)
         RenderSystem.disableBlend()
         RenderSystem.defaultBlendFunc()
     }
@@ -345,7 +474,7 @@ object WorldRenderer {
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
         val normalMatrix: Matrix3f = matrices.peek().normalMatrix
 
-        RenderSystem.depthMask(false)
+        RenderSystem.depthMask(true)
         RenderSystem.disableCull()
         if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
         RenderSystem.lineWidth(lineWidth)
@@ -367,7 +496,7 @@ object WorldRenderer {
         matrices.pop()
         RenderSystem.lineWidth(1.0f)
         RenderSystem.enableCull()
-        RenderSystem.depthMask(true)
+        RenderSystem.depthMask(false)
         RenderSystem.disableBlend()
         RenderSystem.defaultBlendFunc()
     }
@@ -458,6 +587,68 @@ object WorldRenderer {
         bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,1f,0f).next()
         bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,1f,0f).next()
         bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,1f,0f).next()
+
+        tessellator.draw()
+    }
+
+    private fun outlineEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: Matrix3f, xRadius: Float, yRadius: Float, color: Int, segments: Int) {
+        RenderSystem.setShader { GameRenderer.getRenderTypeLinesProgram() }
+        val bufferBuilder = tessellator.buffer
+        bufferBuilder.begin(VertexFormat.DrawMode.LINE_STRIP, VertexFormats.LINES)
+
+        // Entries of the rotation matrix
+        val segmentAngle = 2f * 3.1415925f / segments
+        val c = cos(segmentAngle)
+        val s = sin(segmentAngle)
+        var t : Float
+
+        // Vertex position
+        var x = 1f
+        var y = 0f
+
+        for (ii in 0..segments) {
+            bufferBuilder.vertex(positionMatrix, x * xRadius, 0f, y * yRadius).color(color).normal(normalMatrix, -y*xRadius, 0f, x * yRadius).next()
+
+            // Matrix multiplication
+            t = x
+            x = c * x - s * y
+            y = s * t + c * y
+        }
+
+        tessellator.draw()
+    }
+
+    private fun fillEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, xRadius: Float, yRadius: Float, color: Int, segments: Int) {
+        RenderSystem.setShader { GameRenderer.getPositionColorProgram() }
+        // This polygon offset takes care of the Z-fighting that would otherwise happen when one of the planes coincides
+        // with the side of a block. The block texture and the quad here drawn would clash in the depth test and
+        // rounding errors would determine which end up on top for every pixel individually.
+        RenderSystem.enablePolygonOffset()
+        RenderSystem.polygonOffset(-1f, -1f)
+        val bufferBuilder = tessellator.buffer
+        bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR)
+
+        // Entries of the rotation matrix
+        val segmentAngle = 2f * 3.1415925f / segments
+        val c = cos(segmentAngle)
+        val s = sin(segmentAngle)
+        var t : Float
+
+        // Vertex position
+        var x = 1f
+        var y = 0f
+
+        // Center point of the fan
+        bufferBuilder.vertex(positionMatrix, 0f, 0f, 0f).color(color).next()
+
+        for (ii in 0..segments) {
+            bufferBuilder.vertex(positionMatrix, x * xRadius, 0f, y * yRadius).color(color).next()
+
+            // Matrix multiplication
+            t = x
+            x = c * x - s * y
+            y = s * t + c * y
+        }
 
         tessellator.draw()
     }
