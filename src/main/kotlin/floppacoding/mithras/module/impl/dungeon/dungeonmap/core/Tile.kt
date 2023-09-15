@@ -13,10 +13,10 @@ abstract class Tile(val x: Int, val z: Int) {
      * Row in the duneonList.
      */
     val row
-        get() = (z - Dungeon.startZ) shr 4
+        get() = (z - Dungeon.START_Z) shr 4
     /**
      * Column in the dungeonList
      */
     val column
-        get() = (x - Dungeon.startX) shr 4
+        get() = (x - Dungeon.START_X) shr 4
 }

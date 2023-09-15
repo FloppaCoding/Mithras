@@ -19,28 +19,19 @@ object ChatCleaner : Module(
     category = Category.MISC,
     description = "Cleans chat from spam."
 ) {
-    private val dungeon = BooleanSetting("Dungeon Messages", true, description = "Hides useless messages in dungeons.")
-    private val dungPot = BooleanSetting("Dungeon potion", true, description = "Hides dungeon potion messages")
-    private val milestones = BooleanSetting("Milestone Messages", true, description = "Hides Milestone messages in dungeons.")
-    private val hypixelMsgs = BooleanSetting("Useless Hypixel Msgs", true, description = "Hides useless Messages")
+    private val dungeon         by BooleanSetting("Dungeon Messages", true, description = "Hides useless messages in dungeons.")
+    private val boss            by BooleanSetting("Boss Messages", true, description = "Hides dungeon boss messages.")
+    private val invFull         by BooleanSetting("Inventory Full", true, description = "Hides the Inventory Full? messages.")
+    private val dungPot         by BooleanSetting("Dungeon potion", true, description = "Hides dungeon potion messages")
+    private val milestones      by BooleanSetting("Milestone Messages", true, description = "Hides Milestone messages in dungeons.")
+    private val hypixelMsgs     by BooleanSetting("Useless Hypixel Msgs", true, description = "Hides useless Messages")
 
-    private val abilityHider = BooleanSetting("Hide Ability Damage", true, description = "Hides Ability Damage from chat.")
-    private val stashHider = BooleanSetting("Hide Stash", true, description = "Hides Stash Messages")
-    private val blocksInTheWay = BooleanSetting("Blocks in way", true, description = "Hides There are blocks in the way! messages")
-    private val comboHider = BooleanSetting("Hide Combo", true, description = "Hides §6§l§o+50 Kill Combo messages.")
-    private val autoRecombHider = BooleanSetting("Hide Auto Recomb", true, description = "Hides Auto Recombobulator messages.")
-
-    init {
-        this.addSettings(
-            dungeon,
-            dungPot,
-            milestones,
-            abilityHider,
-            blocksInTheWay,
-            comboHider,
-            autoRecombHider,
-        )
-    }
+    private val abilityHider    by BooleanSetting("Hide Ability Damage", true, description = "Hides Ability Damage from chat.")
+    private val stashHider      by BooleanSetting("Hide Stash", true, description = "Hides Stash messages")
+    private val sacksHider      by BooleanSetting("Hide Sacks", true, description= "Hides the sacks messages.")
+    private val blocksInTheWay  by BooleanSetting("Blocks in way", true, description = "Hides There are blocks in the way! messages")
+    private val comboHider      by BooleanSetting("Hide Combo", true, description = "Hides §6§l§o+50 Kill Combo messages.")
+    private val autoRecombHider by BooleanSetting("Hide Auto Recomb", true, description = "Hides Auto Recombobulator messages.")
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun onChat(event: ChatReceivedEvent) {
@@ -48,15 +39,18 @@ object ChatCleaner : Module(
         val text = Formatting.strip(event.text.string) ?: return
         if (text.containsOneOf(dontCancel)) return // This is here, so it doesn't cancel party and guild chat messages
         when {
-            dungeon.enabled         && LocationManager.inDungeons && text.containsOneOf(dung)           -> event.cancel()
-            dungPot.enabled         && text.containsOneOf(dungPots)                                     -> event.cancel()
-            hypixelMsgs.enabled     && text.containsOneOf(uselessMSG)                                   -> event.cancel()
-            milestones.enabled      && LocationManager.inDungeons && text.containsOneOf(dungClasses)    -> event.cancel()
-            blocksInTheWay.enabled  && text.startsWith("There are blocks in the way!")            -> event.cancel()
-            abilityHider.enabled    && text.startsWith("Your") && text.endsWith("damage.")  -> event.cancel()
-            comboHider.enabled      && text.contains("Kill Combo") && !text.contains(":")    -> event.cancel()
-            autoRecombHider.enabled && text.startsWith("Your Auto-Recombobulator recombobulated") -> event.cancel()
-            stashHider.enabled      && text.endsWith("Click here to pick it all up!")              -> event.cancel()
+            dungeon         && LocationManager.inDungeons && text.containsOneOf(dung)           -> event.cancel()
+            boss            && LocationManager.inDungeons && text.startsWith("[BOSS] ")           -> event.cancel()
+            invFull         && text == "Inventory full? Don't forget to check out your Storage inside the SkyBlock Menu!" -> event.cancel()
+            dungPot         && text.containsOneOf(dungPots)                                     -> event.cancel()
+            hypixelMsgs     && text.containsOneOf(uselessMSG)                                   -> event.cancel()
+            milestones      && LocationManager.inDungeons && text.containsOneOf(dungClasses)    -> event.cancel()
+            blocksInTheWay  && text.startsWith("There are blocks in the way!")            -> event.cancel()
+            abilityHider    && text.startsWith("Your") && text.endsWith("damage.")  -> event.cancel()
+            comboHider      && text.contains("Kill Combo") && !text.contains(":")    -> event.cancel()
+            autoRecombHider && text.startsWith("Your Auto-Recombobulator recombobulated") -> event.cancel()
+            stashHider      && text.endsWith("Click here to pick it all up!")              -> event.cancel()
+            sacksHider      && text.matches(sacksPattern) -> event.cancel()
         }
     }
 
@@ -71,10 +65,19 @@ object ChatCleaner : Module(
         "found a Wither Essence",
         "has obtained",
         "RIGHT CLICK on a",
-        "Guided Sheep is now available"
+        "Guided Sheep is now available",
+        "is ready to use! Press DROP to activate it!",
+        "used Dragon's Breath on you!",
+        "[SKULL] Wither Skull: Monsters with a star next to their name have Wither Keys...sometimes.",
+        "[SKULL] Wither Skull: You need a Wither Key to open this door!",
+        "[STATUE] Oruo the Omniscient: I am Oruo the Omniscient. I have lived many lives. I have learned all there is to know.",
+        "[STATUE] Oruo the Omniscient: Though I sit stationary in this prison that is The Catacombs, my knowledge knows no bounds.",
+        "[STATUE] Oruo the Omniscient: Prove your knowledge by answering 3 questions and I shall reward you in ways that transcend time!",
+        "[STATUE] Oruo the Omniscient: Answer incorrectly, and your moment of ineptitude will live on for generations.",
     )
     private val dungPots = setOf(
-        "Your active Potion Effects have been paused",
+        "You are not allowed to use Potion Effects while in Dungeon, therefore all active effects have been paused and stored. They will be restored when you leave Dungeon!",
+//        "Your active Potion Effects have been paused", // old message
         "BUFF! You have gained",
         "You can no longer consume"
     )
@@ -93,6 +96,10 @@ object ChatCleaner : Module(
         "from playing Skyblock!",
         "[WATCHDOG ANNOUNCEMENT]",
         "Watchdog has banned",
-        "Staff have banned an additional"
+        "Staff have banned an additional",
+        "Blacklisted modifications are a bannable offense!",
+        "Profile ID: "
     )
+
+    private val sacksPattern = Regex("\\[Sacks] \\+[\\d]+ items\\. \\(Last [\\d]+s\\.\\)")
 }

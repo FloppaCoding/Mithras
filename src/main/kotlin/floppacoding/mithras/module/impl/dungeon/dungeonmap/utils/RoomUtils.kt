@@ -10,6 +10,8 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.RoomConfigData
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.RoomData
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.RoomType
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.ConfigRoom
+import floppacoding.mithras.utils.ScoreboardUtils
 import net.minecraft.util.Identifier
 
 /**
@@ -35,6 +37,28 @@ object RoomUtils {
         setOf()
     }
 
+    fun isInRoom(room: ConfigRoom) : Boolean {
+        return isInRoom(room.configData)
+    }
+
+    fun isInRoom(configData: RoomConfigData?) : Boolean {
+        val id = getRoomScoreboardID() ?: return false
+
+        return configData?.scoreboardIDs?.contains(id) == true
+    }
+
+    fun getRoomScoreboardID(): String? {
+        val id = try {
+            ScoreboardUtils.sidebarLines.last().trim().split(" ").last()
+        } catch (_: NoSuchElementException) {
+            null
+        }
+        return if(id?.contains(",") == true) id else null
+    }
+
+    fun instanceDummyRoom(x: Int, z: Int): Room {
+        return Room(x, z, RoomData())
+    }
 
 
     fun instanceBossRoom(floor: Int): Room {

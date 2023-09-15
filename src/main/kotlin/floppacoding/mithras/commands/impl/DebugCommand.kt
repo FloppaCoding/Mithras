@@ -11,6 +11,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.ui.nanovg.NVGImageManager
 import floppacoding.mithras.utils.ChatUtils
 import floppacoding.mithras.utils.LocationManager
@@ -21,6 +22,7 @@ import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
 import floppacoding.mithras.utils.inventory.NBTStringWriter
 import net.minecraft.client.texture.PlayerSkinTexture
+import net.minecraft.entity.decoration.ArmorStandEntity
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -67,6 +69,16 @@ object DebugCommand : Command {
                 }
             }
             literal("dungeon") {
+                literal("currentRoom") {
+                    execute {
+                        val room = Dungeon.currentRoom
+                        if (room == null) {
+                            ChatUtils.chatMessage("Not in Room.")
+                            return@execute
+                        }
+                        ChatUtils.chatMessage("${room.data.name}: ${room.x}, ${room.z}")
+                    }
+                }
                 literal("floor") {
                     execute {
                         ChatUtils.chatMessage("Currently in floor: ${RunInformation.currentFloor}")
@@ -180,6 +192,25 @@ object DebugCommand : Command {
                         ChatUtils.chatMessage("Printing map data to logs.")
                         for (row in 0..127) {
                             Mithras.logger.info(colors.copyOfRange(row*128, (row+1)*128).joinToString(",","row $row:: ") { it.toString() })
+                        }
+                    }
+                }
+                literal("roomId") {
+                    execute{
+                        ChatUtils.chatMessage(RoomUtils.getRoomScoreboardID()?: "null")
+                    }
+                }
+                literal("inroom") {
+                    string("roomName") {
+                        execute {context ->
+                            val roomName = context.getString("roomName")
+                            val configData = RoomUtils.roomList.find { it.name == roomName }
+                            if (configData == null) {
+                                ChatUtils.chatMessage("Room not found in config.")
+                                return@execute
+                            }
+                            val inRoom = RoomUtils.isInRoom(configData)
+                            ChatUtils.chatMessage(inRoom.toString())
                         }
                     }
                 }
@@ -320,6 +351,21 @@ object DebugCommand : Command {
             }
             literal("test") {
                 execute { Mithras.logger.info("Test info") }
+            }
+            literal("armorstands") {
+                double("range") {
+                    execute {
+                        val range = it.getDouble("range")
+
+                        val box = it.source.player.boundingBox.expand(range)
+
+                        mc.world?.getEntitiesByClass(ArmorStandEntity::class.java, box) { entity ->
+                            entity.hasCustomName()
+                        }?.forEach { entity ->
+                            ChatUtils.chatMessage(entity.name)
+                        }
+                    }
+                }
             }
         }
 }

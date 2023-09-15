@@ -104,8 +104,8 @@ class DungeonPlayer(
         if (player != null) {
             // check whether the player is in the map; probably not needed
             if ( player.x > -200 && player.x < -10 && player.z > -200 && player.z < -10) {
-                this.mapX = (player.x - Dungeon.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2
-                this.mapZ = (player.z - Dungeon.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2
+                this.mapX = (player.x - Dungeon.START_X + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2
+                this.mapZ = (player.z - Dungeon.START_Z + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2
                 this.yaw = player.headYaw
             }
         }else {

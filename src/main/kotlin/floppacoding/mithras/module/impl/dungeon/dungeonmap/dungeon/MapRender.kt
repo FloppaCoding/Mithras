@@ -69,8 +69,8 @@ object MapRender: HudElement(
         // Centering
         if (DungeonMap.centerOnPlayer.enabled) {
             NVGR.translate(
-                -((mc.player!!.x - Dungeon.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2),
-                -((mc.player!!.z - Dungeon.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2)
+                -((mc.player!!.x - Dungeon.START_X + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2),
+                -((mc.player!!.z - Dungeon.START_Z + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2)
             )
         }else if (DungeonMap.spinnyMap.enabled){
             NVGR.translate(-64.0f, -64.0f)
@@ -337,8 +337,8 @@ object MapRender: HudElement(
         try {
             if (player.player == mc.player) {
                 NVGR.translate(
-                    (mc.player!!.x - Dungeon.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2,
-                    (mc.player!!.z - Dungeon.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2
+                    (mc.player!!.x - Dungeon.START_X + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2,
+                    (mc.player!!.z - Dungeon.START_Z + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2
                 )
             } else {
                 NVGR.translate(player.mapX, player.mapZ)

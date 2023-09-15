@@ -2,6 +2,7 @@ package floppacoding.mithras.utils
 
 import floppacoding.mithras.Mithras.mc
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.util.math.Direction
 import java.awt.Color
 import java.util.*
 
@@ -75,6 +76,10 @@ object Extensions {
 
 
     fun Color.withAlpha(alpha: Int) = Color(this.red, this.green, this.blue, alpha)
+
+    // TODO move this to a fitting class.
+    @JvmStatic
+    val HORIZONTALS: List<Direction> = listOf(Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST)
 
 
     // TODO rename this

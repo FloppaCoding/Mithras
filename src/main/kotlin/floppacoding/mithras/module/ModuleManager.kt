@@ -5,6 +5,7 @@ import floppacoding.mithras.module.ModuleManager.modules
 import floppacoding.mithras.module.impl.debug.DebugModule
 import floppacoding.mithras.module.impl.dungeon.DungeonMap
 import floppacoding.mithras.module.impl.dungeon.MapRooms
+import floppacoding.mithras.module.impl.dungeon.ThreeWeirdosSolver
 import floppacoding.mithras.module.impl.keybinds.AddKeybind
 import floppacoding.mithras.module.impl.keybinds.KeyBind
 import floppacoding.mithras.module.impl.misc.ChatCleaner
@@ -49,6 +50,7 @@ object ModuleManager {
         //DUNGEON
         DungeonMap,
         MapRooms,
+        ThreeWeirdosSolver,
 
 
         //RENDER

@@ -41,7 +41,7 @@ object MapUpdate {
         MapUtils.roomSize = MapUtils.getRoomSizeFromMap() ?: return
         MapUtils.startCorner = MapUtils.getStartCornerFromMap() ?: return
 
-        MapUtils.coordMultiplier = (MapUtils.roomSize + 4.0) / Dungeon.roomSize
+        MapUtils.coordMultiplier = (MapUtils.roomSize + 4.0) / Dungeon.ROOM_SIZE
 
         MapUtils.calibrated = true
     }
@@ -298,8 +298,8 @@ object MapUpdate {
         if (cornerX >= 128 || cornerZ >= 128) return null
         if (centerX >= 128 || centerZ >= 128) return null
 
-        val xPos = Dungeon.startX + column * (Dungeon.roomSize shr 1)
-        val zPos = Dungeon.startZ + row * (Dungeon.roomSize shr 1)
+        val xPos = Dungeon.START_X + column * (Dungeon.ROOM_SIZE shr 1)
+        val zPos = Dungeon.START_Z + row * (Dungeon.ROOM_SIZE shr 1)
 
         val rowEven = row and 1 == 0
         val columnEven = column and 1 == 0
