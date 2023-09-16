@@ -5,6 +5,8 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.util.math.Direction
 import java.awt.Color
 import java.util.*
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
 /**
  * A collection of generally useful extension functions.
@@ -41,6 +43,21 @@ object Extensions {
     fun Any?.identicalToOneOf(vararg other: Any): Boolean {
         return other.any {
             this === it
+        }
+    }
+
+    /**
+     * Checks whether this class is the same or a subclass of one of [other].
+     *
+     * Use the spread operator * to pass arrays.
+     *
+     *      clazz.isSubclassOfOneOf(*arrayOf(A::class, B::class))
+     *
+     * @see isSubclassOf
+     */
+    fun KClass<*>.isSubclassOfOneOf(vararg other: KClass<*>): Boolean {
+        return other.any {
+            this.isSubclassOf(it)
         }
     }
 

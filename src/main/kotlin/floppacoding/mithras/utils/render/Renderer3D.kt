@@ -220,11 +220,11 @@ object Renderer3D {
         val normalMatrix = matrices.peek().normalMatrix
         val tessellator = RenderSystem.renderThreadTesselator()
 
-        if (fillColor != null) {
+        if (fillColor?.isVisible() == true) {
             fillEllipse(tessellator, positionMatrix, majorSemiaxis, minor, fillColor.rgb, segments)
         }
 
-        if (outlineColor != null) {
+        if (outlineColor?.isVisible() == true) {
             outlineEllipse(tessellator, positionMatrix, normalMatrix, majorSemiaxis, minor, outlineColor.rgb, segments)
         }
 
@@ -282,15 +282,15 @@ object Renderer3D {
      * @see drawOutlinedFilledBox
      */
     fun drawBox(context: WorldRenderContext, box: Box, outlineColor: Color? = null, fillColor: Color? = null, lineWidth: Float = 1f, phase: Boolean = false) {
-        if (outlineColor != null && fillColor == null) {
+        if (outlineColor?.isVisible() == true && fillColor?.isVisible() != true) {
             drawBoxOutline(context,box, outlineColor, lineWidth, phase)
         }
-        else if (outlineColor == null && fillColor != null) {
+        else if (outlineColor?.isVisible() != true && fillColor?.isVisible() == true) {
             drawFilledBox(context, box, fillColor, phase)
         }
-        else if (outlineColor != null && fillColor != null) {
-                    drawOutlinedFilledBox(context, box, outlineColor, fillColor, lineWidth, phase)
-                }
+        else if (outlineColor?.isVisible() == true && fillColor?.isVisible() == true) {
+                drawOutlinedFilledBox(context, box, outlineColor, fillColor, lineWidth, phase)
+            }
     }
 
     /**
@@ -652,4 +652,6 @@ object Renderer3D {
 
         tessellator.draw()
     }
+
+    private fun Color.isVisible(): Boolean = this.alpha != 0
 }

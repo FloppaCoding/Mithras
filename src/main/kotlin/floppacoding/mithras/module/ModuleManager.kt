@@ -8,10 +8,7 @@ import floppacoding.mithras.module.impl.dungeon.MapRooms
 import floppacoding.mithras.module.impl.dungeon.ThreeWeirdosSolver
 import floppacoding.mithras.module.impl.keybinds.AddKeybind
 import floppacoding.mithras.module.impl.keybinds.KeyBind
-import floppacoding.mithras.module.impl.misc.ChatCleaner
-import floppacoding.mithras.module.impl.misc.ItemProtection
-import floppacoding.mithras.module.impl.misc.KeepMousePosition
-import floppacoding.mithras.module.impl.misc.SmoothTransfer
+import floppacoding.mithras.module.impl.misc.*
 import floppacoding.mithras.module.impl.player.AutoSprint
 import floppacoding.mithras.module.impl.player.DisableHotbarScroll
 import floppacoding.mithras.module.impl.render.*
@@ -73,6 +70,7 @@ object ModuleManager {
         //MISC
         SmoothTransfer,
         KeepMousePosition,
+        EtherwarpHighlight,
         ChatCleaner,
         ItemProtection,
         DebugModule,

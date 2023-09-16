@@ -1,6 +1,7 @@
 package floppacoding.mithras.module.settings
 
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.settings.Setting.Companion.withDependency
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -96,6 +97,8 @@ abstract class Setting<T>(
 
     /**
      * This companion object provides extension functions for the Setting classes.
+     *
+     * These methods are define this way, so that the return type can be the Setting type for which the method was called.
      */
     companion object{
         /** Set a dependency which has to be fulfilled for this Setting to show up in the GUI.

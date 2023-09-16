@@ -23,6 +23,7 @@ import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
 import floppacoding.mithras.utils.inventory.NBTStringWriter
 import net.minecraft.client.texture.PlayerSkinTexture
 import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.util.math.BlockPos
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -349,8 +350,23 @@ object DebugCommand : Command {
                     }
                 }
             }
-            literal("test") {
-                execute { Mithras.logger.info("Test info") }
+            literal("world") {
+                literal("block") {
+                    integer("x") {
+                        integer("y") {
+                            integer("z") {
+                                execute {
+                                    val x = it.getInteger("x")
+                                    val y = it.getInteger("y")
+                                    val z = it.getInteger("z")
+                                    val state = mc.world!!.getBlockState(BlockPos(x,y,z))
+                                    ChatUtils.chatMessage("state: $state")
+                                    ChatUtils.chatMessage("block class: ${state.block::class.java}")
+                                }
+                            }
+                        }
+                    }
+                }
             }
             literal("armorstands") {
                 double("range") {
