@@ -221,6 +221,8 @@ object Dungeon {
     /**
      * Returns the room the player is currently in.
      * Includes boss room.
+     *
+     * Also updates the [scoreboardID][Room.scoreboardID] of the room.
      */
     @JvmName("getCurrentRoomFromCoordinates")
     fun getCurrentRoom(): Room? {
@@ -243,7 +245,7 @@ object Dungeon {
 
 
         if (tile !is Room) return null
-        return tile
+        return tile.apply { scoreboardID = RoomUtils.getRoomScoreboardID() }
     }
 
     /**

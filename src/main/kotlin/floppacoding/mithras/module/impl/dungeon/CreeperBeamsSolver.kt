@@ -12,6 +12,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.mithras.utils.Extensions.withAlpha
+import floppacoding.mithras.utils.GeometryHelper
 import floppacoding.mithras.utils.LocationManager.inDungeons
 import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
@@ -21,7 +22,6 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import java.awt.Color
-import kotlin.math.abs
 
 /**
  * Creeper beams solver.
@@ -85,7 +85,9 @@ object CreeperBeamsSolver : Module(
 
         // Sort the solutions by distance to the center-line of the room.
         possibleSolutions.sortBy {
-            distanceBetweenLines(Vec3d.ofCenter(it.first), Vec3d.ofCenter(it.second),roomCenter.toCenterPos(), roomCenter.toCenterPos().add(0.0, 1.0, 0.0))
+            GeometryHelper.distanceBetweenLines(Vec3d.ofCenter(it.first), Vec3d.ofCenter(it.second),
+                roomCenter.toCenterPos(), roomCenter.toCenterPos().add(0.0, 1.0, 0.0)
+            )
         }
 
         // Remove duplicates
@@ -116,22 +118,7 @@ object CreeperBeamsSolver : Module(
         }
     }
 
-    /**
-     * Returns the distance between two lines in 3D space.
-     * The lines are passes as two points for each line.
-     */
-    private fun distanceBetweenLines(pointA0: Vec3d, pointB0: Vec3d, pointA1: Vec3d, pointB1: Vec3d): Double {
-        val vec1 =  pointB0.subtract(pointA0).normalize()
-        val vec2 =  pointB1.subtract(pointA1).normalize()
-        val normal = vec1.crossProduct(vec2).normalize()
-        return if (normal.length() < 1.0E-4) {
-            // the lines are parallell
-            pointA0.subtract(pointA1).crossProduct(vec1).length()
-        }else{
-            // the lines are skew
-            abs(pointA0.subtract(pointA1).dotProduct(normal))
-        }
-    }
+
 
     /**
      * reset on warp

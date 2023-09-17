@@ -10,6 +10,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 enum class ConfigRoom(name: String) {
     BLAZE("Higher or Lower"),
     TIC_TAC_TOE("Tic Tac Toe"),
+    TELEPORT_MAZE("Teleport Maze"),
     CREEPER_BEAMS("Creeper Beams"),
     THREE_WEIRDOS("Three Weirdos");
 

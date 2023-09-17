@@ -12,6 +12,15 @@ class Room(x: Int, z: Int, var data: RoomData) : Tile(x, z) {
      * Core of this tile.
      */
     var core: Int? = null
+    /**
+     * The ID currently visible on the scoreboard.
+     *
+     * Due to delay issues, this is will not always be the correct ID for the room.
+     * This is mostly meant as a buffer so that modules don't all have to retrieve this value individually.
+     *
+     * See Also: [data.configData.scoreboardIDs][RoomConfigData.scoreboardIDs].
+     */
+    var scoreboardID: String? = null
     var isSeparator = false
 
     /**

@@ -28,7 +28,7 @@ object ChatCleaner : Module(
 
     private val abilityHider    by BooleanSetting("Hide Ability Damage", true, description = "Hides Ability Damage from chat.")
     private val stashHider      by BooleanSetting("Hide Stash", true, description = "Hides Stash messages")
-    private val sacksHider      by BooleanSetting("Hide Sacks", true, description= "Hides the sacks messages.")
+    private val sacksHider      by BooleanSetting("Hide Sacks", false, description= "Hides the sacks messages.")
     private val blocksInTheWay  by BooleanSetting("Blocks in way", true, description = "Hides There are blocks in the way! messages")
     private val comboHider      by BooleanSetting("Hide Combo", true, description = "Hides §6§l§o+50 Kill Combo messages.")
     private val autoRecombHider by BooleanSetting("Hide Auto Recomb", true, description = "Hides Auto Recombobulator messages.")
@@ -101,5 +101,5 @@ object ChatCleaner : Module(
         "Profile ID: "
     )
 
-    private val sacksPattern = Regex("\\[Sacks] \\+[\\d]+ items\\. \\(Last [\\d]+s\\.\\)")
+    private val sacksPattern = Regex("\\[Sacks] [+-][\\d]+ items?\\. \\(Last [\\d]+s\\.\\)")
 }

@@ -49,6 +49,7 @@ object ModuleManager {
         BlazeSolver,
         TicTacToeSolver,
         CreeperBeamsSolver,
+        TeleportSolver,
 
 
         //RENDER
