@@ -5,6 +5,8 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.util.InputUtil.Key
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.item.ItemStack
+import net.minecraft.network.packet.Packet
+import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket
 import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.slot.Slot
 import net.minecraft.screen.slot.SlotActionType
@@ -149,3 +151,25 @@ class HudRenderEvent(val partialTicks: Float)
  * @see net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BEFORE_DEBUG_RENDER
  */
 class RenderWorldOverlayEvent(val context: WorldRenderContext)
+
+/* NETWORK */
+
+/**
+ * This even gets posted whenever a packet is received by the client, before it is handled.
+ *
+ * **DO NOT MODIFY THE PACKET!** Packets tend to have final fields and cannot be modified, but if they can take care!
+ * Some packets like [PlayerPositionLookS2CPacket] will trigger a confirmation being sent to the server.
+ * Modifying the packet and thereby the confirmation violates the Hypixel sever rules and will flag the anticheat.
+ * @see floppacoding.mithras.mixin.network.ClientConnectionMixin
+ */
+class PacketReceivedEvent(val packet: Packet<*>)
+
+/**
+ * Posted when the client received a [PlayerPositionLookS2CPacket] which teleports the player.
+ * The event is posted before the packet is evaluated.
+ *
+ * **DO NOT MODIFY THE PACKET!** Luckily you cant. However, if the handling of this packet were to be modified that could easily
+ * end up violation Hypixel server rules and flagging the anticheat, because a confirmation will be sent to the server.
+ * @see floppacoding.mithras.mixin.network.ClientPlayNetwarkHandlerMixin
+ */
+class TeleportEvent(val packet: PlayerPositionLookS2CPacket)

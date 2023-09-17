@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MapStateAccessor",
-    "PlayerInventoryMixin"
+    "PlayerInventoryMixin",
+    "network.ClientConnectionMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -21,6 +22,7 @@
     "MouseMixin",
     "ParticleManagerMixin",
     "PlayerSkinAccessor",
+    "network.ClientPlayNetwarkHandlerMixin",
     "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",
     "render.HeldItemRendererMixin",
