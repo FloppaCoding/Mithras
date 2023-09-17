@@ -102,7 +102,9 @@ abstract class Module(
     name: String,
     category: Category = Category.MISC,
     description: String = "",
-    keyCode: Int = InputUtil.UNKNOWN_KEY.code
+    keyCode: Int = InputUtil.UNKNOWN_KEY.code,
+    toggled: Boolean = false,
+    settings: ArrayList<Setting<*>> = ArrayList(),
 ){
     @Expose
     @SerializedName("name")
@@ -123,11 +125,11 @@ abstract class Module(
      */
     @Expose
     @SerializedName("enabled")
-    var enabled: Boolean = false
+    var enabled: Boolean = toggled
         private set
     @Expose
     @SerializedName("settings")
-    val settings: ArrayList<Setting<*>> = ArrayList()
+    val settings: ArrayList<Setting<*>>
 
     /**
      * A description of the module and its usage that is shown in the [Advanced GUI][floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu].
@@ -140,13 +142,12 @@ abstract class Module(
         this.name = name
         this.keyBind = InputUtil.Type.KEYSYM.createFromCode(keyCode)
         this.category = category
+        this.settings = settings
         this.description = description
     }
 
     /**
      * A simplified constructor to inherit from.
-     *
-     * This is mostly useful for writing modules in java, since java does not support default values.
      */
     constructor(
         name: String,
