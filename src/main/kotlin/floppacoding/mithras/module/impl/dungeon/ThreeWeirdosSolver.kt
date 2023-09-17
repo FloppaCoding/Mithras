@@ -74,8 +74,8 @@ object ThreeWeirdosSolver : Module(
         val room = Dungeon.currentRoom ?: return@runBlocking
         if (!RoomUtils.isInRoom(ConfigRoom.THREE_WEIRDOS)) return@runBlocking
 
-        val box = Box(room.x-11.0,  68.0, room.z -11.0, room.x + 11.0, 75.0, room.z + 11.0)
-        val bozo = mc.world?.getEntitiesByClass(ArmorStandEntity::class.java, box) { entity ->
+        val bozoSearchBox = Box(room.x-11.0,  68.0, room.z -11.0, room.x + 11.0, 75.0, room.z + 11.0)
+        val bozo = mc.world?.getEntitiesByClass(ArmorStandEntity::class.java, bozoSearchBox) { entity ->
             Formatting.strip(entity.customName?.string)?.contains(correctBozo!!) == true
         }?.firstOrNull()?: return@runBlocking
 

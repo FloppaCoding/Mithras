@@ -10,6 +10,7 @@ import net.minecraft.client.render.GameRenderer
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormat
 import net.minecraft.client.render.VertexFormats
+import net.minecraft.entity.Entity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.RotationAxis
@@ -45,6 +46,16 @@ object Renderer3D {
     //
     // Possible improvements for the future to this could be to either make a custom RenderLayer and properly disptach everything for it.
     // Or otherwise code a custom system similar to the render layers. */
+
+    /**
+     * Draws a line between the given two points [pos1] and [pos2].
+     * @param color The color of the lines, transparency is supported.
+     * @param lineWidth The line width.
+     * @param phase Makes the box visible through blocks.
+     */
+    fun drawLine(context: WorldRenderContext, pos1: Vec3d, pos2: Vec3d, color: Color, lineWidth: Float = 1f, phase: Boolean = false) {
+        drawLine(context, pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, color, lineWidth, phase)
+    }
 
     /**
      * Draws a line between the given two points [[x1],[y1],[z1]] and [[x2],[y2],[z2]].
@@ -259,6 +270,29 @@ object Renderer3D {
         val shape = state.getOutlineShape(Mithras.mc.world, position, ShapeContext.of(Mithras.mc.player))
         if (shape.isEmpty) return
         val box = shape.boundingBox.offset(position)
+        drawBox(context, box, outlineColor, fillColor, lineWidth, phase)
+    }
+
+    /**
+     * Draws an the bounding box of the given [entity].
+     *
+     * Both an outline at the edges and filled sides are possible.
+     * If you do not want one of those to show set the corresponding color parameter to null.
+     * This is more efficient than just setting the alpha of the color to 0.
+     *
+     * At least one of [outlineColor] or [fillColor] has to be not null for anything to be drawn.
+     *
+     * @param outlineColor The color of the lines, transparency is supported. Set to null to not render the outline.
+     * @param fillColor The color of the sides, transparency is supported. Set to null to not render the filled sides.
+     * @param lineWidth The line width.
+     * @param phase Makes the box visible through blocks.
+     *
+     * @see drawBoxOutline
+     * @see drawFilledBox
+     * @see drawOutlinedFilledBox
+     */
+    fun drawEntityBoundingBox(context: WorldRenderContext, entity: Entity, outlineColor: Color? = null, fillColor: Color? = null, lineWidth: Float = 1f, phase: Boolean = false) {
+        val box = entity.boundingBox
         drawBox(context, box, outlineColor, fillColor, lineWidth, phase)
     }
 

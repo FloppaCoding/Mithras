@@ -8,6 +8,7 @@ import floppacoding.mithras.commands.CmdSource
 import floppacoding.mithras.commands.Command
 import floppacoding.mithras.mixin.PlayerSkinAccessor
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.ConfigRoom
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
@@ -22,11 +23,17 @@ import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
 import floppacoding.mithras.utils.inventory.NBTStringWriter
 import net.minecraft.client.texture.PlayerSkinTexture
+import net.minecraft.entity.Entity
 import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.decoration.ItemFrameEntity
+import net.minecraft.item.FilledMapItem
+import net.minecraft.text.MutableText
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
+import kotlin.experimental.and
 
 object DebugCommand : Command {
     override val builder: LiteralArgumentBuilder<CmdSource> =
@@ -215,6 +222,34 @@ object DebugCommand : Command {
                         }
                     }
                 }
+                literal("gettttframes") {
+                    execute {
+                        val room = Dungeon.currentRoom
+                        if (room == null) {
+                            ChatUtils.chatMessage("Not in room.")
+                            return@execute
+                        }
+                        if (!RoomUtils.isInRoom(ConfigRoom.TIC_TAC_TOE)) {
+                            ChatUtils.chatMessage("Not in TTT.")
+                            return@execute
+                        }
+
+                        val tttSerachBox = Box(room.x - 12.0, 69.0, room.z - 12.0, room.x + 12.0, 80.0, room.z + 12.0)
+
+                        val frames = mc.world!!.getEntitiesByClass(ItemFrameEntity::class.java, tttSerachBox) filter@{
+                            return@filter true
+                        }
+                        frames.forEach {
+                            val realPos = it.blockPos
+                            val itemFrameHeldStack = it.heldItemStack
+                            val mapData = FilledMapItem.getMapState(itemFrameHeldStack, mc.world)
+                            val colorInt: Int? =
+                                if (mapData != null) (mapData.colors[8256] and 255.toByte()).toInt() else null
+                            val blockBehind = realPos.offset(it.horizontalFacing.opposite, 1)
+                            ChatUtils.chatMessage("${it.x}, ${it.y}, ${it.z}, realpos: $realPos, heldStack: $itemFrameHeldStack, color: $colorInt, blockBehind: $blockBehind")
+                        }
+                    }
+                }
             }
             literal("loadskin") {
                 execute {
@@ -367,19 +402,52 @@ object DebugCommand : Command {
                         }
                     }
                 }
-            }
-            literal("armorstands") {
-                double("range") {
-                    execute {
-                        val range = it.getDouble("range")
+                literal("armorstands") {
+                    double("range") {
+                        execute {
+                            val range = it.getDouble("range")
 
-                        val box = it.source.player.boundingBox.expand(range)
+                            val box = it.source.player.boundingBox.expand(range)
 
-                        mc.world?.getEntitiesByClass(ArmorStandEntity::class.java, box) { entity ->
-                            entity.hasCustomName()
-                        }?.forEach { entity ->
-                            ChatUtils.chatMessage(entity.name)
+                            mc.world?.getEntitiesByClass(ArmorStandEntity::class.java, box) { entity ->
+                                entity.hasCustomName()
+                            }?.forEach { entity ->
+                                ChatUtils.chatMessage(entity.name)
+                            }
                         }
+                    }
+                }
+                literal("entities") {
+                    double("range") {
+                        execute {
+                            val range = it.getDouble("range")
+
+                            val box = it.source.player.boundingBox.expand(range)
+
+                            mc.world?.getEntitiesByClass(Entity::class.java, box) { true }?.forEach { entity ->
+                                ChatUtils.chatMessage(MutableText.of(entity.name.content).append(", position: ").append(entity.pos.toString()))
+                            }
+                        }
+                    }
+                }
+            }
+            literal("test") {
+                execute {
+                    val a = mutableListOf<BlockPos>()
+                    val b = mutableListOf<BlockPos>()
+                    BlockPos.iterate(BlockPos(0,0,0),BlockPos(2,2,2))
+                        .forEach {
+                            ChatUtils.chatMessage(it.toString())
+                            a.add(it)
+                            b.add(BlockPos(it))
+                        }
+                    ChatUtils.chatMessage("a")
+                    a.forEach {
+                        ChatUtils.chatMessage(it.toString())
+                    }
+                    ChatUtils.chatMessage("b")
+                    b.forEach {
+                        ChatUtils.chatMessage(it.toString())
                     }
                 }
             }

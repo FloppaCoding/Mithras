@@ -3,9 +3,7 @@ package floppacoding.mithras.module
 import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
 import floppacoding.mithras.module.impl.debug.DebugModule
-import floppacoding.mithras.module.impl.dungeon.DungeonMap
-import floppacoding.mithras.module.impl.dungeon.MapRooms
-import floppacoding.mithras.module.impl.dungeon.ThreeWeirdosSolver
+import floppacoding.mithras.module.impl.dungeon.*
 import floppacoding.mithras.module.impl.keybinds.AddKeybind
 import floppacoding.mithras.module.impl.keybinds.KeyBind
 import floppacoding.mithras.module.impl.misc.*
@@ -48,6 +46,9 @@ object ModuleManager {
         DungeonMap,
         MapRooms,
         ThreeWeirdosSolver,
+        BlazeSolver,
+        TicTacToeSolver,
+        CreeperBeamsSolver,
 
 
         //RENDER

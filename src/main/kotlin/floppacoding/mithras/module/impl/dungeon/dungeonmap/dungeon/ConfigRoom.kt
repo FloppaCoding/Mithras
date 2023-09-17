@@ -8,6 +8,9 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
  * An enum for accessing the config data of relevant rooms.
  */
 enum class ConfigRoom(name: String) {
+    BLAZE("Higher or Lower"),
+    TIC_TAC_TOE("Tic Tac Toe"),
+    CREEPER_BEAMS("Creeper Beams"),
     THREE_WEIRDOS("Three Weirdos");
 
     val configData : RoomConfigData?
