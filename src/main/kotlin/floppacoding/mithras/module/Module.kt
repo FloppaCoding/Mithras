@@ -100,11 +100,9 @@ import kotlin.reflect.full.hasAnnotation
  */
 abstract class Module(
     name: String,
-    keyCode: Int = InputUtil.UNKNOWN_KEY.code,
     category: Category = Category.MISC,
-    toggled: Boolean = false,
-    settings: ArrayList<Setting<*>> = ArrayList(),
-    description: String = ""
+    description: String = "",
+    keyCode: Int = InputUtil.UNKNOWN_KEY.code
 ){
     @Expose
     @SerializedName("name")
@@ -125,11 +123,11 @@ abstract class Module(
      */
     @Expose
     @SerializedName("enabled")
-    var enabled: Boolean = toggled
+    var enabled: Boolean = false
         private set
     @Expose
     @SerializedName("settings")
-    val settings: ArrayList<Setting<*>>
+    val settings: ArrayList<Setting<*>> = ArrayList()
 
     /**
      * A description of the module and its usage that is shown in the [Advanced GUI][floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu].
@@ -142,18 +140,19 @@ abstract class Module(
         this.name = name
         this.keyBind = InputUtil.Type.KEYSYM.createFromCode(keyCode)
         this.category = category
-        this.settings = settings
         this.description = description
     }
 
     /**
      * A simplified constructor to inherit from.
+     *
+     * This is mostly useful for writing modules in java, since java does not support default values.
      */
     constructor(
         name: String,
         category: Category = Category.MISC,
         description: String = ""
-    ) : this(name, InputUtil.UNKNOWN_KEY.code,  category =  category, description =  description)
+    ) : this(name, category, description, InputUtil.UNKNOWN_KEY.code)
 
     /**
      * Will toggle the module.
