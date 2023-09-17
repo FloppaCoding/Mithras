@@ -74,6 +74,7 @@ object Renderer3D {
      * @param phase Makes the box visible through blocks.
      */
     fun drawLine(context: WorldRenderContext, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Color, lineWidth: Float = 1f, phase: Boolean = false) {
+        if (!color.isVisible()) return
         RenderSystem.assertOnRenderThread()
 
         val vec3d: Vec3d = context.camera().pos
@@ -128,7 +129,6 @@ object Renderer3D {
      *
      * ### Coloring
      * If you do not want the outline or the filled plane to show set the corresponding color parameter to null.
-     * This is more efficient than just setting the alpha of the color to 0.
      *
      * At least one of [outlineColor] or [fillColor] has to be not null for anything to be drawn.
      *
@@ -162,7 +162,6 @@ object Renderer3D {
      *
      * ### Coloring
      * If you do not want the outline or the filled plane to show set the corresponding color parameter to null.
-     * This is more efficient than just setting the alpha of the color to zero.
      *
      * At least one of [outlineColor] or [fillColor] has to be not null for anything to be drawn.
      *
@@ -196,6 +195,7 @@ object Renderer3D {
      * @see drawCircle
      */
     fun drawEllipse(context: WorldRenderContext, xCenter: Float, yCenter: Float, zCenter: Float, majorSemiaxis: Float, minor: Float, angle: Float, normal: Vector3f, outlineColor: Color? = null, fillColor: Color? = null, segments: Int = 100, lineWidth: Float = 1f, phase: Boolean = false) {
+        if (fillColor?.isVisible() != true && outlineColor?.isVisible() != true) return
         RenderSystem.assertOnRenderThread()
 
         RenderSystem.depthMask(true)
@@ -252,7 +252,6 @@ object Renderer3D {
      *
      * Both an outline at the edges and filled sides are possible.
      * If you do not want one of those to show set the corresponding color parameter to null.
-     * This is more efficient than just setting the alpha of the color to 0.
      *
      * At least one of [outlineColor] or [fillColor] has to be not null for anything to be drawn.
      *
@@ -266,6 +265,7 @@ object Renderer3D {
      * @see drawOutlinedFilledBox
      */
     fun drawBlockBoundingBox(context: WorldRenderContext, position: BlockPos, outlineColor: Color? = null, fillColor: Color? = null, lineWidth: Float = 1f, phase: Boolean = false) {
+        if (fillColor?.isVisible() != true && outlineColor?.isVisible() != true) return
         val state: BlockState = Mithras.mc.world?.getBlockState(position)?: return
         val shape = state.getOutlineShape(Mithras.mc.world, position, ShapeContext.of(Mithras.mc.player))
         if (shape.isEmpty) return
@@ -274,11 +274,10 @@ object Renderer3D {
     }
 
     /**
-     * Draws an the bounding box of the given [entity].
+     * Draws the bounding box of the given [entity].
      *
      * Both an outline at the edges and filled sides are possible.
      * If you do not want one of those to show set the corresponding color parameter to null.
-     * This is more efficient than just setting the alpha of the color to 0.
      *
      * At least one of [outlineColor] or [fillColor] has to be not null for anything to be drawn.
      *
@@ -301,7 +300,6 @@ object Renderer3D {
      *
      * Both an outline at the edges and filled sides are possible.
      * If you do not want one of those to show set the corresponding color parameter to null.
-     * This is more efficient than just setting the alpha of the color to 0.
      *
      * At least one of [outlineColor] or [fillColor] has to be not null for anything to be drawn.
      *
@@ -359,6 +357,7 @@ object Renderer3D {
      * @param phase Makes the box visible through blocks.
      */
     fun drawBoxOutline(context: WorldRenderContext, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Color, lineWidth: Float = 1f, phase: Boolean = false) {
+        if (!color.isVisible()) return
         RenderSystem.assertOnRenderThread()
 
         val vec3d: Vec3d = context.camera().pos
@@ -426,6 +425,7 @@ object Renderer3D {
      * @param phase Makes the box visible through blocks.
      */
     fun drawFilledBox(context: WorldRenderContext, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, fillColor: Color, phase: Boolean = false) {
+        if (!fillColor.isVisible()) return
         RenderSystem.assertOnRenderThread()
 
         val vec3d: Vec3d = context.camera().pos
@@ -495,6 +495,7 @@ object Renderer3D {
      * @param phase Makes the box visible through blocks.
      */
     fun drawOutlinedFilledBox(context: WorldRenderContext, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, outlineColor: Color, fillColor: Color, lineWidth: Float = 1f, phase: Boolean = false) {
+        if (!fillColor.isVisible() && !outlineColor.isVisible()) return
         RenderSystem.assertOnRenderThread()
 
         val vec3d: Vec3d = context.camera().pos
@@ -522,9 +523,10 @@ object Renderer3D {
 
         val tessellator = RenderSystem.renderThreadTesselator()
 
-        fillSides(tessellator, positionMatrix, x1, y1, z1, x2, y2, z2, fillColor.rgb)
-
-        outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, outlineColor.rgb)
+        if (fillColor.isVisible())
+            fillSides(tessellator, positionMatrix, x1, y1, z1, x2, y2, z2, fillColor.rgb)
+        if (outlineColor.isVisible())
+            outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, outlineColor.rgb)
 
 
         matrices.pop()
@@ -687,5 +689,8 @@ object Renderer3D {
         tessellator.draw()
     }
 
+    /**
+     * Checks whether the alpha value of this color is not 0.
+     */
     private fun Color.isVisible(): Boolean = this.alpha != 0
 }

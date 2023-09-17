@@ -50,6 +50,7 @@ object ModuleManager {
         TicTacToeSolver,
         CreeperBeamsSolver,
         TeleportSolver,
+        StarMobHighlight,
 
 
         //RENDER
