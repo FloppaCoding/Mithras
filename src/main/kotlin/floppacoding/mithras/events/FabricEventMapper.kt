@@ -2,6 +2,7 @@ package floppacoding.mithras.events
 
 import com.mojang.authlib.GameProfile
 import floppacoding.mithras.Mithras
+import floppacoding.mithras.utils.ChatUtils
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
@@ -30,12 +31,28 @@ object FabricEventMapper {
         ClientReceiveMessageEvents.ALLOW_CHAT.register { text: Text, _: SignedMessage?, _: GameProfile?, _: MessageType.Parameters, _: Instant ->
             // Cancelled state has to be negated because Fabric will intercept the message when false is returned.
             // So to work properly this has to return false when cancelled and tru when not cancelled.
-            !Mithras.EVENT_BUS.post(ChatReceivedEvent(text, ChatReceivedEvent.Type.PLAYER_MESSAGE)).isCancelled
+            val event = Mithras.EVENT_BUS.post(ChatReceivedEvent(text, ChatReceivedEvent.Type.PLAYER_MESSAGE))
+            if (event.replaceWith != null) {
+                ChatUtils.chatMessage(event.replaceWith!!)
+                return@register false
+            }
+            return@register !event.isCancelled
         }
         ClientReceiveMessageEvents.ALLOW_GAME.register { text: Text, overlay: Boolean ->
             // Cancelled state has to be negated because Fabric will intercept the message when false is returned.
             // So to work properly this has to return false when cancelled and tru when not cancelled.
-            !Mithras.EVENT_BUS.post(ChatReceivedEvent(text, if (overlay) ChatReceivedEvent.Type.ACTION_BAR else ChatReceivedEvent.Type.GAME_MESSAGE)).isCancelled
+            val event = Mithras.EVENT_BUS.post(ChatReceivedEvent(text, if (overlay) ChatReceivedEvent.Type.ACTION_BAR else ChatReceivedEvent.Type.GAME_MESSAGE))
+            if (event.replaceWith != null) {
+                messageReplacements.add(MessageReplacement(event.text, event.replaceWith!!, System.currentTimeMillis() + 200))
+            }
+            return@register !event.isCancelled
+        }
+        ClientReceiveMessageEvents.MODIFY_GAME.register{ text: Text, overlay: Boolean ->
+            messageReplacements.removeIf { System.currentTimeMillis() > it.timeout }
+            messageReplacements.find { it.originalMessage === text }?.let {
+                return@register it.replacement
+            }
+            return@register text
         }
 
         // Connection
@@ -51,4 +68,8 @@ object FabricEventMapper {
             Mithras.EVENT_BUS.post(RenderWorldOverlayEvent(context))
         }
     }
+
+    private val messageReplacements: MutableList<MessageReplacement> = mutableListOf()
+
+    private data class MessageReplacement(val originalMessage: Text, val replacement: Text, val timeout: Long)
 }

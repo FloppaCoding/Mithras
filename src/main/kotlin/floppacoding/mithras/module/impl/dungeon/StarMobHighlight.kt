@@ -105,9 +105,9 @@ object StarMobHighlight : Module(
     fun onRenderWorld(event: RenderWorldOverlayEvent) {
         if (!inDungeons) return
         entityList.forEach {
-            val dx: Double = event.context.tickDelta() * (it.entity.x - it.entity.lastRenderX)
-            val dy: Double = event.context.tickDelta() * (it.entity.y - it.entity.lastRenderY)
-            val dz: Double = event.context.tickDelta() * (it.entity.z - it.entity.lastRenderZ)
+            val dx: Double = (event.context.tickDelta()-1) * (it.entity.x - it.entity.lastRenderX)
+            val dy: Double = (event.context.tickDelta()-1) * (it.entity.y - it.entity.lastRenderY)
+            val dz: Double = (event.context.tickDelta()-1) * (it.entity.z - it.entity.lastRenderZ)
             Renderer3D.drawBox(event.context, it.box.offset(dx,dy,dz), it.color, null, it.lineWidth)
 //            Renderer3D.drawBox(event.context, it.box, it.color, null, it.lineWidth)
         }

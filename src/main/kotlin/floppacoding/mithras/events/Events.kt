@@ -58,7 +58,14 @@ class WorldChangeEvent(val newWorld: ClientWorld?)
 /**
  * Fired when a message is received. [type] signals whether it was a player message, game message or action bar message.
  * When the event is cancelled the message will not be displayed.
- * According to the Fabric API this is not supposed to be used to modify message contents.
+ *
+ * To modify the message there are two options:
+ * - Cast [text] to [MutableText][net.minecraft.text.MutableText], which allows you to modify it.
+ * With this option other event listeners which come after your listener will only see the modified message, which may break things.
+ * However, this does not replace the message, and therefore it does not interfere with other listeners modifying said message.
+ * The cast should always work unless another mod replaced that with a different implementation.
+ * - Use [replaceWith]. This way the original message will be replaced after all listeners have been invoked.
+ *
  *
  * @see floppacoding.mithras.events.FabricEventMapper.registerEvents
  */
@@ -76,6 +83,13 @@ class ChatReceivedEvent(
     val text: Text,
     val type: Type
 ) : Cancellable() {
+    /**
+     * Use this to modify the message.
+     *
+     * If this value is not null the message will be replaced with this.
+     */
+    var replaceWith: Text? = null
+
     enum class Type {
         /**
          * Game message.
