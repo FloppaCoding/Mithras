@@ -62,7 +62,7 @@ object RoomUtils {
 
 
     fun instanceBossRoom(floor: Int): Room {
-        return Room(0,0, RoomData("Boss $floor", RoomType.BOSS))
+        return Room(0,0, RoomData("Boss $floor", RoomType.BOSS)).apply { data.rotation = 0 }
     }
 
     fun instanceRegionRoom(region: String): Room {

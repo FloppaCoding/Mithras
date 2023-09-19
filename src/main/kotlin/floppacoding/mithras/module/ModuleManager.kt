@@ -52,6 +52,7 @@ object ModuleManager {
         TeleportSolver,
         StarMobHighlight,
         QuizSolver,
+        IceFillSolver,
 
 
         //RENDER

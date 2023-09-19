@@ -32,6 +32,11 @@ class Room(x: Int, z: Int, var data: RoomData) : Tile(x, z) {
      */
     var isUnique: Boolean = data.type != RoomType.NORMAL
 
+    /**
+     * Delegate to [data.rotation][RoomData.rotation].
+     */
+    val rotation by data::rotation
+
     override val color: Color
         get() = if (this.state == RoomState.QUESTION_MARK && !visited)
             MapRooms.colorUnexplored.value

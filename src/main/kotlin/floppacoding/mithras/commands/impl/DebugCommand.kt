@@ -10,6 +10,7 @@ import floppacoding.mithras.mixin.PlayerSkinAccessor
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.ConfigRoom
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.DungeonScan
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
@@ -84,7 +85,22 @@ object DebugCommand : Command {
                             ChatUtils.chatMessage("Not in Room.")
                             return@execute
                         }
-                        ChatUtils.chatMessage("${room.data.name}: ${room.x}, ${room.z}")
+                        ChatUtils.chatMessage("${room.data.name}: ${room.x}, ${room.z}, rotation: ${room.rotation}")
+                    }
+                }
+                literal("rotation") {
+                    execute {
+                        val room = Dungeon.currentRoom
+                        if (room == null) {
+                            ChatUtils.chatMessage("Not in Room.")
+                            return@execute
+                        }
+                        val rotation = DungeonScan.getAbsoluteRoomRotation(room)
+                        if (rotation == null) {
+                            ChatUtils.chatMessage("Not rotation found.")
+                            return@execute
+                        }
+                        ChatUtils.chatMessage("$rotation")
                     }
                 }
                 literal("floor") {

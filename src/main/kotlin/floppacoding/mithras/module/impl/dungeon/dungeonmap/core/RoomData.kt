@@ -17,6 +17,8 @@ class RoomData(
 
     var configData: RoomConfigData? = null
 
+    var rotation: Int? = null
+
     // First the values from config.
     var name: String = name
         get() = configData?.name ?: field
