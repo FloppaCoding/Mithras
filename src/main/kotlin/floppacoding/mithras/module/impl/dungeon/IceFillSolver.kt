@@ -37,7 +37,7 @@ object IceFillSolver : Module(
     Category.DUNGEON,
     "Shows you the a solution for the ice fill puzzle."
 ) {
-    private val lineColor by ColorSetting("Line Color", Color(69,13,152), false, description = "The color with which the solution will be drawn.")
+    private val lineColor by ColorSetting("Line Color", Color(255,200,0), false, description = "The color with which the solution will be drawn.")
     private val phase by BooleanSetting("Phase", false, description = "Show the solution through blocks.")
     private val message by BooleanSetting("Message", false, description = "Shows in chat how long the layers took to solve.")
 
@@ -54,6 +54,8 @@ object IceFillSolver : Module(
         0 to -7
     )
     private var direction: Pair<Int,Int>? = null
+
+    private val renderPathBuffer = Array<BlockPos>(3*3 + 5*5 +7*7 + 5) {BlockPos(0,0,0)}
 
     @EventHandler
     fun onTick(event: ClientTickEvent) {
@@ -82,22 +84,31 @@ object IceFillSolver : Module(
     @EventHandler
     fun onRender(event: RenderWorldOverlayEvent) {
         if (!inIceFill || threeLayer == null) return
-        val path = mutableListOf<BlockPos>()
-        if (threeLayer!!.getPath(path)){
-            path.add(threeLayer!!.endPos.add(-direction!!.first.sign,0,-direction!!.second.sign))
-            path.add(threeLayer!!.endPos.add(-direction!!.first.sign*2,1,-direction!!.second.sign*2))
+        var length = 0
+        var increment = threeLayer!!.getPath(renderPathBuffer, length)
+        if (increment > 0){
+            length += increment
+            renderPathBuffer[length] = threeLayer!!.endPos.add(-direction!!.first.sign,0,-direction!!.second.sign)
+            renderPathBuffer[length + 1] = threeLayer!!.endPos.add(-direction!!.first.sign*2,1,-direction!!.second.sign*2)
+            length += 2
         }
-        if (fiveLayer!!.getPath(path)){
-            path.add(fiveLayer!!.endPos.add(-direction!!.first.sign,0,-direction!!.second.sign))
-            path.add(fiveLayer!!.endPos.add(-direction!!.first.sign*2,1,-direction!!.second.sign*2))
+        increment = fiveLayer!!.getPath(renderPathBuffer, length)
+        if (increment > 0){
+            length += increment
+            renderPathBuffer[length] = fiveLayer!!.endPos.add(-direction!!.first.sign,0,-direction!!.second.sign)
+            renderPathBuffer[length + 1] = fiveLayer!!.endPos.add(-direction!!.first.sign*2,1,-direction!!.second.sign*2)
+            length += 2
         }
-        if (sevenLayer!!.getPath(path)){
-            path.add(sevenLayer!!.endPos.add(-direction!!.first.sign,0,-direction!!.second.sign))
+        increment = sevenLayer!!.getPath(renderPathBuffer, length)
+        if (increment > 0){
+            length += increment
+            renderPathBuffer[length] = sevenLayer!!.endPos.add(-direction!!.first.sign,0,-direction!!.second.sign)
+            length += 1
         }
-        var last = Vec3d.of(path[0]).add(0.5, 0.0, 0.5)
+        var last = Vec3d.of(renderPathBuffer[0]).add(0.5, 0.0, 0.5)
         var next: Vec3d
-        for (ii in 1..<path.size) {
-            next = Vec3d.of(path[ii]).add(0.5, 0.0, 0.5)
+        for (ii in 1..<length) {
+            next = Vec3d.of(renderPathBuffer[ii]).add(0.5, 0.0, 0.5)
             Renderer3D.drawLine(event.context, last, next, lineColor, 4f, phase)
             last = next
         }
@@ -124,7 +135,7 @@ object IceFillSolver : Module(
         /**
          * Center ice block of the layer.
          */
-        val center: BlockPos,
+        private val center: BlockPos,
         /**
          * Offset of the 3x3 layer from the rooms center.
          * This is used to determine  the direction of the stand and end point relative to the layer center.
@@ -133,18 +144,23 @@ object IceFillSolver : Module(
     ){
         private val halfSize = size / 2
         private val posMap: MutableMap<Int, BlockPos> = mutableMapOf()
-        private val adjacencyList: MutableMap<Int,Set<Int>> = mutableMapOf()
-        val startPos: BlockPos
+        private val adjacencyList: MutableMap<Int,Array<Int>> = mutableMapOf()
+        private val startPos: BlockPos
         val endPos: BlockPos
-        private val start: Int?
-        private val end: Int?
-        private var path: List<Int>? = null
+
+        private var pathFound = false
+        private val path: Array<Int>
+        private val blockPath: Array<BlockPos>
+        private val stepsBuffer : Array<Array<Int?>>
 
         init {
-            for (ii in 0..<size * size) {
-                val row = ii / size
-                val column = ii % size
-                val pos = center.add(row - halfSize, 1, column - halfSize)
+            var row : Int
+            var column: Int
+            var pos : BlockPos
+                for (ii in 0..<size * size) {
+                row = ii / size
+                column = ii % size
+                pos = center.add(row - halfSize, 1, column - halfSize)
                 if (mc.world!!.getBlockState(pos).isAir) {
                     posMap[ii] = pos
                 }
@@ -155,107 +171,117 @@ object IceFillSolver : Module(
                     val neighbor = pos.offset(direction)
                     posMap.firstNotNullOfOrNull { if(it.value == neighbor) it.key else null }?.let { adjacent.add(it) }
                 }
-                adjacencyList[key] = adjacent
+                adjacencyList[key] = adjacent.toTypedArray()
             }
 
+            path = Array<Int>(adjacencyList.size) {-1}
+            val default = BlockPos(0,0,0)
+            blockPath = Array<BlockPos>(adjacencyList.size) {default}
+            stepsBuffer = Array(adjacencyList.size){Array(4){null} }
+
             startPos = center.add(halfSize * direction.first.sign, 1 ,halfSize * direction.second.sign)
-            start = posMap.firstNotNullOfOrNull{ if(it.value == startPos) it.key else null }
+            val start = posMap.firstNotNullOfOrNull{ if(it.value == startPos) it.key else null }
             endPos = center.add(-halfSize * direction.first.sign, 1 ,-halfSize * direction.second.sign)
-            end = posMap.firstNotNullOfOrNull{ if(it.value == endPos) it.key else null }
+            val end = posMap.firstNotNullOfOrNull{ if(it.value == endPos) it.key else null }
 
             if (start != null && end != null) {
                 Mithras.scope.launch {
                     val startTime = System.currentTimeMillis()
-                    path = findPath(adjacencyList, start, end, size)
+                    findPath(start, end)
                     val endTime = System.currentTimeMillis()
                     if (message) mc.send {
-                        ChatUtils.modMessage("Ice Fill: ${size}x$size-layer took ${(endTime-startTime)/1000.0}s to solve.")
+                        ChatUtils.modMessage("Ice Fill: ${size}x$size-layer took ${(endTime-startTime)/1000.0}s to solve, success: $pathFound.")
                     }
                 }
+            }else {
+                if (message) ChatUtils.modMessage("Ice Fill: Error! start: $start, end: $end.")
             }
         }
 
         /**
-         * Appends a list of the blocks in the order they have to be stepped on the complete the layer to [description].
+         * Copies the found path into [destination] starting at the index [offset].
          *
-         * @return true when a solution has been appended.
+         * @return The number of elements copied
          */
-        fun getPath(destination: MutableList<BlockPos>): Boolean{
-            return path?.mapTo(destination){ posMap[it]!! } != null
+        fun getPath(destination: Array<BlockPos>, offset: Int): Int{
+            if (pathFound) {
+                blockPath.copyInto(destination, offset)
+                return blockPath.size
+            }
+            return 0
         }
 
-        private fun findPath(adjecencyList: Map<Int,Set<Int>>, start: Int, end: Int, size: Int): List<Int> {
-            // The blocks in the layer are indexed from 0 to [size]x[size] - 1.
-            val root = Node(start)
+        private fun findPath(start: Int, end: Int) {
             // The index of the block in the center.
             val centerIndex = (size * size) / 2
             // This is a hypothetical index which the starting stair outside the grid would have.
             // It is just used to te determine the directions of the first move.
             val stair = start + (start - centerIndex) / (size/2)
-
-            for (ii in 2 until adjecencyList.size) {
-                root.nextLayer(stair, mutableSetOf(end), adjecencyList, size)
+            path[0] = start
+            pathFound = iteratePath(stair,0, end)
+            if (pathFound) {
+                for (ii in path.indices) {
+                    blockPath[ii] = posMap[path[ii]]!!
+                }
             }
-            root.nextLayer(stair, mutableSetOf(), adjecencyList, size)
-
-            val bestPath = mutableListOf<Int>()
-            root.getPath(bestPath)
-
-            return bestPath
         }
 
-        class Node(
-            var key: Int,
-            var left: Node? = null,
-            var middle: Node? = null,
-            var right: Node? = null
-        ) {
-            fun getPath(out: MutableList<Int>) {
-                out.add(key)
-                middle?.getPath(out) ?: right?.getPath(out) ?: left?.getPath(out)
+
+        private fun iteratePath(parent: Int, depth: Int, target: Int): Boolean {
+            val key = path[depth]
+            if (depth == adjacencyList.size-2) {
+                // last step
+                if (adjacencyList[key]!!.contains(target)) {
+                    path[depth+1] = target
+                    return true
+                }
+                return false
+            }
+            adjacencyList[key]!!.copyInto(stepsBuffer[depth])
+            var step: Int
+            for (ii in 0..< 4) {
+                 step = stepsBuffer[depth][ii] ?: continue
+                if (path.contains(step) || step == target) stepsBuffer[depth][ii] = null
+            }
+            val straight = key + key - parent
+            // First try going straight
+            if (stepsBuffer[depth].contains(straight)) {
+                path[depth + 1] = straight
+                if (iteratePath(key, depth+1, target)) {
+                    return true
+                }
+                path[depth + 1] = -1
             }
 
-            /**
-             * Adds a layer to the tree of possible paths.
-             *
-             * @return whether any of the children are not null after the layer was added. If they are all null this node
-             * can be deleted.
-             */
-            fun nextLayer(parent: Int, visited: MutableSet<Int>, adjacencyList: Map<Int,Set<Int>>, size: Int): Boolean {
-                // If any of the children is not null, do not try to create them again, but instead go to the next layer.
-                if (left != null || middle != null || right != null){
-                    visited.add(key)
-                    if (left?.  nextLayer(key, visited, adjacencyList, size) == false) left   = null
-                    if (middle?.nextLayer(key, visited, adjacencyList, size) == false) middle = null
-                    if (right?. nextLayer(key, visited, adjacencyList, size) == false) right  = null
-                    visited.remove(key)
-                    return left != null || middle != null || right != null
-                }
-
-                val steps = adjacencyList[key]!!.minus(visited)
-                val straight = key + key - parent
-                val diff = key - parent
-                val leftKey: Int
-                val rightKey: Int
-                if (abs(diff) > 1) {
-                    rightKey = key + diff.sign
-                    leftKey = key - diff.sign
-                }else {
-                    rightKey = key - diff.sign * size
-                    leftKey = key + diff.sign * size
-                }
-
-                left = if (steps.contains(leftKey)) Node(leftKey) else null
-                middle = if (steps.contains(straight)) Node(straight) else null
-                right = if (steps.contains(rightKey)) Node(rightKey) else null
-
-                return left != null || middle != null || right != null
+            val diff = key - parent
+            val leftKey: Int
+            val rightKey: Int
+            if (abs(diff) > 1) {
+                rightKey = key + diff.sign
+                leftKey = key - diff.sign
+            }else {
+                rightKey = key - diff.sign * size
+                leftKey = key + diff.sign * size
             }
+            // next try going left
+            if (stepsBuffer[depth].contains(leftKey)) {
+                path[depth + 1] = leftKey
+                if (iteratePath(key, depth+1, target)) {
+                    return true
+                }
+                path[depth + 1] = -1
+            }
+            // last try going right
+            if (stepsBuffer[depth].contains(rightKey)) {
+                path[depth + 1] = rightKey
+                if (iteratePath(key, depth+1, target)) {
+                    return true
+                }
+                path[depth + 1] = -1
+            }
+            return false
         }
     }
-
-
-
 
 
 

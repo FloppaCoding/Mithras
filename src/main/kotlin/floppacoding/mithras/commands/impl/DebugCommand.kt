@@ -7,6 +7,7 @@ import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.commands.CmdSource
 import floppacoding.mithras.commands.Command
 import floppacoding.mithras.mixin.PlayerSkinAccessor
+import floppacoding.mithras.module.impl.dungeon.IceFillSolver
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.ConfigRoom
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
@@ -449,22 +450,11 @@ object DebugCommand : Command {
                 }
             }
             literal("test") {
-                execute {
-                    val a = mutableListOf<BlockPos>()
-                    val b = mutableListOf<BlockPos>()
-                    BlockPos.iterate(BlockPos(0,0,0),BlockPos(2,2,2))
-                        .forEach {
-                            ChatUtils.chatMessage(it.toString())
-                            a.add(it)
-                            b.add(BlockPos(it))
-                        }
-                    ChatUtils.chatMessage("a")
-                    a.forEach {
-                        ChatUtils.chatMessage(it.toString())
-                    }
-                    ChatUtils.chatMessage("b")
-                    b.forEach {
-                        ChatUtils.chatMessage(it.toString())
+                integer("size") {
+                    execute {
+                        val size = it.getInteger("size")
+                        val center = BlockPos(130, -40, -60)
+                        val layer = IceFillSolver.Layer(size, center,  Pair(-7,0))
                     }
                 }
             }
