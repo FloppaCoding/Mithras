@@ -178,6 +178,7 @@ object Dungeon {
     @EventHandler
     fun onWorldLoad(event: WorldChangeEvent) {
         reset()
+        RunInformation.reset()
         MapUtils.calibrated = false
         hasRunStarted = false
         inBoss = false

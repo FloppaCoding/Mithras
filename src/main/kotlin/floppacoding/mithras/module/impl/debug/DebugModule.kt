@@ -6,6 +6,7 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import org.joml.Vector3f
 import java.awt.Color
 
@@ -44,6 +45,6 @@ object DebugModule : Module(
         val pos = BlockPos(114, -45, -55)
         Renderer3D.drawBlockBoundingBox(event.context, pos, outlineColor = null, fillColor = Color(250, 50, 170, 100), lineWidth = 4f)
 
-
+        Renderer3D.drawBox(event.context, Box(134.0, -58.0, -34.0, 135.0, -57.0, -33.0), fillColor = Color(100,255,70))
     }
 }

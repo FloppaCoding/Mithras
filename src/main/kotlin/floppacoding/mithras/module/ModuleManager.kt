@@ -53,6 +53,7 @@ object ModuleManager {
         StarMobHighlight,
         QuizSolver,
         IceFillSolver,
+        WaterBoardSolver,
 
 
         //RENDER

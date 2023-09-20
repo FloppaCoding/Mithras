@@ -13,6 +13,7 @@ enum class ConfigRoom(name: String) {
     TELEPORT_MAZE("Teleport Maze"),
     QUIZ("Quiz"),
     ICE_FILL("Ice Fill"),
+    WATER_BOARD("Water Board"),
     CREEPER_BEAMS("Creeper Beams"),
     THREE_WEIRDOS("Three Weirdos");
 
