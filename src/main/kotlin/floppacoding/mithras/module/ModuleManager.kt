@@ -76,6 +76,7 @@ object ModuleManager {
         //MISC
         SmoothTransfer,
         KeepMousePosition,
+        ScrollableTooltips,
         EtherwarpHighlight,
         ChatCleaner,
         ItemProtection,

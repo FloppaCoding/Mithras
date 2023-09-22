@@ -1,6 +1,8 @@
 package floppacoding.mithras.events
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.util.InputUtil.Key
 import net.minecraft.client.world.ClientWorld
@@ -128,9 +130,18 @@ class InputEvent(val key: Key, val action: Int) : Cancellable() {
 /**
  * Posted when the mouse is scrolled, before the input is evaluated by the vanilla methods.
  * Only posted when not in a GUI.
+ * @see GuiMouseScrollEvent
  * @see floppacoding.mithras.mixin.MouseMixin
  */
 class MouseScrollEvent(val amount: Double) : Cancellable()
+
+/**
+ * Posted when the mouse is scrolled while in a GUI.
+ * This even is posted before the vanilla evaluation of the action and can be cancelled.
+ *
+ * @see MouseScrollEvent
+ */
+class GuiMouseScrollEvent(val screen: Screen, val mouseX: Double, val mouseY: Double, val horizontalAmount: Double, val verticalAmount: Double) : Cancellable()
 
 
 /**
@@ -165,6 +176,14 @@ class HudRenderEvent(val partialTicks: Float)
  * @see net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BEFORE_DEBUG_RENDER
  */
 class RenderWorldOverlayEvent(val context: WorldRenderContext)
+
+/**
+ * Posted whenever a slot in a [HandledScreen] is rendered, before it is drawn.
+ *
+ * The event can be cancelled to prevent the slot from being rendered.
+ * @see floppacoding.mithras.mixin.gui.HandledScreenMixin.onDrawSlot
+ */
+class DrawSlotEvent(val context: DrawContext, val slot: Slot) : Cancellable()
 
 /* NETWORK */
 

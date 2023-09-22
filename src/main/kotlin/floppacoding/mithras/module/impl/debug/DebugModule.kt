@@ -1,8 +1,10 @@
 package floppacoding.mithras.module.impl.debug
 
+import floppacoding.mithras.events.DrawSlotEvent
 import floppacoding.mithras.events.RenderWorldOverlayEvent
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.utils.ChatUtils.stripControlCodes
 import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.util.math.BlockPos
@@ -46,5 +48,14 @@ object DebugModule : Module(
         Renderer3D.drawBlockBoundingBox(event.context, pos, outlineColor = null, fillColor = Color(250, 50, 170, 100), lineWidth = 4f)
 
         Renderer3D.drawBox(event.context, Box(134.0, -58.0, -34.0, 135.0, -57.0, -33.0), fillColor = Color(100,255,70))
+    }
+
+    @EventHandler
+    fun onSlotDraw(event: DrawSlotEvent) {
+        if (!event.slot.hasStack()) return
+        if (event.slot.stack.name.string.stripControlCodes().startsWith("D")) {
+            event.context.fill(event.slot.x, event.slot.y, event.slot.x + 16, event.slot.y + 16,Color(0,255,0).rgb)
+        }// else event.cancel()
+
     }
 }

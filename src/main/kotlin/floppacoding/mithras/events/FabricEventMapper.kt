@@ -8,8 +8,11 @@ import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
+import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.network.ClientPlayNetworkHandler
 import net.minecraft.network.message.MessageType
 import net.minecraft.network.message.SignedMessage
@@ -66,6 +69,13 @@ object FabricEventMapper {
         // Rendering
         WorldRenderEvents.LAST.register {context: WorldRenderContext ->
             Mithras.EVENT_BUS.post(RenderWorldOverlayEvent(context))
+        }
+
+        // Input
+        ScreenEvents.BEFORE_INIT.register{ _, screen, _, _ ->
+            ScreenMouseEvents.allowMouseScroll(screen).register { screen2: Screen, mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double  ->
+                !Mithras.EVENT_BUS.post(GuiMouseScrollEvent(screen2, mouseX, mouseY, horizontalAmount, verticalAmount)).isCancelled
+            }
         }
     }
 

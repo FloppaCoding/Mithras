@@ -1,7 +1,9 @@
-package floppacoding.mithras.mixin;
+package floppacoding.mithras.mixin.gui;
 
 import floppacoding.mithras.Mithras;
+import floppacoding.mithras.events.DrawSlotEvent;
 import floppacoding.mithras.events.GuiSlotClickEvent;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -37,6 +39,13 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     @Inject(method = "onMouseClick(Lnet/minecraft/screen/slot/Slot;IILnet/minecraft/screen/slot/SlotActionType;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;clickSlot(IIILnet/minecraft/screen/slot/SlotActionType;Lnet/minecraft/entity/player/PlayerEntity;)V"), cancellable = true)
     private void mithras$onMouseClick(Slot slot, int slotId, int button, SlotActionType actionType, CallbackInfo ci) {
         if (Mithras.EVENT_BUS.post(new GuiSlotClickEvent<>(slot, slotId, button, actionType, this.handler, handledScreen, handledScreen.getTitle())).isCancelled()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "drawSlot", at = @At("HEAD"), cancellable = true)
+    private void onDrawSlot(DrawContext context, Slot slot, CallbackInfo ci) {
+        if (Mithras.EVENT_BUS.post(new DrawSlotEvent(context, slot)).isCancelled()) {
             ci.cancel();
         }
     }
