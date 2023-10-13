@@ -90,17 +90,19 @@ object TeleportSolver : Module (
     @EventHandler
     fun onRender(event: RenderWorldOverlayEvent) {
         if (!inTpMaze) return
-        visitedPads.forEach {
-            Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = visitedColor)
-        }
-        if (possibleSolutions.size > 1) {
-            possibleSolutions.forEach {
-                Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = uncertainColor)
+        try {
+            visitedPads.forEach {
+                Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = visitedColor)
             }
-        }
-        else if (possibleSolutions.isNotEmpty()){
-            Renderer3D.drawBlockBoundingBox(event.context, possibleSolutions.first(), fillColor =  solutionColor, phase = phase)
-        }
+            if (possibleSolutions.size > 1) {
+                possibleSolutions.forEach {
+                    Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = uncertainColor)
+                }
+            }
+            else if (possibleSolutions.isNotEmpty()){
+                Renderer3D.drawBlockBoundingBox(event.context, possibleSolutions.first(), fillColor =  solutionColor, phase = phase)
+            }
+        }catch (_: ConcurrentModificationException) {}
     }
 
     /**
