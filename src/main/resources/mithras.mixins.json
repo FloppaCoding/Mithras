@@ -24,6 +24,7 @@
     "gui.HandledScreenAccessor",
     "gui.HandledScreenMixin",
     "gui.InGameHudMixin",
+    "gui.ScreenMixin",
     "network.ClientPlayNetwarkHandlerMixin",
     "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",

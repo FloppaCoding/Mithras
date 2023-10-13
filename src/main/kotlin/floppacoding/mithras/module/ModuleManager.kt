@@ -45,6 +45,7 @@ object ModuleManager {
         //DUNGEON
         DungeonMap,
         MapRooms,
+        TerminalSolvers,
         ThreeWeirdosSolver,
         BlazeSolver,
         TicTacToeSolver,

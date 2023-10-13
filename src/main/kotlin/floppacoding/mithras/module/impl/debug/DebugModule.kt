@@ -1,5 +1,6 @@
 package floppacoding.mithras.module.impl.debug
 
+import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.events.DrawSlotEvent
 import floppacoding.mithras.events.RenderWorldOverlayEvent
 import floppacoding.mithras.module.Category
@@ -7,6 +8,8 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.utils.ChatUtils.stripControlCodes
 import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
+import net.minecraft.block.StainedGlassPaneBlock
+import net.minecraft.item.BlockItem
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import org.joml.Vector3f
@@ -51,11 +54,20 @@ object DebugModule : Module(
     }
 
     @EventHandler
-    fun onSlotDraw(event: DrawSlotEvent) {
+    fun onSlotDraw(event: DrawSlotEvent<*>) {
         if (!event.slot.hasStack()) return
         if (event.slot.stack.name.string.stripControlCodes().startsWith("D")) {
             event.context.fill(event.slot.x, event.slot.y, event.slot.x + 16, event.slot.y + 16,Color(0,255,0).rgb)
+            event.context.fill(event.slot.x, event.slot.y, event.slot.x + 16, event.slot.y + 16,Color(0,255,0).rgb)
         }// else event.cancel()
+        if ((event.slot.stack?.item as? BlockItem)?.block is StainedGlassPaneBlock) {
+            event.context.matrices.push()
+            event.context.matrices.translate(0.0f, 0.0f, 1000.0f)
+            val text = "2"
+            val offs = (16 - mc.textRenderer.getWidth(text)) / 2
+            event.context.drawText(mc.textRenderer, text, event.slot.x + offs, event.slot.y + 4, Color(255,255,255).rgb, false)
+            event.context.matrices.pop()
+        }
 
     }
 }

@@ -147,7 +147,7 @@ class GuiMouseScrollEvent(val screen: Screen, val mouseX: Double, val mouseY: Do
 /**
  * Posted when a slot is clicked in a [HandledScreen][net.minecraft.client.gui.screen.ingame.HandledScreen].
  * Should work for basically all inventory types.
- * @see floppacoding.mithras.mixin.HandledScreenMixin
+ * @see floppacoding.mithras.mixin.gui.HandledScreenMixin
  */
 class GuiSlotClickEvent<T : ScreenHandler>(val slot: Slot?, val slotId: Int, val button: Int, val actionType: SlotActionType, val handler: T, val handledScreen: HandledScreen<T>, val inventoryName: Text) : Cancellable()
 
@@ -156,6 +156,14 @@ class GuiSlotClickEvent<T : ScreenHandler>(val slot: Slot?, val slotId: Int, val
  * @see floppacoding.mithras.mixin.ClientPlayerEntityMixin
  */
 class HotbarDropEvent(val stack: ItemStack): Cancellable()
+
+/**
+ * Posted whenever a new screen is opened through [mc.setScreen][net.minecraft.client.MinecraftClient.setScreen].
+ *
+ * The event is only posted when the screen is set to null.
+ *
+ */
+class GuiOpenEvent(val screen: Screen)
 
 /* RENDER EVENTS */
 
@@ -183,7 +191,15 @@ class RenderWorldOverlayEvent(val context: WorldRenderContext)
  * The event can be cancelled to prevent the slot from being rendered.
  * @see floppacoding.mithras.mixin.gui.HandledScreenMixin.onDrawSlot
  */
-class DrawSlotEvent(val context: DrawContext, val slot: Slot) : Cancellable()
+class DrawSlotEvent<T : ScreenHandler>(val context: DrawContext, val slot: Slot, val handledScreen: HandledScreen<T>) : Cancellable()
+
+/**
+ * Posted after the gui background is drawn but before the main content of the gui is drawn.
+ * @see floppacoding.mithras.mixin.gui.ScreenMixin.onRenderBackground
+ */
+class GuiBackgroundDrawnEvent(val screen: Screen, val context: DrawContext)
+
+class DrawItemTooltopEvent(val screen: Screen, val stack: ItemStack) : Cancellable()
 
 /* NETWORK */
 

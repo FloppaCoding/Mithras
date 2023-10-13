@@ -1,9 +1,11 @@
 package floppacoding.mithras.mixin;
 
 import floppacoding.mithras.Mithras;
+import floppacoding.mithras.events.GuiOpenEvent;
 import floppacoding.mithras.events.WorldChangeEvent;
 import floppacoding.mithras.module.impl.render.Camera;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,5 +30,12 @@ abstract class MinecraftClientMixin {
         if(Camera.INSTANCE.shouldSkipPerspective(perspective))
             return perspective.next();
         return perspective;
+    }
+
+    @Inject(method = "setScreen", at = @At("HEAD"))
+    private void onSetScreen(Screen screen, CallbackInfo ci) {
+        if (screen != null) {
+            Mithras.EVENT_BUS.post(new GuiOpenEvent(screen));
+        }
     }
 }

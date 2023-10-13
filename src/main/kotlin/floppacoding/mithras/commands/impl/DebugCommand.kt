@@ -401,6 +401,16 @@ object DebugCommand : Command {
                         ChatUtils.chatMessage("Held item rarity is: ${rarity.name}.")
                     }
                 }
+                literal("translationKey") {
+                    execute {
+                        val item = mc.player?.mainHandStack?.item
+                        if (item == null) {
+                            ChatUtils.chatMessage("Not holding any item!")
+                            return@execute
+                        }
+                        ChatUtils.chatMessage(item.translationKey)
+                    }
+                }
             }
             literal("world") {
                 literal("block") {
