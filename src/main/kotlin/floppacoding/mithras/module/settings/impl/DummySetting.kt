@@ -33,4 +33,6 @@ class DummySetting(
     override var value: Any?
         get() = null
         set(_) {}
+
+    override fun updateFromConfigSetting(configSetting: Setting<*>) {}
 }

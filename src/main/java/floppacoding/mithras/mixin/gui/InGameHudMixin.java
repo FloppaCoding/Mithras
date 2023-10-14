@@ -1,4 +1,4 @@
-package floppacoding.mithras.mixin;
+package floppacoding.mithras.mixin.gui;
 
 import floppacoding.mithras.Mithras;
 import floppacoding.mithras.events.HudRenderEvent;

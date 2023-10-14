@@ -4,18 +4,20 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.AbstractNbtNumber
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
+import net.minecraft.text.Text
 
 /**
  * ## A collection of methods for accessing NBT data of Skyblock items.
  *
- * Based on [SBC by Harry282](https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/utils/Utils.kt)
+ * Parts of this class are based on
+ * [SBC by Harry282](https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/utils/Utils.kt) -
+ * [APGL-3.0 license](https://github.com/Harry282/Skyblock-Client/blob/main/LICENSE)
  *
  * @author Aton
  */
 @Suppress("unused")
 object ItemUtils {
-
-    private val ItemStack.extraAttributes: NbtCompound?
+    val ItemStack.extraAttributes: NbtCompound?
         get() = this.getSubNbt("ExtraAttributes")
 
     val ItemStack.isDungeonMobDrop: Boolean
@@ -24,11 +26,17 @@ object ItemUtils {
             return attributes.hasKey("baseStatBoostPercentage") && !attributes.hasKey("dungeon_item_level")
         }
 
-    val ItemStack.rarityBoost: Int?
+    /**
+     * The stat boost of dungeon drops. Value should be in between 0 and 50.
+     */
+    val ItemStack.statBoost: Int?
         get() {
             return this.extraAttributes?.getInteger("baseStatBoostPercentage")
         }
 
+    /**
+     * Returns true if the Skbylock item is recombobulated, false otherwise.
+     */
     val ItemStack.isRarityUpgraded: Boolean
         get() {
             return (this.extraAttributes?.getInt("rarity_upgrades") ?: 0) > 0
@@ -54,6 +62,14 @@ object ItemUtils {
             return this.extraAttributes?.getString("modifier") ?: ""
         }
 
+    /**
+     * Gets the lore attribute of the item.
+     * The strings will **NOT** contain formatting codes.
+     * Example:
+     *
+     *      LEGENDARY SWORD
+     * @see formattedLore
+     */
     val ItemStack.lore: List<String>
         get() {
             val display = this.getSubNbt("display") ?: return emptyList()
@@ -61,11 +77,55 @@ object ItemUtils {
                 val nbtList = display.getList("Lore", NbtElement.STRING_TYPE.toInt())
                 val lore = ArrayList<String>()
                 for (ii in 0 until nbtList.size) {
-                    lore.add(nbtList.getString(ii))
+                    // Use the following line instead of the try catch to get the formatting. That formatting will look
+                    // according to MutableText.toString(), which is very unreadable, but might be required for more
+                    // information in the future.
+                    // lore.add(nbtList.getString(ii))
+                    try {
+                        lore.add(Text.Serializer.fromJson(nbtList.getString((ii)))?.string ?: "")
+                    } catch (_: Exception) {
+                        lore.add(nbtList.getString(ii))
+                    }
                 }
                 return lore
             }
             return emptyList()
+        }
+
+    /**
+     * Gets the lore attribute of the item.
+     * The strings **WILL** contain formatting codes.
+     * Example:
+     *
+     *      {"italic":false,"extra":[{"bold":true,"color":"gold","text":"LEGENDARY SWORD"}],"text":""}
+     * @see lore
+     */
+    val ItemStack.formattedLore: List<String>
+        get() {
+            val display = this.getSubNbt("display") ?: return emptyList()
+            if (display.contains("Lore", NbtElement.LIST_TYPE.toInt())) {
+                val nbtList = display.getList("Lore", NbtElement.STRING_TYPE.toInt())
+                val lore = ArrayList<String>()
+                for (ii in 0 until nbtList.size) {
+                     lore.add(nbtList.getString(ii))
+                }
+                return lore
+            }
+            return emptyList()
+        }
+
+    /**
+     * Gets the skyblock item rarity of this item.
+     * If none could be found [ItemRarity.NONE] will be returned.
+     */
+    val ItemStack.skyblockRarity: ItemRarity
+        get() {
+            this.lore.reversed().forEach { line ->
+                // matchEntire and find both work here
+                val match = ItemRarity.RARITY_PATTERN.find(line) ?: return@forEach
+                return ItemRarity.entries.find { it.inGameName == match.groups["rarity"]?.value } ?: ItemRarity.NONE
+            }
+            return ItemRarity.NONE
         }
 
     /**

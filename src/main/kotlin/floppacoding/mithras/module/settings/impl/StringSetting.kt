@@ -26,5 +26,9 @@ class StringSetting(
                 tempStr
         }
 
+    override fun updateFromConfigSetting(configSetting: Setting<*>) {
+        this.text = (configSetting as StringSetting).text
+    }
+
     var text: String by this::value
 }

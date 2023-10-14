@@ -7,19 +7,35 @@ import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.commands.CmdSource
 import floppacoding.mithras.commands.Command
 import floppacoding.mithras.mixin.PlayerSkinAccessor
+import floppacoding.mithras.module.impl.dungeon.IceFillSolver
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.ConfigRoom
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.DungeonScan
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
+import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.ui.nanovg.NVGImageManager
 import floppacoding.mithras.utils.ChatUtils
 import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.ScoreboardUtils
 import floppacoding.mithras.utils.TabListUtils
+import floppacoding.mithras.utils.inventory.ItemUtils.formattedLore
+import floppacoding.mithras.utils.inventory.ItemUtils.lore
+import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
+import floppacoding.mithras.utils.inventory.NBTStringWriter
 import net.minecraft.client.texture.PlayerSkinTexture
+import net.minecraft.entity.Entity
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.decoration.ItemFrameEntity
+import net.minecraft.item.FilledMapItem
+import net.minecraft.text.MutableText
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
+import kotlin.experimental.and
 
 object DebugCommand : Command {
     override val builder: LiteralArgumentBuilder<CmdSource> =
@@ -63,6 +79,31 @@ object DebugCommand : Command {
                 }
             }
             literal("dungeon") {
+                literal("currentRoom") {
+                    execute {
+                        val room = Dungeon.currentRoom
+                        if (room == null) {
+                            ChatUtils.chatMessage("Not in Room.")
+                            return@execute
+                        }
+                        ChatUtils.chatMessage("${room.data.name}: ${room.x}, ${room.z}, rotation: ${room.rotation}")
+                    }
+                }
+                literal("rotation") {
+                    execute {
+                        val room = Dungeon.currentRoom
+                        if (room == null) {
+                            ChatUtils.chatMessage("Not in Room.")
+                            return@execute
+                        }
+                        val rotation = DungeonScan.getAbsoluteRoomRotation(room)
+                        if (rotation == null) {
+                            ChatUtils.chatMessage("Not rotation found.")
+                            return@execute
+                        }
+                        ChatUtils.chatMessage("$rotation")
+                    }
+                }
                 literal("floor") {
                     execute {
                         ChatUtils.chatMessage("Currently in floor: ${RunInformation.currentFloor}")
@@ -179,6 +220,53 @@ object DebugCommand : Command {
                         }
                     }
                 }
+                literal("roomId") {
+                    execute{
+                        ChatUtils.chatMessage(RoomUtils.getRoomScoreboardID()?: "null")
+                    }
+                }
+                literal("inroom") {
+                    string("roomName") {
+                        execute {context ->
+                            val roomName = context.getString("roomName")
+                            val configData = RoomUtils.roomList.find { it.name == roomName }
+                            if (configData == null) {
+                                ChatUtils.chatMessage("Room not found in config.")
+                                return@execute
+                            }
+                            val inRoom = RoomUtils.isInRoom(configData)
+                            ChatUtils.chatMessage(inRoom.toString())
+                        }
+                    }
+                }
+                literal("gettttframes") {
+                    execute {
+                        val room = Dungeon.currentRoom
+                        if (room == null) {
+                            ChatUtils.chatMessage("Not in room.")
+                            return@execute
+                        }
+                        if (!RoomUtils.isInRoom(ConfigRoom.TIC_TAC_TOE)) {
+                            ChatUtils.chatMessage("Not in TTT.")
+                            return@execute
+                        }
+
+                        val tttSerachBox = Box(room.x - 12.0, 69.0, room.z - 12.0, room.x + 12.0, 80.0, room.z + 12.0)
+
+                        val frames = mc.world!!.getEntitiesByClass(ItemFrameEntity::class.java, tttSerachBox) filter@{
+                            return@filter true
+                        }
+                        frames.forEach {
+                            val realPos = it.blockPos
+                            val itemFrameHeldStack = it.heldItemStack
+                            val mapData = FilledMapItem.getMapState(itemFrameHeldStack, mc.world)
+                            val colorInt: Int? =
+                                if (mapData != null) (mapData.colors[8256] and 255.toByte()).toInt() else null
+                            val blockBehind = realPos.offset(it.horizontalFacing.opposite, 1)
+                            ChatUtils.chatMessage("${it.x}, ${it.y}, ${it.z}, realpos: $realPos, heldStack: $itemFrameHeldStack, color: $colorInt, blockBehind: $blockBehind")
+                        }
+                    }
+                }
             }
             literal("loadskin") {
                 execute {
@@ -265,11 +353,120 @@ object DebugCommand : Command {
                     }
                 }
             }
-            literal("sleeptimer") {
-                execute { ChatUtils.chatMessage(mc.player?.sleepTimer?.toString() ?: "null") }
+            literal("item") {
+                literal("heldnbt") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val nbtString = NBTStringWriter.creatNbtString(stack)
+                        mc.keyboard.clipboard = nbtString
+                        ChatUtils.chatMessage("Copied held item nbt data to clipboard.")
+                    }
+                }
+                literal("lore") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val lore = stack.lore
+                        mc.keyboard.clipboard = lore.joinToString(System.lineSeparator())
+                        ChatUtils.chatMessage("Copied held item lore to clipboard.")
+                    }
+                }
+                literal("formatted-lore") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val lore = stack.formattedLore
+                        mc.keyboard.clipboard = lore.joinToString(System.lineSeparator())
+                        ChatUtils.chatMessage("Copied held item lore to clipboard.")
+                    }
+                }
+                literal("rarity") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val rarity = stack.skyblockRarity
+                        ChatUtils.chatMessage("Held item rarity is: ${rarity.name}.")
+                    }
+                }
+                literal("translationKey") {
+                    execute {
+                        val item = mc.player?.mainHandStack?.item
+                        if (item == null) {
+                            ChatUtils.chatMessage("Not holding any item!")
+                            return@execute
+                        }
+                        ChatUtils.chatMessage(item.translationKey)
+                    }
+                }
+            }
+            literal("world") {
+                literal("block") {
+                    integer("x") {
+                        integer("y") {
+                            integer("z") {
+                                execute {
+                                    val x = it.getInteger("x")
+                                    val y = it.getInteger("y")
+                                    val z = it.getInteger("z")
+                                    val state = mc.world!!.getBlockState(BlockPos(x,y,z))
+                                    ChatUtils.chatMessage("state: $state")
+                                    ChatUtils.chatMessage("block class: ${state.block::class.java}")
+                                }
+                            }
+                        }
+                    }
+                }
+                literal("armorstands") {
+                    double("range") {
+                        execute {
+                            val range = it.getDouble("range")
+
+                            val box = it.source.player.boundingBox.expand(range)
+
+                            mc.world?.getEntitiesByClass(ArmorStandEntity::class.java, box) { entity ->
+                                entity.hasCustomName()
+                            }?.forEach { entity ->
+                                ChatUtils.chatMessage(entity.name)
+                            }
+                        }
+                    }
+                }
+                literal("entities") {
+                    double("range") {
+                        execute {
+                            val range = it.getDouble("range")
+
+                            val box = it.source.player.boundingBox.expand(range)
+
+                            mc.world?.getEntitiesByClass(Entity::class.java, box) { true }?.forEach { entity ->
+                                ChatUtils.chatMessage(MutableText.of(entity.name.content).append(", position: ").append(entity.pos.toString())
+                                    .append(", type: ").append(entity.type.name.string).append(", class: ").append(entity::class.simpleName))
+                            }
+                        }
+                    }
+                }
             }
             literal("test") {
-                execute { Mithras.logger.info("Test info") }
+                integer("size") {
+                    execute {
+                        val size = it.getInteger("size")
+                        val center = BlockPos(130, -40, -60)
+                        val layer = IceFillSolver.Layer(size, center,  Pair(-7,0))
+                    }
+                }
             }
         }
 }

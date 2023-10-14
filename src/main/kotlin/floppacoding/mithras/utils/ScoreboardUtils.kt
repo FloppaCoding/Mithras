@@ -1,6 +1,7 @@
 package floppacoding.mithras.utils
 
 import floppacoding.mithras.Mithras.mc
+import net.minecraft.scoreboard.ScoreboardPlayerScore
 import net.minecraft.scoreboard.Team
 import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
@@ -39,5 +40,17 @@ object ScoreboardUtils {
                 Team.decorateName(scoreboard.getPlayerTeam(it.playerName), MutableText.of(LiteralTextContent( ""))).string
                 // it.playerName // This would work on some other servers instead.
             }
+        }
+
+    /**
+     * Returns a list of the scores on the scoreboard.
+     *
+     * @see sidebarLines
+     */
+    val scores: List<ScoreboardPlayerScore>
+        get() {
+            val scoreboard = mc.world?.scoreboard ?: return emptyList()
+            val objective = scoreboard.getObjectiveForSlot(1) ?: return emptyList()
+            return scoreboard.getAllPlayerScores(objective).toList()
         }
 }

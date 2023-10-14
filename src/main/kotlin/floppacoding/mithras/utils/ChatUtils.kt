@@ -6,9 +6,11 @@ import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.impl.render.PrefixStyle
 import floppacoding.mithras.utils.ChatUtils.chatMessage
 import floppacoding.mithras.utils.ChatUtils.modMessage
-import floppacoding.mithras.utils.ChatUtils.sendChat
+import floppacoding.mithras.utils.ChatUtils.sendMessage
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import net.minecraft.util.StringHelper
+import org.apache.commons.lang3.StringUtils
 
 /**
  * ## A collection of utility functions for creating and sending or displaying chat messages.
@@ -17,7 +19,12 @@ import net.minecraft.util.Formatting
  *
  * Use [modMessage] for client side messages in chat that start with mods chat prefix.
  *
- * Use [sendChat] for sending a player message to the server.
+ * Use [sendMessage] for sending a player message to the server.
+ *
+ * ### Some info about Minecraft methods:
+ * The method [net.minecraft.client.network.ClientPlayerEntity.sendMessage] does exactly the same as
+ * [net.minecraft.client.gui.hud.ChatHud.addMessage] even tho the name suggest otherwise.
+ *
  *
  *
  * @author Aton
@@ -101,7 +108,7 @@ object ChatUtils {
      * Print a message in chat **client side**.
      * @param reformat Replace the "&" in formatting strings with "§".
      * @see modMessage
-     * @see sendChat
+     * @see sendMessage
      */
     fun chatMessage(text: String, reformat: Boolean = true) {
         val message: Text = Text.literal(if (reformat) reformatString(text) else text)
@@ -111,7 +118,7 @@ object ChatUtils {
     /**
      * Print a message in chat **client side**.
      * @see modMessage
-     * @see sendChat
+     * @see sendMessage
      */
     fun chatMessage(message: Text) {
         mc.inGameHud?.chatHud?.addMessage(message)
@@ -121,22 +128,39 @@ object ChatUtils {
      * **Send player message to the server**.
      *
      * This mimics the player using the chat gui to send the message.
+     *
+     * If the message starts with a "/" it will be treated like a command. Otherwise, like a chat message.
+     * It will try to run teh command client side first. If that is successful the command will not be sent to the server.
      * @see chatMessage
      * @see modMessage
      */
-    fun sendChat(message: Text) {
-        //TODO This seems to do the same as chatMessage
-        mc.player?.sendMessage(message)
+    fun sendMessage(message: String, addToHistory: Boolean = false) {
+        val chatText = StringHelper.truncateChat(StringUtils.normalizeSpace(message.trim()))
+        if (chatText.isNotEmpty()) {
+            if (addToHistory) {
+                mc.inGameHud.chatHud.addToMessageHistory(chatText)
+            }
+            if (chatText.startsWith("/")) {
+                /**
+                 *  Fabric will take care of determining whether it is a client side or server side command and only
+                 *  send the server side command to the server.
+                 *  @see net.fabricmc.fabric.mixin.command.client.ClientPlayNetworkHandlerMixin.onSendCommand
+                 */
+                mc.player?.networkHandler?.sendChatCommand(chatText.substring(1))
+            } else {
+                mc.player?.networkHandler?.sendChatMessage(chatText)
+            }
+        }
     }
 
-//    /**
-//     * Runs the specified command. Per default sends it to the server  but has client side option.
-//     * The input is assumed to **not** include the slash "/" that signals a command.
-//     */
-//    fun command(text: String, clientSide: Boolean = true) {
-//        if (clientSide && mc.player != null) ClientCommandHandler.instance.executeCommand(mc.thePlayer, "/$text")
-//        else mc.thePlayer?.sendChatMessage("/$text")
-//    }
+    /**
+     * Runs the specified command. It is tried first to run the command on the client.
+     * If that is not possible it is sent to the server.
+     * The input is assumed to **not** include the slash "/" that signals a command.
+     */
+    fun command(text: String) {
+        mc.player?.networkHandler?.sendChatCommand(text)
+    }
 
 //    /**
 //     * Creates a new IChatComponent displaying [text] and showing [hoverText] when it is hovered.

@@ -100,11 +100,11 @@ import kotlin.reflect.full.hasAnnotation
  */
 abstract class Module(
     name: String,
-    keyCode: Int = InputUtil.UNKNOWN_KEY.code,
     category: Category = Category.MISC,
+    description: String = "",
+    keyCode: Int = InputUtil.UNKNOWN_KEY.code,
     toggled: Boolean = false,
     settings: ArrayList<Setting<*>> = ArrayList(),
-    description: String = ""
 ){
     @Expose
     @SerializedName("name")
@@ -153,7 +153,7 @@ abstract class Module(
         name: String,
         category: Category = Category.MISC,
         description: String = ""
-    ) : this(name, InputUtil.UNKNOWN_KEY.code,  category =  category, description =  description)
+    ) : this(name, category, description, InputUtil.UNKNOWN_KEY.code)
 
     /**
      * Will toggle the module.

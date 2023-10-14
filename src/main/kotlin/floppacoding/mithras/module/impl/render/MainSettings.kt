@@ -21,12 +21,12 @@ typealias PrefixStyle = MainSettings.PrefixStyle
 @AlwaysActive
 object MainSettings: Module(
     "Main Settings",
-    GLFW.GLFW_KEY_RIGHT_SHIFT,
     category = Category.RENDER,
     description = "Appearance settings for the click gui. \n" +
             "You can set a custom chat prefix with formatting here. For formatting use & or the paragrph symbol followed by a modifier. " +
             "A benefit of using the paragraph symbol is, that you can directly see how it will look in the text field, but you wont be able to see the formatting. \n" +
-            "§00...§ff§r are colors, l is §lBold§r, n is §nUnderlined§r, o is §oItalic§r, m is §mStrikethrough§r, k is §kObfuscated§r, r is Reset."
+            "§00...§ff§r are colors, l is §lBold§r, n is §nUnderlined§r, o is §oItalic§r, m is §mStrikethrough§r, k is §kObfuscated§r, r is Reset.",
+    keyCode = GLFW.GLFW_KEY_RIGHT_SHIFT,
 ) {
 
     val design: SelectorSetting<Design> = +SelectorSetting("Design", Design.JELLYLIKE, description = "Design theme of the gui.")
@@ -118,15 +118,15 @@ object MainSettings: Module(
         toggle()
     }
 
-    enum class Design(override val displayName: String): Options {
+    enum class Design(override val displayName: String): SelectorOptions {
         JELLYLIKE("Jellylike"), NEW("New")
     }
 
-    enum class ColorMode(override val displayName: String): Options {
+    enum class ColorMode(override val displayName: String): SelectorOptions {
         HSB("HSB"), RGB("RGB")
     }
 
-    enum class PrefixStyle(override val displayName: String): Options {
+    enum class PrefixStyle(override val displayName: String): SelectorOptions {
         LONG("Long"), SHORT("Short"), CUSTOM("Custom")
     }
 }

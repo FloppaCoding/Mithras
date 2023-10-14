@@ -27,9 +27,9 @@ import net.minecraft.util.Formatting
  * @author Aton
  */
 object Dungeon {
-    const val roomSize = 32
-    const val startX = -185
-    const val startZ = -185
+    const val ROOM_SIZE = 32
+    const val START_X = -185
+    const val START_Z = -185
 
     // Currently always false! Could maybe be used when the entire map has been revealed.
     var fullyScanned = false
@@ -58,6 +58,15 @@ object Dungeon {
     val dungeonTeammates = mutableListOf<DungeonPlayer>()
 
 
+    /**
+     * The room the player is currently in.
+     *
+     * Depending on the information availiable this will contain various amounts of information.
+     * If the dungeon map is disabled the map is not scanned and this will just be a dummy room, which only contains
+     * information about the position of the 1x1 cell the player is currently in.
+     *
+     * This value is updated at the beginning of every [ClientTickEvent].
+     */
     var currentRoom: Room? = null
         private set
 
@@ -169,6 +178,7 @@ object Dungeon {
     @EventHandler
     fun onWorldLoad(event: WorldChangeEvent) {
         reset()
+        RunInformation.reset()
         MapUtils.calibrated = false
         hasRunStarted = false
         inBoss = false
@@ -212,10 +222,12 @@ object Dungeon {
     /**
      * Returns the room the player is currently in.
      * Includes boss room.
+     *
+     * Also updates the [scoreboardID][Room.scoreboardID] of the room.
      */
     @JvmName("getCurrentRoomFromCoordinates")
     fun getCurrentRoom(): Room? {
-        val room = if (inBoss) {
+        val tile = if (inBoss) {
             val floor = RunInformation.currentFloor?.floorNumber
             if (floor != null) {
                 RoomUtils.instanceBossRoom(floor)
@@ -223,12 +235,18 @@ object Dungeon {
                 null
             }
         }else {
-            val x = ((mc.player!!.x - startX + 15).toInt() shr 5)
-            val z = ((mc.player!!.z - startZ + 15).toInt() shr 5)
-            getDungeonTile(x*2, z*2)
+            val column = ((mc.player!!.x - START_X + 15).toInt() shr 5)
+            val row = ((mc.player!!.z - START_Z + 15).toInt() shr 5)
+            var room = getDungeonTile(column*2, row*2)
+            if (room == null) {
+                room = RoomUtils.instanceDummyRoom(START_X + column * ROOM_SIZE, START_Z + row * ROOM_SIZE)
+            }
+            room
         }
-        if (room !is Room) return null
-        return room
+
+
+        if (tile !is Room) return null
+        return tile.apply { scoreboardID = RoomUtils.getRoomScoreboardID() }
     }
 
     /**

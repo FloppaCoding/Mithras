@@ -1,6 +1,8 @@
 package floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon
 
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.utils.Extensions.equalsOneOf
+import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.ScoreboardUtils
 import net.minecraft.client.network.PlayerListEntry
 import kotlin.math.floor
@@ -57,14 +59,15 @@ object RunInformation {
     var score = 0
         private set
 
-//    fun inF7Boss() : Boolean{
-//        if (!Mithras.inDungeons) return false
-//        if(currentFloor?.floorNumber == 7) { // check whether floor is 7
-//            if((Mithras.mc.player?.z ?: 0.0) > 0) { //check whether in boss room
-//                return true
-//            }}
-//        return false
-//    }
+    fun inF7Boss() : Boolean{
+        if (!LocationManager.inDungeons) return false
+        if(currentFloor?.floorNumber == 7) { // check whether floor is 7
+            if((Mithras.mc.player?.z ?: 0.0) > 0) { //check whether in boss room
+                return true
+            }
+        }
+        return false
+    }
 
     fun isInFloor(vararg floor: Int): Boolean {
         val floorNumber = currentFloor?.floorNumber ?: return false

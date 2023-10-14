@@ -75,7 +75,7 @@ object DungeonMap : Module(
         super.onDisable()
     }
 
-    enum class NameMode(override val displayName: String): Options {
+    enum class NameMode(override val displayName: String): SelectorOptions {
         OFF("Off"), HOLDING_LEAP("Holding Leap"), ALWAYS("Always")
     }
 }

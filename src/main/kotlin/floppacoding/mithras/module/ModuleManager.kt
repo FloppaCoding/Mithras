@@ -2,12 +2,17 @@ package floppacoding.mithras.module
 
 import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
-import floppacoding.mithras.module.impl.dungeon.DungeonMap
-import floppacoding.mithras.module.impl.dungeon.MapRooms
+import floppacoding.mithras.module.impl.debug.DebugModule
+import floppacoding.mithras.module.impl.dungeon.*
+import floppacoding.mithras.module.impl.keybinds.AddKeybind
+import floppacoding.mithras.module.impl.keybinds.KeyBind
+import floppacoding.mithras.module.impl.misc.*
 import floppacoding.mithras.module.impl.player.AutoSprint
 import floppacoding.mithras.module.impl.player.DisableHotbarScroll
 import floppacoding.mithras.module.impl.render.*
 import floppacoding.mithras.module.settings.Setting
+import floppacoding.mithras.ui.clickgui.ClickGUI
+import floppacoding.mithras.ui.clickguinano.ClickGUINano
 import floppacoding.mithras.ui.hud.EditHudGUI
 import meteordevelopment.orbit.EventHandler
 
@@ -40,6 +45,16 @@ object ModuleManager {
         //DUNGEON
         DungeonMap,
         MapRooms,
+        TerminalSolvers,
+        ThreeWeirdosSolver,
+        BlazeSolver,
+        TicTacToeSolver,
+        CreeperBeamsSolver,
+        TeleportSolver,
+        StarMobHighlight,
+        QuizSolver,
+        IceFillSolver,
+        WaterBoardSolver,
 
 
         //RENDER
@@ -51,6 +66,7 @@ object ModuleManager {
         ItemPhysics,
         Fullbright,
         Zoom,
+        Particles,
 
 
         //PLAYER
@@ -59,9 +75,17 @@ object ModuleManager {
 
 
         //MISC
+        SmoothTransfer,
+        KeepMousePosition,
+        ScrollableTooltips,
+        EtherwarpHighlight,
+        ChatCleaner,
+        ItemProtection,
+        DebugModule,
 
 
         //KEYBIND
+        AddKeybind,
 
     )
 
@@ -86,6 +110,29 @@ object ModuleManager {
             it.initializeModule()
             EditHudGUI.addHUDElements(it.hudElements)
         }
+    }
+
+    /**
+     * Creates a new keybind module and adds it to the list.
+     * The current gui will not be updated by this.
+     */
+    fun addNewKeybind(): KeyBind {
+        val number = (modules
+            .filter{module -> module.name.startsWith("New")}
+            .map {module -> module.name.filter { c -> c.isDigit() }.toIntOrNull()}
+            .maxByOrNull { it ?: 0} ?: 0) + 1
+        val keyBind = KeyBind("New $number")
+        modules.add(keyBind)
+        return keyBind
+    }
+
+    /**
+     * Removes the keybind. Also removes it from the click gui.
+     */
+    fun removeKeyBind(bind: KeyBind) {
+        modules.remove(bind)
+        ClickGUI.panels.find { it.category === Category.KEY_BIND }?.moduleButtons?.removeIf { it.module === bind }
+        ClickGUINano.panels.find { it.category === Category.KEY_BIND }?.moduleButtons?.removeIf { it.module === bind }
     }
 
     /**

@@ -79,15 +79,15 @@ object MapRooms : Module(
 
     }
 
-    enum class RoomNameMode(override val displayName: String): Options {
+    enum class RoomNameMode(override val displayName: String): SelectorOptions {
         NONE("None"), SPECIAL("Puzzles / Trap"), ALL("All")
     }
 
-    enum class SecretsMode(override val displayName: String): Options {
+    enum class SecretsMode(override val displayName: String): SelectorOptions {
         OFF("Off"), ON("On"), REPLACE_CHECKMARK("Replace Checkmark")
     }
 
-    enum class CheckmarkMode(override val displayName: String): Options {
+    enum class CheckmarkMode(override val displayName: String): SelectorOptions {
         NONE("None"), DEFAULT("Default"), NEU("NEU")
     }
 }

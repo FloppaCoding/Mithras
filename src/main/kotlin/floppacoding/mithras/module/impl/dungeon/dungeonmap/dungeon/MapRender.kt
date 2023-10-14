@@ -62,15 +62,15 @@ object MapRender: HudElement(
         // Spinny map
         if (DungeonMap.spinnyMap.enabled || DungeonMap.centerOnPlayer.enabled) {
             NVGR.translate(64.0f, 64.0f)
-            if (DungeonMap.spinnyMap.enabled) NVGR.rotate(-mc.player!!.renderYaw + 180f)
+            if (DungeonMap.spinnyMap.enabled) NVGR.rotate(-mc.player!!.headYaw + 180f)
         }
         // Room scale
         NVGR.scale(DungeonMap.roomScale.value, DungeonMap.roomScale.value)
         // Centering
         if (DungeonMap.centerOnPlayer.enabled) {
             NVGR.translate(
-                -((mc.player!!.x - Dungeon.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2),
-                -((mc.player!!.z - Dungeon.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2)
+                -((mc.player!!.x - Dungeon.START_X + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2),
+                -((mc.player!!.z - Dungeon.START_Z + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2)
             )
         }else if (DungeonMap.spinnyMap.enabled){
             NVGR.translate(-64.0f, -64.0f)
@@ -337,8 +337,8 @@ object MapRender: HudElement(
         try {
             if (player.player == mc.player) {
                 NVGR.translate(
-                    (mc.player!!.x - Dungeon.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2,
-                    (mc.player!!.z - Dungeon.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2
+                    (mc.player!!.x - Dungeon.START_X + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2,
+                    (mc.player!!.z - Dungeon.START_Z + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2
                 )
             } else {
                 NVGR.translate(player.mapX, player.mapZ)
@@ -349,7 +349,7 @@ object MapRender: HudElement(
             ) {
                 NVGR.push()
 //                NVGR.scale(0.8f, 0.8f)
-                if (DungeonMap.spinnyMap.enabled) NVGR.rotate(mc.player!!.renderYaw + 180f)
+                if (DungeonMap.spinnyMap.enabled) NVGR.rotate(mc.player!!.headYaw + 180f)
                 NVGR.text(
                     player.name, 0f, 10f * DungeonMap.playerHeadScale.value, -1,
                     NVGR.DEFAULT_FONT_HEIGHT*DungeonMap.textScale.value,

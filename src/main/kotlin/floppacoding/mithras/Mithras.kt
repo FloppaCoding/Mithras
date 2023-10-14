@@ -10,10 +10,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickguinano.ClickGUINano
 import floppacoding.mithras.utils.LocationManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
 import meteordevelopment.orbit.EventPriority
@@ -23,7 +20,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.invoke.MethodHandles
-import kotlin.coroutines.EmptyCoroutineContext
 
 object Mithras : ModInitializer {
 
@@ -46,7 +42,14 @@ object Mithras : ModInitializer {
 	@JvmField
 	val EVENT_BUS = EventBus()
 
-	val scope = CoroutineScope(EmptyCoroutineContext)
+	private val handler = CoroutineExceptionHandler { _, exception ->
+		logger.error("Mithras coroutine caught exception: $exception")
+		exception.printStackTrace()
+		mc.send {
+			throw Error("Fatal Exception caught in Mithras coroutine.")
+		}
+	}
+	val scope = CoroutineScope(Dispatchers.Default + handler + CoroutineName("mithras"))
 
 	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
 

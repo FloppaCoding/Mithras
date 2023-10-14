@@ -1,6 +1,6 @@
 package floppacoding.mithras.ui.clickguinano.elements.menu
 
-import floppacoding.mithras.module.settings.impl.Options
+import floppacoding.mithras.module.settings.impl.SelectorOptions
 import floppacoding.mithras.module.settings.impl.SelectorSetting
 import floppacoding.mithras.ui.clickguinano.elements.Element
 import floppacoding.mithras.ui.clickguinano.elements.ElementType
@@ -16,7 +16,7 @@ import java.util.*
  */
 class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
     Element<SelectorSetting<T>>(parent, setting, ElementType.SELECTOR)
-        where T : Options, T : Enum<T> {
+        where T : SelectorOptions, T : Enum<T> {
 
 
     override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float): Float {

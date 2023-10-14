@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MapStateAccessor",
-    "PlayerInventoryMixin"
+    "PlayerInventoryMixin",
+    "network.ClientConnectionMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -12,19 +13,26 @@
   "client": [
     "ClientPlayerEntityMixin",
     "GameOptionsMixin",
-    "InGameHudMixin",
     "KeyBindingMixin",
     "KeyboardMixin",
     "MainMixin",
     "MinecraftClientMixin",
     "MouseMixin",
+    "ParticleManagerMixin",
     "PlayerSkinAccessor",
+    "gui.DrawContextMixin",
+    "gui.HandledScreenAccessor",
+    "gui.HandledScreenMixin",
+    "gui.InGameHudMixin",
+    "gui.ScreenMixin",
+    "network.ClientPlayNetwarkHandlerMixin",
     "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",
     "render.HeldItemRendererMixin",
     "render.InGameOverlayRendererMixin",
     "render.ItemEntityRendererMixin",
     "render.LightmapTextureManagerMixin",
+    "render.ProgressScreenMixin",
     "render.WorldRendererMixin"
   ]
 }

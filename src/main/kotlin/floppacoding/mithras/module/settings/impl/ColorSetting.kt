@@ -25,6 +25,11 @@ class ColorSetting(
         set(value) {
             field = processInput(value)
         }
+
+    override fun updateFromConfigSetting(configSetting: Setting<*>) {
+        this.value = Color((configSetting as NumberSetting).doubleValue.toInt(), true)
+    }
+
     private var hsbvals: FloatArray = Color.RGBtoHSB(default.red, default.green, default.blue, null)
 
     var red: Int

@@ -53,6 +53,9 @@ dependencies {
 	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 	modImplementation("net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}")
 
+	// MixinExtras
+	include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.2.0-rc.4")))
+
 	// meteor orbit event bus
 	implementation "meteordevelopment:orbit:0.2.3"
 	include "meteordevelopment:orbit:0.2.3"
@@ -72,7 +75,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
+	it.options.release.set(17)
 }
 
 tasks.withType(KotlinCompile).all {

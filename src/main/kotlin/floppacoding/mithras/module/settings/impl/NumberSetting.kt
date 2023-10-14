@@ -37,7 +37,12 @@ class NumberSetting<E> @Throws(java.lang.IllegalArgumentException::class) constr
             field = roundToIncrement(processInput(newVal)).toValueType().coerceIn(min, max)
         }
 
+    override fun updateFromConfigSetting(configSetting: Setting<*>) {
+        this.doubleValue = (configSetting as NumberSetting).doubleValue
+    }
+
     /**
+     * The [value] of this setting converted to Double.
      * Required for the gui and config.
      */
     var doubleValue: Double
