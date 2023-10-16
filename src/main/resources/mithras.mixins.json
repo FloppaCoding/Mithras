@@ -16,6 +16,7 @@
     "KeyBindingMixin",
     "KeyboardMixin",
     "MainMixin",
+    "MinecraftClientAccessor",
     "MinecraftClientMixin",
     "MouseMixin",
     "ParticleManagerMixin",
