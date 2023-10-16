@@ -15,11 +15,9 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.DungeonScan
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
+import floppacoding.mithras.ui.hud.Test2
 import floppacoding.mithras.ui.nanovg.NVGImageManager
-import floppacoding.mithras.utils.ChatUtils
-import floppacoding.mithras.utils.LocationManager
-import floppacoding.mithras.utils.ScoreboardUtils
-import floppacoding.mithras.utils.TabListUtils
+import floppacoding.mithras.utils.*
 import floppacoding.mithras.utils.inventory.ItemUtils.formattedLore
 import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
@@ -466,6 +464,11 @@ object DebugCommand : Command {
                         val center = BlockPos(130, -40, -60)
                         val layer = IceFillSolver.Layer(size, center,  Pair(-7,0))
                     }
+                }
+            }
+            literal("screen") {
+                execute {
+                    Extensions.setScreen(Test2)
                 }
             }
         }
