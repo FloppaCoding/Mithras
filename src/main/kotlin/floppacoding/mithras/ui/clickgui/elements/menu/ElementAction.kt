@@ -4,8 +4,8 @@ import floppacoding.mithras.module.settings.impl.ActionSetting
 import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
+import floppacoding.mithras.ui.clickgui.util.ColorUtil
+import floppacoding.mithras.ui.nanovg.NVGR
 
 /**
  * Provides the Menu Button for action settings.
@@ -15,16 +15,16 @@ import net.minecraft.client.gui.DrawContext
 class ElementAction(parent: ModuleButton, setting: ActionSetting) :
     Element<ActionSetting>(parent, setting, ElementType.ACTION)  {
 
-    override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float): Int {
-        FontUtil.drawString(context, displayName, 1, 2)
-        return super.renderElement(context, mouseX, mouseY, partialTicks)
+    override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float): Float {
+        NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
+        return super.renderElement(mouseX, mouseY, partialTicks)
     }
 
     /**
      * Handles mouse clicks for this element and returns true if an action was performed.
      * Used to activate the elements action.
      */
-    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    override fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         if (mouseButton == 0 && isButtonHovered(mouseX, mouseY) ) {
             (setting as? ActionSetting)?.doAction()
             return true
@@ -35,7 +35,7 @@ class ElementAction(parent: ModuleButton, setting: ActionSetting) :
     /**
      * Checks whether this element is hovered
      */
-    private fun isButtonHovered(mouseX: Int, mouseY: Int): Boolean {
+    private fun isButtonHovered(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute  && mouseY <= yAbsolute + height
     }
 }

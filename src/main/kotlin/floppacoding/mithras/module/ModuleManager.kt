@@ -12,7 +12,6 @@ import floppacoding.mithras.module.impl.player.DisableHotbarScroll
 import floppacoding.mithras.module.impl.render.*
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.ui.clickgui.ClickGUI
-import floppacoding.mithras.ui.clickguinano.ClickGUINano
 import floppacoding.mithras.ui.hud.EditHudGUI
 import meteordevelopment.orbit.EventHandler
 
@@ -132,7 +131,6 @@ object ModuleManager {
     fun removeKeyBind(bind: KeyBind) {
         modules.remove(bind)
         ClickGUI.panels.find { it.category === Category.KEY_BIND }?.moduleButtons?.removeIf { it.module === bind }
-        ClickGUINano.panels.find { it.category === Category.KEY_BIND }?.moduleButtons?.removeIf { it.module === bind }
     }
 
     /**
