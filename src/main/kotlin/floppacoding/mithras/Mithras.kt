@@ -54,6 +54,9 @@ object Mithras : ModInitializer {
 	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
 
 	var tickRamp = 0
+		private set
+	var totalTicks: Long = 0
+		private set
 
 
 	lateinit var clickGUI: ClickGUI
@@ -112,5 +115,6 @@ object Mithras : ModInitializer {
 	fun onTick(event: ClientTickEvent) {
 		if (event.phase != ClientTickEvent.Phase.START) return
 		tickRamp = (tickRamp+1) % 20
+		totalTicks++
 	}
 }

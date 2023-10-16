@@ -1,7 +1,10 @@
 package floppacoding.mithras.utils
 
 import floppacoding.mithras.Mithras.mc
+import floppacoding.mithras.mixin.MinecraftClientAccessor
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.util.math.Direction
 import java.awt.Color
 import java.util.*
@@ -90,6 +93,9 @@ object Extensions {
         }
         return removed
     }
+
+    val MinecraftClient.renderTickCounter: RenderTickCounter
+        get() = (this as MinecraftClientAccessor).renderTickCounter
 
 
     fun Color.withAlpha(alpha: Int) = Color(this.red, this.green, this.blue, alpha)
