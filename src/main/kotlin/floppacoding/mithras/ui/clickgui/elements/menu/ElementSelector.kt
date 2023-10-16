@@ -6,8 +6,7 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
+import floppacoding.mithras.ui.nanovg.NVGR
 import java.util.*
 
 /**
@@ -20,56 +19,57 @@ class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
         where T : SelectorOptions, T : Enum<T> {
 
 
-    override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float): Int {
+    override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float): Float {
         val displayValue = (setting as SelectorSetting<*>).selected
+        val textWidth = NVGR.textWidth(displayValue + "00" + displayName)
 
         // Render the text.
-        if (FontUtil.getStringWidth(displayValue + "00" + displayName) <= width) {
-            FontUtil.drawString(context, displayName, 1, 2)
-            FontUtil.drawString(context, displayValue, width - FontUtil.getStringWidth(displayValue), 2)
+        if (textWidth <= width) {
+            NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
+            NVGR.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
         } else {
             if (isButtonHovered(mouseX, mouseY)) {
-                FontUtil.drawCenteredStringWithShadow(context, displayValue, width / 2.0, 2.0)
+                NVGR.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
             } else {
-                FontUtil.drawCenteredString(context, displayName, width / 2.0, 2.0)
+                NVGR.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
             }
         }
 
         // Render the tab indicating the drop-down
-        context.fill(0, 13, width, 15, ColorUtil.TAB_BACKGROUND_COLOR)
-        context.fill((width * 0.4).toInt(), 12, (width * 0.6).toInt(), 15, ColorUtil.tabColor)
+        NVGR.rect(0f, 13f, width, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
+        NVGR.rect(width*0.4f, 12f, width*0.2f, 3f, ColorUtil.tabColor)
 
         // Render the dropdown
         if (extended) {
             var ay = DEFAULT_HEIGHT
-            val increment = FontUtil.fontHeight + 2
+            val increment = NVGR.DEFAULT_FONT_HEIGHT + 2f
             for (option in setting.options) {
-                context.fill(0, ay, width, ay + increment, ColorUtil.DROPDOWN_COLOR)
+                NVGR.rect(0f, ay, width, increment, ColorUtil.DROPDOWN_COLOR)
                 val optionName = option.displayName
                 val elementtitle =
                     optionName.substring(0, 1).uppercase(Locale.getDefault()) + optionName.substring(1, optionName.length)
-                FontUtil.drawCenteredString(context, elementtitle, width / 2.0, ay + 2.0)
+                NVGR.text(elementtitle, width/2f, ay + 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
 
                 /** Highlight the element if it is selected */
                 if (setting.isSelected(option)) {
-                    context.fill(0, ay, 2, ay + increment, ColorUtil.clickGUIColor.rgb)
+                    NVGR.rect(0f, ay, 2f, increment, ColorUtil.clickGUIColor.rgb)
                 }
                 /** Highlight the element when it is hovered */
                 if (mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute + ay && mouseY < yAbsolute + ay + increment) {
-                    context.fill(width - 1, ay, width, ay + increment, ColorUtil.clickGUIColor.rgb)
+                    NVGR.rect(width-1f, ay, 1f, increment, ColorUtil.clickGUIColor.rgb)
                 }
                 ay += increment
             }
         }
 
-        return super.renderElement(context, mouseX, mouseY, partialTicks)
+        return super.renderElement(mouseX, mouseY, partialTicks)
     }
 
     /**
      * Handles interaction with this element.
      * Returns true if interacted with the element to cancel further interactions.
      */
-    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    override fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         if (mouseButton == 0) {
             if (isButtonHovered(mouseX, mouseY)) {
                 setting.index += 1
@@ -78,7 +78,7 @@ class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
 
             if (!extended) return false
             var ay = DEFAULT_HEIGHT
-            val increment = FontUtil.fontHeight + 2
+            val increment = NVGR.DEFAULT_FONT_HEIGHT + 2
             for (option in setting.options) {
                 if (mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute + ay && mouseY <= yAbsolute + ay + increment) {
                     setting.value = option
@@ -98,7 +98,7 @@ class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
     /**
      * Checks whether the mouse is hovering the selector
      */
-    private fun isButtonHovered(mouseX: Int, mouseY: Int): Boolean {
+    private fun isButtonHovered(mouseX: Float, mouseY: Float): Boolean {
         return (mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute && mouseY <= yAbsolute + DEFAULT_HEIGHT)
     }
 }

@@ -12,8 +12,7 @@ object MainCommand : Command {
     override val builder: LiteralArgumentBuilder<FabricClientCommandSource> =
         command("mithras") {
             execute {
-                ChatUtils.modMessage("opening menu")
-                Extensions.setScreen(Mithras.clickGUI)
+                Extensions.setScreen(Mithras.clickGUINano)
             }
             literal("reload") {
                 execute {
@@ -24,11 +23,6 @@ object MainCommand : Command {
             literal("test") {
                 execute {
                     Extensions.setScreen(Test)
-                }
-            }
-            literal("nanogui") {
-                execute {
-                    Extensions.setScreen(Mithras.clickGUINano)
                 }
             }
         }

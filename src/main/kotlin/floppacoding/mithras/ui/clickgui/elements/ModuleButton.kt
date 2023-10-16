@@ -1,6 +1,5 @@
 package floppacoding.mithras.ui.clickgui.elements
 
-import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.impl.keybinds.KeyBind
 import floppacoding.mithras.module.impl.render.GUIDesign
@@ -10,8 +9,7 @@ import floppacoding.mithras.ui.clickgui.Panel
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.*
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
+import floppacoding.mithras.ui.nanovg.NVGR
 
 /**
  * Provides the toggle button for modules in the click gui.
@@ -21,17 +19,17 @@ import net.minecraft.client.gui.DrawContext
 class ModuleButton(val module: Module, val panel: Panel) {
     val menuElements: ArrayList<Element<*>> = ArrayList()
     /** Relative position of this button in respect to [panel]. */
-    var x = 0
+    var x = 0f
     /** Relative position of this button in respect to [panel]. */
-    var y = 0
+    var y = 0f
     val width = panel.width
-    val height = (mc.textRenderer.fontHeight + 2)
+    val height = (NVGR.DEFAULT_FONT_HEIGHT + 2f)
     var extended = false
     /** Absolute position of the panel on the screen. */
-    val xAbsolute: Int
+    val xAbsolute: Float
         get() = x + panel.x
     /** Absolute position of the panel on the screen. */
-    val yAbsolute: Int
+    val yAbsolute: Float
         get() = y + panel.y
 
     init {
@@ -74,28 +72,29 @@ class ModuleButton(val module: Module, val panel: Panel) {
     /**
 	 * Render the Button.
      * Dispatches rendering of its [menuElements].
+     * @return The height of the button.
 	 */
-    fun drawScreen(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) : Int {
+    fun drawScreen(mouseX: Float, mouseY: Float, partialTicks: Float) : Float {
 
-        context.matrices.push()
-        context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
+        NVGR.push()
+        NVGR.translate(x, y)
 
-        context.fill(0, 0, width, height + 1, ColorUtil.MODULE_BUTTON_COLOR)
+        NVGR.rect(0f, 0f, width, height + 1f, ColorUtil.MODULE_BUTTON_COLOR)
         if (MainSettings.design.isSelected(GUIDesign.NEW)) {
-            context.fill(0, 0, 2, height + 1, ColorUtil.outlineColor)
+            NVGR.rect(0f, 0f, 2f, height + 1f, ColorUtil.outlineColor)
         }
 
         /** Draw the highlight when the module is enabled. */
         if (module.enabled) {
-            context.fill(0, 0, width, height + 1, ColorUtil.outlineColor)
+            NVGR.rect(0f, 0f, width, height + 1f, ColorUtil.outlineColor)
         }
 
         /** Change color on hover */
         if (isButtonHovered(mouseX, mouseY)) {
             if (module.enabled)
-                context.fill(0, 0,  width, height + 1, 0x55111111)
+                NVGR.rect(0f, 0f, width, height+1f, ColorUtil.MODULE_HOVER_ENABLED)
             else
-                context.fill(0, 0, width , height + 1, ColorUtil.hoverColor)
+                NVGR.rect(0f, 0f, width, height+1f, ColorUtil.hoverColor)
         }
 
         /** Rendering the name in the middle */
@@ -104,7 +103,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
         } else {
             module.name
         }
-        FontUtil.drawTotalCenteredStringWithShadow(context, displayName, width / 2.0, 1 + height / 2.0)
+        NVGR.text(displayName, width / 2f, 1f + height / 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_MIDDLE)
 
         /** Render the settings elements */
         var offs = height + 1
@@ -113,11 +112,11 @@ class ModuleButton(val module: Module, val panel: Panel) {
                 menuElement.y = offs
                 menuElement.update()
 
-                offs += menuElement.drawScreen(context, mouseX, mouseY, partialTicks)
+                offs += menuElement.drawScreen(mouseX, mouseY, partialTicks)
             }
         }
 
-        context.matrices.pop()
+        NVGR.pop()
 
         return offs
     }
@@ -127,7 +126,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
      * @return true if an action was performed.
      * @see Element.mouseClicked
 	 */
-    fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         if (isButtonHovered(mouseX, mouseY)) {
             /** Toggle the mod on left click, expand its settings on right click and show an info screen on middle click */
             when (mouseButton) {
@@ -149,7 +148,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
                     return true
                 }
                 2 -> {
-                    panel.clickgui.advancedMenu = AdvancedMenu(module)
+                    panel.clickgui.advancedMenu = AdvancedMenu(module, panel.clickgui)
                     return true
                 }
             }
@@ -168,7 +167,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
      * Dispatches mouse released actions to its [menuElements]
      * @see Element.mouseReleased
      */
-    fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
+    fun mouseReleased(mouseX: Float, mouseY: Float, state: Int) {
         if (extended) {
             for (menuElement in menuElements.reversed()) {
                 menuElement.mouseReleased(mouseX, mouseY, state)
@@ -179,12 +178,26 @@ class ModuleButton(val module: Module, val panel: Panel) {
     /**
      * Dispatches key press to its [menuElements].
      * @return true if any of the elements used the input.
-     * @see Element.keyTyped
+     * @see Element.keyPressed
      */
-    fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
+    fun keyPressed(keyCode: Int, scanCode: Int): Boolean {
         if (extended) {
             for (menuElement in menuElements.reversed()) {
-                if (menuElement.keyTyped(keyCode, scanCode)) return true
+                if (menuElement.keyPressed(keyCode, scanCode)) return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Dispatches typed characters to its [menuElements].
+     * @return true if any of the elements used the input.
+     * @see Element.charTyped
+     */
+    fun charTyped(chr: Char, modifiers: Int): Boolean {
+        if (extended) {
+            for (menuElement in menuElements.reversed()) {
+                if (menuElement.charTyped(chr, modifiers)) return true
             }
         }
         return false
@@ -193,14 +206,14 @@ class ModuleButton(val module: Module, val panel: Panel) {
     /**
      * Returns true when the mouse is hovering over the module button.
      */
-    private fun isButtonHovered(mouseX: Int, mouseY: Int): Boolean {
+    private fun isButtonHovered(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute && mouseY <= yAbsolute + height
     }
 
     /**
      * Returns true when the Settings are extended and the mouse below the Module Button.
      */
-    private fun isMouseUnderButton(mouseX: Int, mouseY: Int): Boolean {
+    private fun isMouseUnderButton(mouseX: Float, mouseY: Float): Boolean {
         if (!extended) return false
         return mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY > yAbsolute + height
     }

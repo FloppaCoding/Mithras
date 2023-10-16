@@ -53,6 +53,8 @@ object ColorUtil {
     const val MODULE_BUTTON_COLOR = -0xe5e5e6
     const val TEXT_COLOR = -0x101011
 
+    const val MODULE_HOVER_ENABLED = 0x55111111
+
     const val JELLY_PANEL_COLOR = -0x555556
 
     const val TAB_BACKGROUND_COLOR = 0x77000000
@@ -61,6 +63,7 @@ object ColorUtil {
     const val SLIDER_BACKGROUND_COLOR = -0xefeff0
 
     const val BUTTON_COLOR = -0x1000000
+
 
     private fun Color.withAlpha(alpha: Int) : Color {
         return Color(this.red, this.green, this.blue, alpha)

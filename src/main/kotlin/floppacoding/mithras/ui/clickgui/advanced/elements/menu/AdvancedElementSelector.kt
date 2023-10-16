@@ -7,9 +7,7 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
-import java.awt.Color
+import floppacoding.mithras.ui.nanovg.NVGR
 import java.util.*
 
 /**
@@ -26,53 +24,45 @@ class AdvancedElementSelector<T>(
     /**
 	 * Renders the element
 	 */
-    override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) : Int {
-        val temp = ColorUtil.clickGUIColor
-        val color = Color(temp.red, temp.green, temp.blue, 150).rgb
+    override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float) : Float {
         val displayValue = setting.selected
+        val textWidth = NVGR.textWidth(displayValue + "00" + setting.name)
 
         /** Render the box and text */
-
-        if (FontUtil.getStringWidth(displayValue + "00" + setting.name) <= settingWidth) {
-            FontUtil.drawString(context, setting.name, 1, 2, -0x1)
-            FontUtil.drawString(context, displayValue, settingWidth - FontUtil.getStringWidth(displayValue), 2, -0x1)
+        if (textWidth <= settingWidth) {
+            NVGR.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
+            NVGR.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
         } else {
             if (isButtonHovered(mouseX, mouseY)) {
-                FontUtil.drawCenteredStringWithShadow(context, displayValue,  settingWidth / 2.0, 2.0, -0x1)
+                NVGR.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
             } else {
-                FontUtil.drawCenteredString(context, setting.name, settingWidth / 2.0, 2.0, -0x1)
+                NVGR.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
             }
         }
 
-        context.fill(0, 13, settingWidth, 15, 0x77000000)
-        context.fill(
-            (settingWidth * 0.4).toInt(),
-            12,
-            (settingWidth * 0.6).toInt(),
-            15,
-            color
-            )
+        // Render the tab indicating the drop-down
+        NVGR.rect(0f, 13f, settingWidth, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
+        NVGR.rect(settingWidth*0.4f, 12f, settingWidth*0.2f, 3f, ColorUtil.tabColor)
 
-        var ay = 15
+        // Render the drop-down
+        var ay = 15f
         if (comboextended) {
-            val clr2 = temp.rgb
-
-            val increment = FontUtil.fontHeight + 2
+            val increment = NVGR.DEFAULT_FONT_HEIGHT + 2
             for (option in setting.options) {
 
                 val optionName = option.displayName
-                context.fill(0, ay, settingWidth, ay + increment, -0x55ededee)
+                NVGR.rect(0f, ay, settingWidth, increment, ColorUtil.DROPDOWN_COLOR)
                 val elementtitle =
                     optionName.substring(0, 1).uppercase(Locale.getDefault()) + optionName.substring(1, optionName.length)
-                FontUtil.drawCenteredString(context, elementtitle, settingWidth / 2.0, ay + 2.0, -0x1)
+                NVGR.text(elementtitle, settingWidth/2f, ay + 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
 
                 /** Highlights the element if it is selected */
                 if (setting.isSelected(option)) {
-                    context.fill(x, ay, 2, ay + increment, color)
+                    NVGR.rect(0f, ay, 2f, increment, ColorUtil.clickGUIColor.rgb)
                 }
                 /** Highlights the element when it is hovered */
                 if (mouseX >= parent.x + x && mouseX <= parent.x + x + settingWidth && mouseY >= parent.y + y +  ay && mouseY < parent.y + y + ay + increment) {
-                    context.fill(settingWidth - 1, ay, settingWidth, ay + increment, clr2)
+                    NVGR.rect(settingWidth-1f, ay, 1f, increment, ColorUtil.clickGUIColor.rgb)
                 }
 
                 ay += increment
@@ -86,7 +76,7 @@ class AdvancedElementSelector<T>(
      * Handles interaction with this element.
      * Returns true if interacted with the element to cancel further interactions.
      */
-    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    override fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         if (mouseButton == 0) {
             if (isButtonHovered(mouseX, mouseY)) {
                 setting.index += 1
@@ -94,8 +84,8 @@ class AdvancedElementSelector<T>(
             }
 
             if (!comboextended) return false
-            var ay = y + 15
-            val increment = FontUtil.fontHeight + 2
+            var ay = y + 15f
+            val increment = NVGR.DEFAULT_FONT_HEIGHT + 2
             for (option in setting.options) {
                 if (mouseX >= parent.x + x && mouseX <= parent.x + x + settingWidth && mouseY >= parent.y + ay && mouseY <= parent.y + ay + increment) {
                     setting.value = option
@@ -115,7 +105,7 @@ class AdvancedElementSelector<T>(
     /**
      * Checks whether the mouse is hovering the selector
      */
-    private fun isButtonHovered(mouseX: Int, mouseY: Int): Boolean {
+    private fun isButtonHovered(mouseX: Float, mouseY: Float): Boolean {
         return (mouseX >= parent.x + x && mouseX <= parent.x + x + settingWidth && mouseY >= parent.y + y && mouseY <= parent.y + y + 15)
     }
 }

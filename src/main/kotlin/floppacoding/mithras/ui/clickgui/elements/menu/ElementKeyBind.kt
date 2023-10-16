@@ -5,8 +5,8 @@ import floppacoding.mithras.module.settings.impl.DummySetting
 import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
+import floppacoding.mithras.ui.clickgui.util.ColorUtil
+import floppacoding.mithras.ui.nanovg.NVGR
 import net.minecraft.client.util.InputUtil
 import org.lwjgl.glfw.GLFW
 
@@ -21,21 +21,21 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
     private val keyBlackList = intArrayOf()
 
 
-    override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float): Int {
+    override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float): Float {
         val keyName = mod.keyBind.localizedText.string
         val displayValue = "[$keyName]"
 
-        FontUtil.drawString(context, displayName, 1, 2)
-        FontUtil.drawString(context, displayValue, width - FontUtil.getStringWidth(displayValue), 2)
+        NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
+        NVGR.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
 
-        return super.renderElement(context, mouseX, mouseY, partialTicks)
+        return super.renderElement(mouseX, mouseY, partialTicks)
     }
 
     /**
      * Handles mouse clicks for this element and returns true if an action was performed.
      * Used to interact with the element and to register mouse binds.
      */
-    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    override fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         if (mouseButton == 0 && isCheckHovered(mouseX, mouseY)) {
             listening = !listening
             return true
@@ -49,7 +49,7 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
     /**
      * Register keystrokes. Used to set the key bind.
      */
-    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
+    override fun keyPressed(keyCode: Int, scanCode: Int): Boolean {
         if (listening) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
                 mod.keyBind = InputUtil.UNKNOWN_KEY
@@ -62,13 +62,13 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
             }
             return true
         }
-        return super.keyTyped(keyCode, scanCode)
+        return super.keyPressed(keyCode, scanCode)
     }
 
     /**
      * Checks whether this element is hovered
      */
-    private fun isCheckHovered(mouseX: Int, mouseY: Int): Boolean {
+    private fun isCheckHovered(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute && mouseY <= yAbsolute + height
     }
 }
