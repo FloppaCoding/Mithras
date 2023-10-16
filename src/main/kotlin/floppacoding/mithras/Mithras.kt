@@ -8,7 +8,6 @@ import floppacoding.mithras.events.GameStartEvent
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.ui.clickgui.ClickGUI
-import floppacoding.mithras.ui.clickguinano.ClickGUINano
 import floppacoding.mithras.utils.LocationManager
 import kotlinx.coroutines.*
 import meteordevelopment.orbit.EventBus
@@ -55,9 +54,7 @@ object Mithras : ModInitializer {
 
 	var tickRamp = 0
 
-
-	lateinit var clickGUI: ClickGUI
-	lateinit var clickGUINano: ClickGUINano
+	lateinit var clickGUINano: ClickGUI
 
 
 	override fun onInitialize() {
@@ -104,8 +101,7 @@ object Mithras : ModInitializer {
 		// Initialize all modules and register them to the eventbus
 		ModuleManager.initializeModules()
 
-		clickGUI = ClickGUI()
-		clickGUINano = ClickGUINano()
+		clickGUINano = ClickGUI()
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

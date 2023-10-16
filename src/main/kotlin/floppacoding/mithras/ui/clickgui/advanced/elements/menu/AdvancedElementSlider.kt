@@ -1,17 +1,14 @@
 package floppacoding.mithras.ui.clickgui.advanced.elements.menu
 
-import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
+import floppacoding.mithras.ui.nanovg.NVGR
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
-import java.awt.Color
 import kotlin.math.roundToInt
 
 /**
@@ -27,33 +24,29 @@ class AdvancedElementSlider(
     /**
 	 * Renders the element
 	 */
-    override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) : Int{
-        val displayval = "" + (setting.doubleValue * 100.0).roundToInt() / 100.0
+    override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float) : Float{
+        val displayVal = "" + (setting.doubleValue * 100.0).roundToInt() / 100.0
         val hoveredORdragged = isSliderHovered(mouseX, mouseY) || dragging
-        val temp = ColorUtil.clickGUIColor
-        val color = Color(temp.red, temp.green, temp.blue, if (hoveredORdragged) 250 else 200).rgb
-        val color2 = Color(temp.red, temp.green, temp.blue, if (hoveredORdragged) 255 else 230).rgb
-
-        val percentBar = (setting.doubleValue - setting.minDouble) / (setting.maxDouble - setting.minDouble)
+        val percentBar = ((setting.doubleValue - setting.minDouble) / (setting.maxDouble - setting.minDouble)).toFloat()
 
         /** Render the text */
-        FontUtil.drawString(context, setting.name, 1, 2, -0x1)
-        FontUtil.drawString(context, displayval, settingWidth - FontUtil.getStringWidth(displayval), 2, -0x1)
+        NVGR.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
+        NVGR.text(displayVal, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
 
         /** Render the slider */
-        context.fill(0, 12, settingWidth, 14, -0xefeff0)
-        context.fill(0, 12, (percentBar * settingWidth).toInt(), 14, color)
-        if (percentBar > 0 && percentBar < 1) context.fill(
-            (percentBar * settingWidth - 2).toInt(), 12,
-            (percentBar * settingWidth).toInt().coerceAtMost(settingWidth), 14, color2
+        NVGR.rect(0f, 12f, settingWidth, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)
+        NVGR.rect(0f, 12f, percentBar*settingWidth, 1f, ColorUtil.sliderColor(hoveredORdragged))
+        if (percentBar > 0 && percentBar < 1) NVGR.rect(
+            percentBar * settingWidth - 1f,
+            12f, 1f, 1f,
+            ColorUtil.sliderKnobColor(hoveredORdragged)
         )
-
 
         /** Calculate and set new value when dragging */
         if (dragging) {
             val diff = setting.maxDouble - setting.minDouble
-            val newVal = setting.minDouble + MathHelper.clamp((mouseX - parent.x - x) / settingWidth.toDouble(), 0.0, 1.0) * diff
-            setting.doubleValue = newVal //Die Value im Setting updaten
+            val newVal = setting.minDouble + MathHelper.clamp(((mouseX - parent.x - x) / settingWidth.toDouble()), 0.0, 1.0) * diff
+            setting.doubleValue = newVal
         }
 
        return this.settingHeight
@@ -63,7 +56,7 @@ class AdvancedElementSlider(
 	 * Handles interaction with this element.
      * Returns true if interacted with the element to cancel further interactions.
 	 */
-    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    override fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         if (mouseButton == 0 && isSliderHovered(mouseX, mouseY)) {
             dragging = true
             return true
@@ -74,25 +67,18 @@ class AdvancedElementSlider(
     /**
 	 * Stops slider action on mouse release
 	 */
-    override fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
+    override fun mouseReleased(mouseX: Float, mouseY: Float, button: Int) {
         dragging = false
     }
 
     /**
      * Check for arrow keys to move the slider by one increment.
      */
-    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
-        val scaledresolution = mc.window
-        val i1: Int = scaledresolution.scaledWidth
-        val j1: Int = scaledresolution.scaledHeight
-        val k1: Int = mc.mouse.x.toInt() * i1 / mc.window.width
-        val l1: Int = j1 - mc.mouse.y.toInt() * j1 / mc.window.height - 1
+    override fun keyPressed(keyCode: Int, scanCode: Int): Boolean {
+        val mouseX = clickgui.getMouseX()
+        val mouseY = clickgui.getMouseY()
 
-        val scale = 2.0 / mc.options.guiScale.value
-        val scaledMouseX = (k1 / scale).toInt()
-        val scaledMouseY = (l1 / scale).toInt()
-
-        if (isSliderHovered(scaledMouseX, scaledMouseY)){
+        if (isSliderHovered(mouseX, mouseY)){
             if (keyCode == GLFW.GLFW_KEY_RIGHT){
                 setting.doubleValue += setting.incrementDouble
                 return true
@@ -102,13 +88,13 @@ class AdvancedElementSlider(
                 return true
             }
         }
-        return super.keyTyped(keyCode, scanCode)
+        return super.keyPressed(keyCode, scanCode)
     }
 
     /**
 	 * Checks whether the mouse is hovering the slider
 	 */
-    private fun isSliderHovered(mouseX: Int, mouseY: Int): Boolean {
+    private fun isSliderHovered(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= parent.x + x && mouseX <= parent.x + x + settingWidth && mouseY >= parent.y + y  && mouseY <= parent.y + y + settingHeight
     }
 }

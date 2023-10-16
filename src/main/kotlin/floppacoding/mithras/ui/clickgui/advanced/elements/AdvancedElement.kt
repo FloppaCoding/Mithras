@@ -2,10 +2,10 @@ package floppacoding.mithras.ui.clickgui.advanced.elements
 
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Setting
+import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
+import floppacoding.mithras.ui.nanovg.NVGR
 import java.awt.Color
 
 /**
@@ -19,24 +19,25 @@ abstract class AdvancedElement<S: Setting<*>>(
     val setting: S,
     val type: AdvancedElementType,
 ) {
-    var x = 0
-    var y = 0
+    val clickgui: ClickGUI = parent.clickGui
+    var x = 0f
+    var y = 0f
     /** Width of the entire element consisting of the setting and description. */
-    var width = 150
+    var width = 150f
     /** Height of the entire element consisting of the setting and description. Essentially the height of the higher one of the two */
-    var height = 15
+    var height = 15f
     /** Width of the Setting without the description text. */
-    var settingWidth = 116
+    var settingWidth = 116f
     /** Height of the Setting without the description text. */
-    var settingHeight = 15
+    var settingHeight = 15f
 
     var comboextended = false
 
     var listening = false
 
-    fun drawScreen(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
-        context.matrices.push()
-        context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
+    fun drawScreen(mouseX: Float, mouseY: Float, partialTicks: Float) {
+        NVGR.push()
+        NVGR.translate(x, y)
 
         //Rendering the box behind the element.
         val temp = ColorUtil.clickGUIColor
@@ -45,54 +46,55 @@ abstract class AdvancedElement<S: Setting<*>>(
         }else {
             Color(ColorUtil.elementColor, true).darker().rgb
         }
-        context.fill(0, 0, width, height, Color(ColorUtil.bgColor, true).brighter().rgb)
-        context.fill(0, 0, settingWidth, settingHeight, color)
+        NVGR.rect(0f, 0f, width, height, Color(ColorUtil.bgColor, true).brighter().rgb)
+        NVGR.rect(0f, 0f, settingWidth, settingHeight, color)
 
         // Render the element.
-        val l1 = renderElement(context, mouseX, mouseY, partialTicks)
+        val l1 = renderElement(mouseX, mouseY, partialTicks)
 
         // Render the descriton right of the Setting
-        val l2 = renderDescription(context)
+        val l2 = renderDescription()
         this.settingHeight = l1
         this.height = l1.coerceAtLeast(l2)
 
-        context.matrices.pop()
+        NVGR.pop()
     }
 
-    open fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) : Int{ return settingHeight }
+    open fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float) : Float{ return settingHeight }
 
-    open fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    open fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         return false
     }
 
-    open fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {}
+    open fun mouseReleased(mouseX: Float, mouseY: Float, button: Int) {}
 
     /**
      * Overridden in the elements to enable key detection. Returns true when an action was taken.
      */
-    open fun keyTyped(keyCode: Int, scanCode: Int): Boolean { return false }
+    open fun keyPressed(keyCode: Int, scanCode: Int): Boolean { return false }
 
-    fun renderDescription(context: DrawContext) : Int{
-        var descriptionHeight = 0
+    /**
+     * Overridden in the elements to enable key detection. Returns true when an action was taken.
+     */
+    open fun charTyped(chr: Char, modifiers: Int): Boolean { return false }
+
+    private fun renderDescription() : Float{
+        var descriptionHeight = 0f
         setting.description?.let {
-            FontUtil.drawSplitString(
-                context,
-                it, settingWidth + 10,
-                2, width - settingWidth - 10, ColorUtil.TEXT_COLOR
-            )
-            descriptionHeight = FontUtil.getSplitHeight(it, width - settingWidth - 10)
+            NVGR.text(it, settingWidth + 10f, 2f, ColorUtil.TEXT_COLOR, splitWidth = width- settingWidth -10f)
+            descriptionHeight = NVGR.textBounds(it, width - settingWidth - 10f).height()
         }
-        return descriptionHeight + 4
+        return descriptionHeight + 4f
     }
 
-    fun setDimensions(x: Int, y: Int, width: Int, height: Int){
+    fun setDimensions(x: Float, y: Float, width: Float, height: Float){
         this.x = x
         this.y = y
         this.width = width
         this.height = height
     }
 
-    fun setPosition(x: Int, y: Int){
+    fun setPosition(x: Float, y: Float){
         this.x = x
         this.y = y
     }

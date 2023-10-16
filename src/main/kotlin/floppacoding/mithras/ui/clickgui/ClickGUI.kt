@@ -1,7 +1,5 @@
 package floppacoding.mithras.ui.clickgui
 
-import floppacoding.mithras.Mithras
-import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.Mithras.moduleConfig
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.impl.render.MainSettings
@@ -9,12 +7,10 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementColor
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementSlider
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.LiteralTextContent
-import net.minecraft.text.MutableText
-import net.minecraft.util.Identifier
+import floppacoding.mithras.ui.nanovg.NVGImageManager
+import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.ui.nanovg.NVGScreen
+import floppacoding.mithras.ui.nanovg.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import java.io.IOException
@@ -36,8 +32,7 @@ import java.io.IOException
  *
  * @author Aton
  */
-class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
-    var scale = 2.0
+class ClickGUI : NVGScreen("Mithras GUI", 2f) {
     /**
      * Used to add a delay for closing the gui, so that it does not instantly get closed
      */
@@ -48,7 +43,6 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
     var advancedMenu: AdvancedMenu? = null
 
     init {
-        FontUtil.setupFontUtils()
         setUpPanels()
     }
 
@@ -63,144 +57,70 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
     /**
      * Dispatches all rendering for the GUI.
      */
-    override fun render(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
-        // Scale the gui and the mouse coordinates
-        // the handling of the mouse coordinates is not nice, since it has to be done in multiple places
-        context.matrices.push()
-        val window = mc.window
-        val prevScale = mc.options.guiScale.value
-        scale = CLICK_GUI_SCALE / window.scaleFactor
-        mc.options.guiScale.value = 2
-        context.matrices.scale(scale.toFloat(), scale.toFloat(), scale.toFloat())
-
-        val scaledMouseX = getScaledMouseX()
-        val scaledMouseY = getScaledMouseY()
-
-        renderLogo(context)
+    override fun render(mouseX: Float, mouseY: Float, delta: Float) {
+        renderLogo()
 
         /* Calls all panels to render themselves and their module buttons and elements.
 		  * Important to keep in mind: the panel rendered last will be on top.
           * For intuitive behaviour the panels have to be checked in reversed order for clicks.
           * This ensures that interactions will happen with the top panel. */
         for (p in panels) {
-            p.drawScreen(context, scaledMouseX, scaledMouseY, partialTicks)
+            p.drawScreen(mouseX, mouseY, delta)
         }
 
-        if(MainSettings.showUsageInfo.enabled) {
-            renderUsageInfo(context)
+        if (advancedMenu != null) {
+            advancedMenu?.drawScreen(mouseX, mouseY, delta)
         }
-
-        if (advancedMenu != null) {            advancedMenu?.drawScreen(context, scaledMouseX, scaledMouseY, partialTicks)
-        }
-
-        /** Might be needed to use gui buttons */
-        super.render(context, scaledMouseX, scaledMouseY, partialTicks)
-
-        mc.options.guiScale.value = prevScale
-        context.matrices.pop()
     }
 
     /**
      * Draws the Logo and the title.
      */
-    private fun renderLogo(context: DrawContext) {
-        val window = mc.window
-        val logoSize = 25
+    private fun renderLogo() {
+        val logoSize = 25f
 
-        context.matrices.push()
-        context.matrices.translate(
-            window.width.toDouble() / CLICK_GUI_SCALE,
-            window.height.toDouble() / CLICK_GUI_SCALE,
-            0.0
-        )
+        NVGR.push()
+        NVGR.translate(windowWidth, windowHeight)
 
-        context.matrices.scale(2f, 2f, 2f)
-        val titleWidth = FontUtil.getStringWidth(MainSettings.clientName.text)
+        NVGR.scale(2f, 2f)
 
-//        RenderSystem.clearColor(255f, 255f, 255f, 255f)
-//        mc.textureManager.bindTexture(LOGO)
-        context.drawTexture(LOGO, - 5 - logoSize, -5 - logoSize, 0f, 0f, logoSize, logoSize, logoSize, logoSize)
-
-        FontUtil.drawString(
-            context,
+        NVGR.image(NVGImageManager.ICON, -5f- logoSize, -5f - logoSize, logoSize, logoSize)
+        NVGR.text(
             MainSettings.clientName.text,
-            -titleWidth.toDouble() - 10.0 - logoSize,
-            -FontUtil.fontHeight.toDouble() / 2.0 - 5.0 - logoSize / 2.0,
-            ColorUtil.clickGUIColor.rgb
-        )
-        context.matrices.pop()
-    }
-
-    private fun renderUsageInfo(context: DrawContext) {
-        val window = mc.window
-
-        val lines = listOf("GUI Usage:",
-            "Left click Module Buttons to toggle the Module.",
-            "Right click Module Buttons to extend the Settings dropdown.",
-            "Middle click Module Buttons to open the Advanced Gui.",
-            "Disable this Overlay in the Advanced Settings of the Click Gui Module in the Render Category."
-        )
-
-        context.matrices.push()
-        context.matrices.translate(
-            window.width.toDouble() / CLICK_GUI_SCALE * 0.05,
-            window.height.toDouble() / CLICK_GUI_SCALE * 0.7,
-            0.0
-        )
-
-        context.matrices.scale(1.5f, 1.5f, 1.5f)
-        for ((ii, line) in lines.withIndex()) {
-            FontUtil.drawString(
-                context,
-                line,
-                0.0,
-                FontUtil.fontHeight.toDouble() * ii,
-                ColorUtil.clickGUIColor.rgb
+             - 10f - logoSize,
+             - 5f - logoSize / 2f,
+            ColorUtil.clickGUIColor.rgb,
+            textAlign = TextAlign.RIGHT_MIDDLE
             )
-        }
-        context.matrices.pop()
+
+        NVGR.pop()
     }
 
-    /**
-     * Handles scrolling.
-     */
-    @Throws(IOException::class)
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, amount: Double): Boolean {
-        val scaledMouseX = getScaledMouseX()
-        val scaledMouseY = getScaledMouseY()
-
-        var i = MathHelper.clamp(amount, -1.0, 1.0).toInt()
+    override fun mouseScrolled(mouseX: Float, mouseY: Float, amount: Float): Boolean {
+        var i = MathHelper.clamp(amount, -1f, 1f).toInt()
         if (i != 0) {
-            if (i > 1) {
-                i = 1
-            }
-            if (i < -1) {
-                i = -1
-            }
             if (hasShiftDown()) {
                 i *= 7
             }
             // Scroll the advanced gui
-            if (advancedMenu?.scroll(i, scaledMouseX, scaledMouseY) == true) return true
+            if (advancedMenu?.scroll(i, mouseX, mouseY) == true) return true
 
             /** Checking all panels for scroll action.
              * Reversed order is used to guarantee that the panel rendered on top will be handled first. */
             for (panel in panels.reversed()) {
-                if (panel.scroll(i, scaledMouseX, scaledMouseY)) return true
+                if (panel.scroll(i, mouseX, mouseY)) return true
             }
         }
-        return super.mouseScrolled(scaledMouseX.toDouble(), scaledMouseY.toDouble(), amount)
+
+        return super.mouseScrolled(mouseX, mouseY, amount)
     }
 
     /**
      * Dispatches mouse clicks to the [panels] and [advancedMenu].
      */
-    override fun mouseClicked(mouseX: Double, mouseY: Double, mouseButton: Int): Boolean {
-        val scaledMouseX = getScaledMouseX()
-        val scaledMouseY = getScaledMouseY()
-
+    override fun mouseClicked(mouseX: Float, mouseY: Float, button: Int): Boolean {
         // handle the advanced gui first
-        if (advancedMenu?.mouseClicked(scaledMouseX, scaledMouseY, mouseButton) == true){
+        if (advancedMenu?.mouseClicked(mouseX, mouseY, button) == true){
             // Update the elements of the corresponding module button
             val module = advancedMenu?.module ?: return true
             panels.find { it.category == module.category }?.moduleButtons?.find { it.module == module }?.updateElements()
@@ -210,46 +130,41 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         /** Checking all panels for click action.
           * Reversed order is used to guarantee that the panel rendered on top will be handled first. */
         for (panel in panels.reversed()) {
-            if (panel.mouseClicked(scaledMouseX, scaledMouseY, mouseButton)) return true
+            if (panel.mouseClicked(mouseX, mouseY, button)) return true
         }
-
-        return try {
-            super.mouseClicked(scaledMouseX.toDouble(), scaledMouseY.toDouble(), mouseButton)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            false
-        }
+        return super.mouseClicked(mouseX, mouseY, button)
     }
 
-    override fun mouseReleased(mouseX: Double, mouseY: Double, state: Int): Boolean {
-        val scaledMouseX = getScaledMouseX()
-        val scaledMouseY = getScaledMouseY()
-
+    override fun mouseReleased(mouseX: Float, mouseY: Float, button: Int): Boolean {
         // handle mouse release for advanced menu first
-        advancedMenu?.mouseReleased(scaledMouseX, scaledMouseY, state)
+        advancedMenu?.mouseReleased(mouseX, mouseY, button)
 
         /** Checking all panels for mouse release action.
          * Reversed order is used to guarantee that the panel rendered on top will be handled first. */
         for (panel in panels.reversed()) {
-            panel.mouseReleased(scaledMouseX, scaledMouseY, state)
+            panel.mouseReleased(mouseX, mouseY, button)
         }
 
-        return super.mouseReleased(scaledMouseX.toDouble(), scaledMouseY.toDouble(), state)
+        return super.mouseReleased(mouseX, mouseY, button)
     }
 
+    /**
+     * Handles key presses. Does not handle text field inputs.
+     * @see charTyped
+     */
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         /** If in an advanced menu only hande that */
         if (advancedMenu != null) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE && !advancedMenu!!.isListening()) {
                 advancedMenu = null
             }
-            return advancedMenu?.keyTyped(keyCode, scanCode) ?: true
+            return advancedMenu?.keyPressed(keyCode, scanCode) ?: true
         }
 
-        /** For key registration in the menu elements. Required for text fields.
+        /** For key registration in the menu elements.
          * Reversed order to check the panel on top first! */
         for (panel in panels.reversed()) {
-            if (panel.keyTyped(keyCode, scanCode)) return true
+            if (panel.keyPressed(keyCode, scanCode)) return true
         }
 
         /** Exits the menu when the toggle key is pressed */
@@ -267,6 +182,23 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         }
     }
 
+    /**
+     * Handles text character inputs for text fields.
+     * @see keyPressed
+     */
+    override fun charTyped(chr: Char, modifiers: Int): Boolean {
+        /** If in an advanced menu only hande that */
+        if (advancedMenu != null) {
+            return advancedMenu?.charTyped(chr, modifiers) ?: true
+        }
+
+        for (panel in panels.reversed()) {
+            if (panel.charTyped(chr, modifiers)) return true
+        }
+
+        return super.charTyped(chr, modifiers)
+    }
+
     override fun init()  {
         super.init()
         openedTime = System.currentTimeMillis()
@@ -279,8 +211,8 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         /** update panel positions to make it possible to update the positions
          * this is required for loading the panel positions from the config and for resetting the gui */
         for (panel in panels) {
-            panel.x = MainSettings.panelX[panel.category]!!.value.toInt()
-            panel.y = MainSettings.panelY[panel.category]!!.value.toInt()
+            panel.x = MainSettings.panelX[panel.category]!!.value.toFloat()
+            panel.y = MainSettings.panelY[panel.category]!!.value.toFloat()
             panel.extended = MainSettings.panelExtended[panel.category]!!.enabled
         }
     }
@@ -313,10 +245,6 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         super.close()
     }
 
-    override fun shouldPause(): Boolean {
-        return false
-    }
-
     fun closeAllSettings() {
         for (panel in panels) {
             if (panel.visible && panel.extended && panel.moduleButtons.size > 0) {
@@ -327,19 +255,10 @@ class ClickGUI : Screen(MutableText.of(LiteralTextContent("Mithras GUI"))) {
         }
     }
 
-    fun getScaledMouseX(): Int {
-        return MathHelper.ceil(mc.mouse.x / CLICK_GUI_SCALE)
-    }
-    fun getScaledMouseY(): Int {
-        // maybe -1 or floor required here because of the inversion.
-//        return MathHelper.ceil( (mc.window.height - mc.mouse.y) / CLICK_GUI_SCALE)
-        return MathHelper.ceil( mc.mouse.y/ CLICK_GUI_SCALE)
-    }
+    override val displayPerformance: Boolean = true
 
     companion object {
-        const val CLICK_GUI_SCALE = 2.0
         var panels: ArrayList<Panel> = arrayListOf()
 
-        private val LOGO = Identifier(Mithras.RESOURCE_DOMAIN, "gui/icon.png")
     }
 }

@@ -1,14 +1,13 @@
 package floppacoding.mithras.ui.clickgui.elements.menu
 
-import floppacoding.mithras.Mithras
 import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.util.Identifier
+import floppacoding.mithras.ui.nanovg.NVGImageManager
+import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.ui.nanovg.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
@@ -22,21 +21,21 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
     Element<ColorSetting>(parent, setting, ElementType.COLOR) {
     var dragging: Int? = null
 
-    override fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float): Int {
+    override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float): Float {
         val colorValue = setting.value.rgb
 
-        FontUtil.drawString(context, displayName, 1, 2)
+        NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
 
         /** Render the color preview */
-        context.fill(width - 26, 2, width - 1, 11, colorValue)
+        NVGR.rect(width - 26f, 2f, 25f, 10f, colorValue)
 
         /** Render the tab indicating the drop-down */
-        context.fill(0,  13, width, 15, ColorUtil.TAB_BACKGROUND_COLOR)
-        context.fill((width * 0.4).toInt(), 12, (width * 0.6).toInt(), 15, ColorUtil.tabColor)
+        NVGR.rect(0f, 13f, width, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
+        NVGR.rect(width*0.4f, 12f, width*0.2f, 3f, ColorUtil.tabColor)
 
         /** Render the extended */
         if (extended) {
-            context.fill(0, DEFAULT_HEIGHT,  width, height, ColorUtil.DROPDOWN_COLOR)
+            NVGR.rect(0f, DEFAULT_HEIGHT, width, height- DEFAULT_HEIGHT, ColorUtil.DROPDOWN_COLOR)
             var currentDrawY = DEFAULT_HEIGHT
             val increment = DEFAULT_HEIGHT
 
@@ -45,22 +44,21 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
                 val isColorDragged = dragging == currentColor.ordinal
                 /** For hue render the hue bar. */
                 if (currentColor == ColorSetting.ColorComponent.HUE) {
-                    context.matrices.push()
-                    context.drawTexture(HUE_SCALE, 0, currentDrawY, 0f, 0f, width, 11, width, height)
-                    context.matrices.pop()
+                    NVGR.image(NVGImageManager.HUE_SCALE, 0f, currentDrawY, width, 11f)
                 }
 
                 val dispVal = "" + (setting.getNumber(currentColor) * 100.0).roundToInt() / 100.0
-                FontUtil.drawString(context, currentColor.getName(), 1, currentDrawY + 2)
-                FontUtil.drawString(context, dispVal, width - FontUtil.getStringWidth(dispVal), currentDrawY + 2)
+                NVGR.text(currentColor.getName(), 1f, currentDrawY +2f, ColorUtil.TEXT_COLOR)
+                NVGR.text(dispVal, width - 1f, currentDrawY +2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
 
                 val maxVal = currentColor.maxValue()
-                val percentage = setting.getNumber(currentColor)  / maxVal
-                context.fill(0, currentDrawY + 12, width, currentDrawY + 13, -0xefeff0)
-                context.fill(0, currentDrawY + 12, (percentage * width).toInt(), currentDrawY + 13, ColorUtil.sliderColor(isColorDragged))
-                if (percentage > 0 && percentage < 1) context.fill(
-                    (percentage * width - 1).toInt(),
-                    (currentDrawY + 12), (percentage * width).toInt().coerceAtMost(width), currentDrawY + 13, ColorUtil.sliderKnobColor(isColorDragged)
+                val percentage = (setting.getNumber(currentColor)  / maxVal).toFloat()
+                NVGR.rect(0f, currentDrawY+12f, width, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)
+                NVGR.rect(0f, currentDrawY + 12f, percentage * width, 1f, ColorUtil.sliderColor(isColorDragged))
+                if (percentage > 0 && percentage < 1) NVGR.rect(
+                    percentage * width - 1f,
+                    currentDrawY + 12f,
+                    1f, 1f, ColorUtil.sliderKnobColor(isColorDragged)
                 )
 
                 /** Calculate and set new value when dragging */
@@ -75,14 +73,14 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
         }
 
 
-        return super.renderElement(context, mouseX, mouseY, partialTicks)
+        return super.renderElement(mouseX, mouseY, partialTicks)
     }
 
     /**
      * Handles interaction with this element.
      * Returns true if interacted with the element to cancel further interactions.
      */
-    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    override fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         if (mouseButton == 0) {
             if (isButtonHovered(mouseX, mouseY)) {
                 // for now also extend on left click
@@ -112,22 +110,22 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
     /**
      * Stops slider action on mouse release
      */
-    override fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
+    override fun mouseReleased(mouseX: Float, mouseY: Float, state: Int) {
         dragging = null
     }
 
     /**
      * Check for arrow keys to move the slider by one increment.
      */
-    override fun keyTyped(keyCode: Int, scanCode: Int): Boolean {
+    override fun keyPressed(keyCode: Int, scanCode: Int): Boolean {
         if (!extended) return false
-        val scaledMouseX = clickgui.getScaledMouseX()
-        val scaledMouseY = clickgui.getScaledMouseY()
+        val mouseX = clickgui.getMouseX()
+        val mouseY = clickgui.getMouseY()
 
         var ay = DEFAULT_HEIGHT
         val increment = DEFAULT_HEIGHT
         for (currentColor in setting.colors()) {
-            if (scaledMouseX >= xAbsolute && scaledMouseX <= xAbsolute + width && scaledMouseY >= yAbsolute + ay && scaledMouseY <= yAbsolute + ay + increment) {
+            if (mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute + ay && mouseY <= yAbsolute + ay + increment) {
                 if (keyCode == GLFW.GLFW_KEY_RIGHT){
                     setting.setNumber(currentColor, setting.getNumber(currentColor)+currentColor.maxValue()/255.0)
                 }
@@ -138,18 +136,14 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
             }
             ay += increment
         }
-        return super.keyTyped(keyCode, scanCode)
+        return super.keyPressed(keyCode, scanCode)
     }
 
 
     /**
      * Checks whether the mouse is hovering the selector
      */
-    private fun isButtonHovered(mouseX: Int, mouseY: Int): Boolean {
+    private fun isButtonHovered(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute && mouseY <= yAbsolute + 15
-    }
-
-    companion object {
-        private val HUE_SCALE = Identifier(Mithras.RESOURCE_DOMAIN, "gui/huescale.png")
     }
 }

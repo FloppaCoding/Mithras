@@ -7,8 +7,7 @@ import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.module.settings.impl.SelectorSetting
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.clickgui.util.FontUtil
-import net.minecraft.client.gui.DrawContext
+import floppacoding.mithras.ui.nanovg.NVGR
 
 /**
  * Parent class to the settings elements in the click gui.
@@ -23,28 +22,28 @@ abstract class Element<S: Setting<*>>(
 ) {
     val clickgui: ClickGUI = parent.panel.clickgui
     /** Relative position of this element in respect to [parent]. */
-    var x = 2
+    var x = 2f
     /** Relative position of this element in respect to [parent]. */
-    var y = 0
-    val width = parent.width - 2 - x
+    var y = 0f
+    val width = parent.width - 2f - x
     /** Height of the complete element included optional dropdown. */
-    var height: Int
+    var height: Float
     var displayName: String = setting.name
     var extended = false
     var listening = false
 
     /** Absolute position of the panel on the screen. */
-    val xAbsolute: Int
+    val xAbsolute: Float
         get() = x + parent.x + parent.panel.x
     /** Absolute position of the panel on the screen. */
-    val yAbsolute: Int
+    val yAbsolute: Float
         get() = y + parent.y + parent.panel.y
 
     init {
         height = when (type) {
-            ElementType.TEXT_FIELD -> 12
-            ElementType.KEY_BIND -> 11
-            ElementType.ACTION -> 11
+            ElementType.TEXT_FIELD -> 12f
+            ElementType.KEY_BIND -> 11f
+            ElementType.ACTION -> 11f
             else -> DEFAULT_HEIGHT
         }
     }
@@ -57,7 +56,7 @@ abstract class Element<S: Setting<*>>(
         when (type) {
             ElementType.SELECTOR -> {
                 height = if (extended)
-                    ((setting as SelectorSetting<*>).options.size * (FontUtil.fontHeight + 2) + DEFAULT_HEIGHT)
+                    ((setting as SelectorSetting<*>).options.size * (NVGR.DEFAULT_FONT_HEIGHT + 2) + DEFAULT_HEIGHT)
                 else
                     DEFAULT_HEIGHT
             }
@@ -79,9 +78,9 @@ abstract class Element<S: Setting<*>>(
      * @return the height of the element.
      * @see renderElement
      */
-    fun drawScreen(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) : Int {
-        context.matrices.push()
-        context.matrices.translate(x.toFloat(), y.toFloat(), 0f)
+    fun drawScreen(mouseX: Float, mouseY: Float, partialTicks: Float) : Float {
+        NVGR.push()
+        NVGR.translate(x, y)
 
         val color = if (listening) {
             ColorUtil.clickGUIColor.rgb
@@ -90,16 +89,16 @@ abstract class Element<S: Setting<*>>(
         }
 
         /** Rendering the box */
-        context.fill(0, 0, width, height, color)
+        NVGR.rect(0f, 0f, width, height, color)
         /** The decor */
         if (MainSettings.design.isSelected(GUIDesign.NEW)) {
-            context.fill(width, 0, width + 2, height, ColorUtil.outlineColor)
+            NVGR.rect(width, 0f, 2f, height, ColorUtil.outlineColor)
         }
 
         // Render the element.
-        val elementLength = renderElement(context, mouseX, mouseY, partialTicks)
+        val elementLength = renderElement(mouseX, mouseY, partialTicks)
 
-        context.matrices.pop()
+        NVGR.pop()
         return elementLength
     }
 
@@ -107,30 +106,36 @@ abstract class Element<S: Setting<*>>(
      * To be overridden in the implementations.
      * @return the height of the element.
      */
-    protected open fun renderElement(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) : Int{ return height }
+    protected open fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float) : Float { return height }
 
     /**
      * Handles mouse clicks on the Element.
      * To be overridden in the implementations.
      * @return whether an action was performed.
      */
-    open fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int): Boolean {
+    open fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {
         return isHovered(mouseX, mouseY)
     }
 
-    open fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {}
+    open fun mouseReleased(mouseX: Float, mouseY: Float, state: Int) {}
 
     /**
      * Overridden in the elements to enable key detection.
      * @return true when an action was taken.
      */
-    open fun keyTyped(keyCode: Int, scanCode: Int): Boolean { return false }
+    open fun keyPressed(keyCode: Int, scanCode: Int): Boolean { return false }
 
-    private fun isHovered(mouseX: Int, mouseY: Int): Boolean {
+    /**
+     * Overridden in the elements to enable key detection.
+     * @return true when an action was taken.
+     */
+    open fun charTyped(chr: Char, modifiers: Int): Boolean { return false }
+
+    private fun isHovered(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute && mouseY <= yAbsolute + height
     }
 
     companion object {
-        const val DEFAULT_HEIGHT = 15
+        const val DEFAULT_HEIGHT = 15f
     }
 }
