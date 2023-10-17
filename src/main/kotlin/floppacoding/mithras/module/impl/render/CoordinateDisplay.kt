@@ -6,7 +6,6 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.RegisterHudElement
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.ui.hud.HudElement
-import floppacoding.mithras.ui.nanovg.NVGR
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.util.hit.HitResult
 import kotlin.math.floor
@@ -24,9 +23,9 @@ object CoordinateDisplay : Module(
     private val showLookingAt by BooleanSetting("Looking At", false, description = "Displays the coordinates of the block you are looking at in a second line.")
 
     @RegisterHudElement
-    object CoordinateHUD : HudElement(this, 0f, 150f,
-        NVGR.textWidth("123 / 12 / 123 (12.3 / 12.3)"),
-        NVGR.DEFAULT_FONT_HEIGHT,
+    object CoordinateHUD : HudElement(CoordinateDisplay, 0f, 150f,
+        renderer.textWidth("123 / 12 / 123 (12.3 / 12.3)"),
+        renderer.defaultFontHeight,
     ) {
         override fun renderHud() {
 
@@ -40,7 +39,7 @@ object CoordinateDisplay : Module(
             val coordText =
                 "${floor(player.x).toInt()} / ${floor(player.y).toInt()} / ${floor(player.z).toInt()} ($xDir / $yDir)"
 
-            NVGR.text(coordText, 0f, 0f, -1)
+            renderer.text(coordText, 0f, 0f, -1)
 
             // handle looking at
             if (showLookingAt) {
@@ -48,11 +47,11 @@ object CoordinateDisplay : Module(
 
                 if (la != null && la.type == HitResult.Type.BLOCK) {
                     val laText = "Looking at: ${la.pos.x.format(2)} / ${la.pos.y.format(2)} / ${la.pos.z.format(2)}"
-                    NVGR.text(laText, 0f, NVGR.DEFAULT_FONT_HEIGHT + 1, -1)
+                    renderer.text(laText, 0f, renderer.defaultFontHeight + 1, -1)
                 }
             }
 
-            this.width = NVGR.textWidth(coordText)
+            this.width = renderer.textWidth(coordText)
         }
         private fun Double.format(digits: Int) = "%.${digits}f".format(this)
     }

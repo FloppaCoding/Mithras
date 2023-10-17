@@ -6,7 +6,7 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.client.util.InputUtil
 import org.lwjgl.glfw.GLFW
 
@@ -30,8 +30,8 @@ class AdvancedElementKeyBind(parent: AdvancedMenu, module: Module) :
         val displayValue = "[$keyName]"
 
         // Rendering the text and the keybind.
-        NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-        NVGR.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
+        renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
+        renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
         return this.settingHeight
     }
 

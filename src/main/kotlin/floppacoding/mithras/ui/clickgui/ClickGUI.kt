@@ -7,10 +7,9 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementColor
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementSlider
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
+import floppacoding.mithras.ui.nanovg.GuiScreen
 import floppacoding.mithras.ui.nanovg.NVGImageManager
-import floppacoding.mithras.ui.nanovg.NVGR
-import floppacoding.mithras.ui.nanovg.NVGScreen
-import floppacoding.mithras.ui.nanovg.TextAlign
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import java.io.IOException
@@ -32,7 +31,7 @@ import java.io.IOException
  *
  * @author Aton
  */
-class ClickGUI : NVGScreen("Mithras GUI", 2f) {
+class ClickGUI : GuiScreen("Mithras GUI", 2f) {
     /**
      * Used to add a delay for closing the gui, so that it does not instantly get closed
      */
@@ -79,13 +78,13 @@ class ClickGUI : NVGScreen("Mithras GUI", 2f) {
     private fun renderLogo() {
         val logoSize = 25f
 
-        NVGR.push()
-        NVGR.translate(windowWidth, windowHeight)
+        renderer.push()
+        renderer.translate(windowWidth, windowHeight)
 
-        NVGR.scale(2f, 2f)
+        renderer.scale(2f, 2f)
 
-        NVGR.image(NVGImageManager.ICON, -5f- logoSize, -5f - logoSize, logoSize, logoSize)
-        NVGR.text(
+        renderer.image(NVGImageManager.ICON, -5f- logoSize, -5f - logoSize, logoSize, logoSize)
+        renderer.text(
             MainSettings.clientName.text,
              - 10f - logoSize,
              - 5f - logoSize / 2f,
@@ -93,7 +92,7 @@ class ClickGUI : NVGScreen("Mithras GUI", 2f) {
             textAlign = TextAlign.RIGHT_MIDDLE
             )
 
-        NVGR.pop()
+        renderer.pop()
     }
 
     override fun mouseScrolled(mouseX: Float, mouseY: Float, amount: Float): Boolean {

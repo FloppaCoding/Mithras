@@ -7,7 +7,7 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.TextAlign
 import java.util.*
 
 /**
@@ -26,43 +26,43 @@ class AdvancedElementSelector<T>(
 	 */
     override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float) : Float {
         val displayValue = setting.selected
-        val textWidth = NVGR.textWidth(displayValue + "00" + setting.name)
+        val textWidth = renderer.textWidth(displayValue + "00" + setting.name)
 
         /** Render the box and text */
         if (textWidth <= settingWidth) {
-            NVGR.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
-            NVGR.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
+            renderer.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
+            renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
         } else {
             if (isButtonHovered(mouseX, mouseY)) {
-                NVGR.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
+                renderer.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             } else {
-                NVGR.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
+                renderer.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             }
         }
 
         // Render the tab indicating the drop-down
-        NVGR.rect(0f, 13f, settingWidth, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
-        NVGR.rect(settingWidth*0.4f, 12f, settingWidth*0.2f, 3f, ColorUtil.tabColor)
+        renderer.rect(0f, 13f, settingWidth, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
+        renderer.rect(settingWidth*0.4f, 12f, settingWidth*0.2f, 3f, ColorUtil.tabColor)
 
         // Render the drop-down
         var ay = 15f
         if (comboextended) {
-            val increment = NVGR.DEFAULT_FONT_HEIGHT + 2
+            val increment = renderer.defaultFontHeight + 2
             for (option in setting.options) {
 
                 val optionName = option.displayName
-                NVGR.rect(0f, ay, settingWidth, increment, ColorUtil.DROPDOWN_COLOR)
+                renderer.rect(0f, ay, settingWidth, increment, ColorUtil.DROPDOWN_COLOR)
                 val elementtitle =
                     optionName.substring(0, 1).uppercase(Locale.getDefault()) + optionName.substring(1, optionName.length)
-                NVGR.text(elementtitle, settingWidth/2f, ay + 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
+                renderer.text(elementtitle, settingWidth/2f, ay + 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
 
                 /** Highlights the element if it is selected */
                 if (setting.isSelected(option)) {
-                    NVGR.rect(0f, ay, 2f, increment, ColorUtil.clickGUIColor.rgb)
+                    renderer.rect(0f, ay, 2f, increment, ColorUtil.clickGUIColor.rgb)
                 }
                 /** Highlights the element when it is hovered */
                 if (mouseX >= parent.x + x && mouseX <= parent.x + x + settingWidth && mouseY >= parent.y + y +  ay && mouseY < parent.y + y + ay + increment) {
-                    NVGR.rect(settingWidth-1f, ay, 1f, increment, ColorUtil.clickGUIColor.rgb)
+                    renderer.rect(settingWidth-1f, ay, 1f, increment, ColorUtil.clickGUIColor.rgb)
                 }
 
                 ay += increment
@@ -85,7 +85,7 @@ class AdvancedElementSelector<T>(
 
             if (!comboextended) return false
             var ay = y + 15f
-            val increment = NVGR.DEFAULT_FONT_HEIGHT + 2
+            val increment = renderer.defaultFontHeight + 2
             for (option in setting.options) {
                 if (mouseX >= parent.x + x && mouseX <= parent.x + x + settingWidth && mouseY >= parent.y + ay && mouseY <= parent.y + ay + increment) {
                     setting.value = option

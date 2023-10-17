@@ -12,7 +12,7 @@ object MainCommand : Command {
     override val builder: LiteralArgumentBuilder<FabricClientCommandSource> =
         command("mithras") {
             execute {
-                Extensions.setScreen(Mithras.clickGUINano)
+                Extensions.setScreen(Mithras.clickGUI)
             }
             literal("reload") {
                 execute {

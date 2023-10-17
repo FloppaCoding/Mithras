@@ -113,7 +113,7 @@ object MainSettings: Module(
      * Automatically disable it again and open the gui
      */
     override fun onEnable() {
-        mc.send { mc.setScreen(Mithras.clickGUINano) }
+        mc.send { mc.setScreen(Mithras.clickGUI) }
         super.onEnable()
         toggle()
     }

@@ -6,7 +6,7 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
@@ -30,13 +30,13 @@ class AdvancedElementSlider(
         val percentBar = ((setting.doubleValue - setting.minDouble) / (setting.maxDouble - setting.minDouble)).toFloat()
 
         /** Render the text */
-        NVGR.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
-        NVGR.text(displayVal, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
+        renderer.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
+        renderer.text(displayVal, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
 
         /** Render the slider */
-        NVGR.rect(0f, 12f, settingWidth, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)
-        NVGR.rect(0f, 12f, percentBar*settingWidth, 1f, ColorUtil.sliderColor(hoveredORdragged))
-        if (percentBar > 0 && percentBar < 1) NVGR.rect(
+        renderer.rect(0f, 12f, settingWidth, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)
+        renderer.rect(0f, 12f, percentBar*settingWidth, 1f, ColorUtil.sliderColor(hoveredORdragged))
+        if (percentBar > 0 && percentBar < 1) renderer.rect(
             percentBar * settingWidth - 1f,
             12f, 1f, 1f,
             ColorUtil.sliderKnobColor(hoveredORdragged)

@@ -5,7 +5,7 @@ import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.Renderer2D
 import java.awt.Color
 
 /**
@@ -20,6 +20,7 @@ abstract class AdvancedElement<S: Setting<*>>(
     val type: AdvancedElementType,
 ) {
     val clickgui: ClickGUI = parent.clickGui
+    val renderer: Renderer2D = parent.renderer
     var x = 0f
     var y = 0f
     /** Width of the entire element consisting of the setting and description. */
@@ -36,8 +37,8 @@ abstract class AdvancedElement<S: Setting<*>>(
     var listening = false
 
     fun drawScreen(mouseX: Float, mouseY: Float, partialTicks: Float) {
-        NVGR.push()
-        NVGR.translate(x, y)
+        renderer.push()
+        renderer.translate(x, y)
 
         //Rendering the box behind the element.
         val temp = ColorUtil.clickGUIColor
@@ -46,8 +47,8 @@ abstract class AdvancedElement<S: Setting<*>>(
         }else {
             Color(ColorUtil.elementColor, true).darker().rgb
         }
-        NVGR.rect(0f, 0f, width, height, Color(ColorUtil.bgColor, true).brighter().rgb)
-        NVGR.rect(0f, 0f, settingWidth, settingHeight, color)
+        renderer.rect(0f, 0f, width, height, Color(ColorUtil.bgColor, true).brighter().rgb)
+        renderer.rect(0f, 0f, settingWidth, settingHeight, color)
 
         // Render the element.
         val l1 = renderElement(mouseX, mouseY, partialTicks)
@@ -57,7 +58,7 @@ abstract class AdvancedElement<S: Setting<*>>(
         this.settingHeight = l1
         this.height = l1.coerceAtLeast(l2)
 
-        NVGR.pop()
+        renderer.pop()
     }
 
     open fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float) : Float{ return settingHeight }
@@ -81,8 +82,8 @@ abstract class AdvancedElement<S: Setting<*>>(
     private fun renderDescription() : Float{
         var descriptionHeight = 0f
         setting.description?.let {
-            NVGR.text(it, settingWidth + 10f, 2f, ColorUtil.TEXT_COLOR, splitWidth = width- settingWidth -10f)
-            descriptionHeight = NVGR.textBounds(it, width - settingWidth - 10f).height()
+            renderer.text(it, settingWidth + 10f, 2f, ColorUtil.TEXT_COLOR, splitWidth = width- settingWidth -10f)
+            descriptionHeight = renderer.textBounds(it, width - settingWidth - 10f).height()
         }
         return descriptionHeight + 4f
     }

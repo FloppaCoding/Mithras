@@ -5,7 +5,6 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
 
 /**
  * Provides the Menu Button for action settings.
@@ -16,7 +15,7 @@ class ElementAction(parent: ModuleButton, setting: ActionSetting) :
     Element<ActionSetting>(parent, setting, ElementType.ACTION)  {
 
     override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float): Float {
-        NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
+        renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
         return super.renderElement(mouseX, mouseY, partialTicks)
     }
 
