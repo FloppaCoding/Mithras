@@ -1,11 +1,11 @@
 package floppacoding.mithras.ui.hud
 
+import floppacoding.mithras.ui.nanovg.GuiScreen
 import floppacoding.mithras.ui.nanovg.NVGImageManager
 import floppacoding.mithras.ui.nanovg.NVGR
-import floppacoding.mithras.ui.nanovg.NVGScreen
 import java.awt.Color
 
-object Test : NVGScreen("Hello") {
+object Test : GuiScreen("Hello") {
 
     override fun render(mouseX: Float, mouseY: Float, delta: Float) {
         NVGR.roundedRect(100f, 500f, 200f, 200f, 8f, -1)

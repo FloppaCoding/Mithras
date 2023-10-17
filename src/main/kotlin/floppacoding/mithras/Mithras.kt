@@ -8,7 +8,9 @@ import floppacoding.mithras.events.GameStartEvent
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.ui.clickgui.ClickGUI
+import floppacoding.mithras.ui.nanovg.NVGR
 import floppacoding.mithras.utils.LocationManager
+import floppacoding.mithras.utils.render.Renderer2D
 import kotlinx.coroutines.*
 import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
@@ -34,6 +36,8 @@ object Mithras : ModInitializer {
 	const val RESOURCE_DOMAIN = "mithras"
 	const val CONFIG_DOMAIN = "mithras"
 
+	lateinit var renderer2D: Renderer2D
+		private set
 
 	@JvmField
 	val mc: MinecraftClient = MinecraftClient.getInstance()
@@ -57,7 +61,7 @@ object Mithras : ModInitializer {
 	var totalTicks: Long = 0
 		private set
 
-	lateinit var clickGUINano: ClickGUI
+	lateinit var clickGUI: ClickGUI
 
 
 	override fun onInitialize() {
@@ -89,6 +93,8 @@ object Mithras : ModInitializer {
 	@EventHandler
 	fun onGameStart(event: GameStartEvent) {
 
+		renderer2D = NVGR
+
 		// Moved here from onInitialize because at that time some minecraft classes are not yet loaded in.
 		// Loads in all modules and sets up automatically generated functionality
 		ModuleManager.loadModules()
@@ -104,7 +110,7 @@ object Mithras : ModInitializer {
 		// Initialize all modules and register them to the eventbus
 		ModuleManager.initializeModules()
 
-		clickGUINano = ClickGUI()
+		clickGUI = ClickGUI()
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

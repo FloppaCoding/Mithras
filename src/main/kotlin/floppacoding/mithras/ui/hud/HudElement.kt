@@ -1,11 +1,13 @@
 package floppacoding.mithras.ui.hud
 
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.events.HudRenderEvent
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.Renderer2D
 import meteordevelopment.orbit.EventHandler
 
 /**
@@ -91,17 +93,16 @@ abstract class HudElement  {
      */
     @EventHandler
     fun onOverlay(event: HudRenderEvent) {
-        // Set up both a nonovg draw context and the vanilla context.
-        NVGR.beginFrame()
-        NVGR.push()
-        NVGR.scale(mc.options.guiScale.value.toFloat(), mc.options.guiScale.value.toFloat())
-        NVGR.translate(x, y)
-        NVGR.scale(scale.value, scale.value)
+        renderer.beginFrame()
+        renderer.push()
+        renderer.scale(mc.options.guiScale.value.toFloat(), mc.options.guiScale.value.toFloat())
+        renderer.translate(x, y)
+        renderer.scale(scale.value, scale.value)
 
         renderHud()
 
-        NVGR.pop()
-        NVGR.endFrame()
+        renderer.pop()
+        renderer.endFrame()
     }
 
     /**
@@ -119,12 +120,16 @@ abstract class HudElement  {
      * Draws a rectangle in place of the actual element
      */
     fun renderPreview() {
-        NVGR.push()
-        NVGR.translate(x, y)
-        NVGR.scale(scale.value, scale.value)
+        renderer.push()
+        renderer.translate(x, y)
+        renderer.scale(scale.value, scale.value)
 
-        NVGR.rect(0f, 0f, width, height, -0x44eaeaeb)
+        renderer.rect(0f, 0f, width, height, -0x44eaeaeb)
 
-        NVGR.pop()
+        renderer.pop()
+    }
+
+    companion object {
+        val renderer: Renderer2D = Mithras.renderer2D
     }
 }

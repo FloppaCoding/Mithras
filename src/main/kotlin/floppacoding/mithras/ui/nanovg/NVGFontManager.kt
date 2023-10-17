@@ -1,6 +1,7 @@
 package floppacoding.mithras.ui.nanovg
 
 import floppacoding.mithras.Mithras
+import floppacoding.mithras.utils.render.Font
 import org.apache.commons.io.IOUtils
 import org.lwjgl.nanovg.NanoVG
 import java.io.FileNotFoundException
@@ -9,7 +10,7 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-typealias NVGFont = NVGFontManager.Font
+typealias NVGFont = NVGFontManager.NVGFont
 
 /**
  * Provides fonts for the [VanoVG Renderer][NVGR].
@@ -19,7 +20,8 @@ typealias NVGFont = NVGFontManager.Font
  */
 object NVGFontManager {
 
-    val ROBOTO: Font = Font("roboto", "/assets/${Mithras.RESOURCE_DOMAIN}/gui/fonts/roboto-regular.ttf")
+    val ROBOTO: NVGFont =
+        NVGFont("roboto", "/assets/${Mithras.RESOURCE_DOMAIN}/gui/fonts/roboto-regular.ttf")
 
     /**
      * Font for NanoVG.
@@ -27,7 +29,7 @@ object NVGFontManager {
      *
      *      "/assets/mithras/gui/fonts/roboto-regular.ttf"
      */
-    class Font(val name: String, val path: String) {
+    class NVGFont(val name: String, val path: String) : Font {
         val fontBuffer : ByteBuffer = resourceToByteBuffer(path)
 
         /**

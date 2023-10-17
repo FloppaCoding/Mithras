@@ -8,7 +8,7 @@ import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.ColorUtil.TEXT_COLOR
 import floppacoding.mithras.ui.nanovg.NVGImageManager
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
@@ -30,21 +30,21 @@ class AdvancedElementColor(
         val colorValue = setting.value.rgb
 
         // Render the box and text
-        NVGR.text(setting.name, 1f, 2f, TEXT_COLOR)
+        renderer.text(setting.name, 1f, 2f, TEXT_COLOR)
 
         // Render the color preview
-        NVGR.rect(settingWidth-26f,2f, 25f, 9f, colorValue)
+        renderer.rect(settingWidth-26f,2f, 25f, 9f, colorValue)
 
         // Render the tab indicating the drop-down
-        NVGR.rect(0f, 13f, settingWidth, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
-        NVGR.rect(settingWidth*0.4f, 12f, settingWidth*0.2f, 3f, ColorUtil.tabColor)
+        renderer.rect(0f, 13f, settingWidth, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
+        renderer.rect(settingWidth*0.4f, 12f, settingWidth*0.2f, 3f, ColorUtil.tabColor)
 
 
         // Render the extended
         var ay = 15f
         if (comboextended) {
             val startY = 15f
-            NVGR.rect(0f, startY, settingWidth, settingHeight- startY, ColorUtil.DROPDOWN_COLOR)
+            renderer.rect(0f, startY, settingWidth, settingHeight- startY, ColorUtil.DROPDOWN_COLOR)
             val increment = 15f
 
             // Render the color sliders
@@ -52,18 +52,18 @@ class AdvancedElementColor(
                 val isColorDragged = dragging == currentColor.ordinal
                 // If hue selected, render the hue bar.
                 if (currentColor == ColorSetting.ColorComponent.HUE) {
-                    NVGR.image(NVGImageManager.HUE_SCALE, 0f, ay, settingWidth, 11f)
+                    renderer.image(NVGImageManager.HUE_SCALE, 0f, ay, settingWidth, 11f)
                 }
 
                 val dispVal = "" + (setting.getNumber(currentColor) * 100.0).roundToInt() / 100.0
-                NVGR.text(currentColor.getName(), 1f, ay + 2f, TEXT_COLOR)
-                NVGR.text(dispVal, settingWidth -1f, ay+ 2f, TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
+                renderer.text(currentColor.getName(), 1f, ay + 2f, TEXT_COLOR)
+                renderer.text(dispVal, settingWidth -1f, ay+ 2f, TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
 
                 val maxVal = currentColor.maxValue()
                 val percentage = (setting.getNumber(currentColor)  / maxVal).toFloat()
-                NVGR.rect(0f, ay+12f, settingWidth, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)
-                NVGR.rect(0f, ay + 12f, percentage * settingWidth, 1f, ColorUtil.sliderColor(isColorDragged))
-                if (percentage > 0 && percentage < 1) NVGR.rect(
+                renderer.rect(0f, ay+12f, settingWidth, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)
+                renderer.rect(0f, ay + 12f, percentage * settingWidth, 1f, ColorUtil.sliderColor(isColorDragged))
+                if (percentage > 0 && percentage < 1) renderer.rect(
                     percentage * settingWidth - 1f,
                     ay + 12f,
                     1f, 1f, ColorUtil.sliderKnobColor(isColorDragged)

@@ -3,6 +3,7 @@ package floppacoding.mithras.ui.nanovg
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.mixin.PlayerSkinAccessor
+import floppacoding.mithras.utils.render.Image
 import net.minecraft.client.texture.PlayerSkinTexture
 import net.minecraft.util.Identifier
 import org.apache.commons.io.IOUtils
@@ -15,25 +16,25 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Files
 
-typealias NVGImage = NVGImageManager.Image
+typealias NVGImage = NVGImageManager.NVGImage
 
 // TODO comment this class.
 object NVGImageManager {
     // TODO it might be better to combine these two classes into one and make the constructor private.
     // That way using the buffer is enforced.
-    val ICON: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/icon.png")
-    val HUE_SCALE: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale.png")
-    val CHROMA: Image = Image( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale20_lowres.png")
+    val ICON: NVGImage = NVGImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/icon.png")
+    val HUE_SCALE: NVGImage = NVGImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale.png")
+    val CHROMA: NVGImage = NVGImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale20_lowres.png")
 
     //Dungeon Map
-    val NEU_GREEN        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/green_check.png", NanoVG.NVG_IMAGE_NEAREST)
-    val NEU_WHITE        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/white_check.png", NanoVG.NVG_IMAGE_NEAREST)
-    val NEU_CROSS        : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/cross.png", NanoVG.NVG_IMAGE_NEAREST)
-    val NEU_QUESTION     : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/question.png", NanoVG.NVG_IMAGE_NEAREST)
-    val DEFAULT_GREEN    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/green_check.png", NanoVG.NVG_IMAGE_NEAREST)
-    val DEFAULT_WHITE    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/white_check.png", NanoVG.NVG_IMAGE_NEAREST)
-    val DEFAULT_CROSS    : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/cross.png", NanoVG.NVG_IMAGE_NEAREST)
-    val DEFAULT_QUESTION : Image = Image("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/question.png", NanoVG.NVG_IMAGE_NEAREST)
+    val NEU_GREEN        : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/green_check.png", NanoVG.NVG_IMAGE_NEAREST)
+    val NEU_WHITE        : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/white_check.png", NanoVG.NVG_IMAGE_NEAREST)
+    val NEU_CROSS        : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/cross.png", NanoVG.NVG_IMAGE_NEAREST)
+    val NEU_QUESTION     : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/question.png", NanoVG.NVG_IMAGE_NEAREST)
+    val DEFAULT_GREEN    : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/green_check.png", NanoVG.NVG_IMAGE_NEAREST)
+    val DEFAULT_WHITE    : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/white_check.png", NanoVG.NVG_IMAGE_NEAREST)
+    val DEFAULT_CROSS    : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/cross.png", NanoVG.NVG_IMAGE_NEAREST)
+    val DEFAULT_QUESTION : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/question.png", NanoVG.NVG_IMAGE_NEAREST)
 
     private val bufferedImages = mutableMapOf<Identifier, NVGImage>()
 
@@ -49,7 +50,7 @@ object NVGImageManager {
     fun createImage(identifier: Identifier, imageFlags: Int = 0): NVGImage {
         val bufferedImage = bufferedImages[identifier]
         if (bufferedImage != null) return bufferedImage
-        val newImage = Image(identifier,imageFlags)
+        val newImage = NVGImage(identifier,imageFlags)
         bufferedImages[identifier] = newImage
         return newImage
     }
@@ -57,7 +58,7 @@ object NVGImageManager {
     /**
      * Image for NanoVG.
      */
-    class Image {
+    class NVGImage : Image {
         private val path: String
         private val imageBuffer : ByteBuffer
 
@@ -66,8 +67,8 @@ object NVGImageManager {
          */
         val id: Int
 
-        val width: Int
-        val height: Int
+        override val width: Int
+        override val height: Int
 
         /**
          * @param path path to the resource. It looks like:

@@ -9,7 +9,8 @@ import floppacoding.mithras.ui.clickgui.Panel
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.*
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.mithras.utils.render.TextAlign
 
 /**
  * Provides the toggle button for modules in the click gui.
@@ -18,12 +19,13 @@ import floppacoding.mithras.ui.nanovg.NVGR
  */
 class ModuleButton(val module: Module, val panel: Panel) {
     val menuElements: ArrayList<Element<*>> = ArrayList()
+    val renderer: Renderer2D = panel.renderer
     /** Relative position of this button in respect to [panel]. */
     var x = 0f
     /** Relative position of this button in respect to [panel]. */
     var y = 0f
     val width = panel.width
-    val height = (NVGR.DEFAULT_FONT_HEIGHT + 2f)
+    val height = (renderer.defaultFontHeight + 2f)
     var extended = false
     /** Absolute position of the panel on the screen. */
     val xAbsolute: Float
@@ -76,25 +78,25 @@ class ModuleButton(val module: Module, val panel: Panel) {
 	 */
     fun drawScreen(mouseX: Float, mouseY: Float, partialTicks: Float) : Float {
 
-        NVGR.push()
-        NVGR.translate(x, y)
+        renderer.push()
+        renderer.translate(x, y)
 
-        NVGR.rect(0f, 0f, width, height + 1f, ColorUtil.MODULE_BUTTON_COLOR)
+        renderer.rect(0f, 0f, width, height + 1f, ColorUtil.MODULE_BUTTON_COLOR)
         if (MainSettings.design.isSelected(GUIDesign.NEW)) {
-            NVGR.rect(0f, 0f, 2f, height + 1f, ColorUtil.outlineColor)
+            renderer.rect(0f, 0f, 2f, height + 1f, ColorUtil.outlineColor)
         }
 
         /** Draw the highlight when the module is enabled. */
         if (module.enabled) {
-            NVGR.rect(0f, 0f, width, height + 1f, ColorUtil.outlineColor)
+            renderer.rect(0f, 0f, width, height + 1f, ColorUtil.outlineColor)
         }
 
         /** Change color on hover */
         if (isButtonHovered(mouseX, mouseY)) {
             if (module.enabled)
-                NVGR.rect(0f, 0f, width, height+1f, ColorUtil.MODULE_HOVER_ENABLED)
+                renderer.rect(0f, 0f, width, height+1f, ColorUtil.MODULE_HOVER_ENABLED)
             else
-                NVGR.rect(0f, 0f, width, height+1f, ColorUtil.hoverColor)
+                renderer.rect(0f, 0f, width, height+1f, ColorUtil.hoverColor)
         }
 
         /** Rendering the name in the middle */
@@ -103,7 +105,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
         } else {
             module.name
         }
-        NVGR.text(displayName, width / 2f, 1f + height / 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_MIDDLE)
+        renderer.text(displayName, width / 2f, 1f + height / 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_MIDDLE)
 
         /** Render the settings elements */
         var offs = height + 1
@@ -116,7 +118,7 @@ class ModuleButton(val module: Module, val panel: Panel) {
             }
         }
 
-        NVGR.pop()
+        renderer.pop()
 
         return offs
     }

@@ -6,7 +6,6 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
 
 /**
  * Provides the Button for action settings in the advanced gui.
@@ -20,7 +19,7 @@ class AdvancedElementAction(parent: AdvancedMenu, module: Module, setting: Actio
      * Render the element
      */
     override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float) : Float{
-        NVGR.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
+        renderer.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
         return this.settingHeight
     }
 

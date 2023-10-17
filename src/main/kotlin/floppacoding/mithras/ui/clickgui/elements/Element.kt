@@ -7,7 +7,7 @@ import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.module.settings.impl.SelectorSetting
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.Renderer2D
 
 /**
  * Parent class to the settings elements in the click gui.
@@ -21,6 +21,7 @@ abstract class Element<S: Setting<*>>(
     val type: ElementType
 ) {
     val clickgui: ClickGUI = parent.panel.clickgui
+    protected val renderer: Renderer2D = parent.renderer
     /** Relative position of this element in respect to [parent]. */
     var x = 2f
     /** Relative position of this element in respect to [parent]. */
@@ -56,7 +57,7 @@ abstract class Element<S: Setting<*>>(
         when (type) {
             ElementType.SELECTOR -> {
                 height = if (extended)
-                    ((setting as SelectorSetting<*>).options.size * (NVGR.DEFAULT_FONT_HEIGHT + 2) + DEFAULT_HEIGHT)
+                    ((setting as SelectorSetting<*>).options.size * (renderer.defaultFontHeight + 2) + DEFAULT_HEIGHT)
                 else
                     DEFAULT_HEIGHT
             }
@@ -79,8 +80,8 @@ abstract class Element<S: Setting<*>>(
      * @see renderElement
      */
     fun drawScreen(mouseX: Float, mouseY: Float, partialTicks: Float) : Float {
-        NVGR.push()
-        NVGR.translate(x, y)
+        renderer.push()
+        renderer.translate(x, y)
 
         val color = if (listening) {
             ColorUtil.clickGUIColor.rgb
@@ -89,16 +90,16 @@ abstract class Element<S: Setting<*>>(
         }
 
         /** Rendering the box */
-        NVGR.rect(0f, 0f, width, height, color)
+        renderer.rect(0f, 0f, width, height, color)
         /** The decor */
         if (MainSettings.design.isSelected(GUIDesign.NEW)) {
-            NVGR.rect(width, 0f, 2f, height, ColorUtil.outlineColor)
+            renderer.rect(width, 0f, 2f, height, ColorUtil.outlineColor)
         }
 
         // Render the element.
         val elementLength = renderElement(mouseX, mouseY, partialTicks)
 
-        NVGR.pop()
+        renderer.pop()
         return elementLength
     }
 

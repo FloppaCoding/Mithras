@@ -8,8 +8,8 @@ import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementKeyBind
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil.capitalizeOnlyFirst
-import floppacoding.mithras.ui.nanovg.NVGR
-import floppacoding.mithras.ui.nanovg.TextAlign
+import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.mithras.utils.render.TextAlign
 
 /**
  * Provides a category panel for the click gui.
@@ -21,6 +21,8 @@ class Panel(
     var clickgui: ClickGUI
 ) {
     private val title: String = category.name.capitalizeOnlyFirst()
+
+    val renderer: Renderer2D = clickgui.renderer
 
     var dragging = false
     val visible = true // Currently unused, but can be used in future for hiding categories
@@ -62,11 +64,11 @@ class Panel(
         }
 
         // Set up Transform
-        NVGR.push()
-        NVGR.translate(x, y)
+        renderer.push()
+        renderer.translate(x, y)
 
         // Set up the Scissor Box
-        NVGR.scissor(1f, height, width + 2f, 4000f)
+        renderer.scissor(1f, height, width + 2f, 4000f)
 
         /** Render the module buttons and the Settings elements */
         var startY = height
@@ -82,24 +84,24 @@ class Panel(
         }
 
         // Resetting the scissor
-        NVGR.endScissor()
+        renderer.endScissor()
 
         // Render the Panel
-        NVGR.rect(0f, 0f, width, height,  ColorUtil.DROPDOWN_COLOR)
-        NVGR.rect(0f, startY, width, 5f,  ColorUtil.DROPDOWN_COLOR)
+        renderer.rect(0f, 0f, width, height,  ColorUtil.DROPDOWN_COLOR)
+        renderer.rect(0f, startY, width, 5f,  ColorUtil.DROPDOWN_COLOR)
 
         // Render decor
         if (MainSettings.design.isSelected(GUIDesign.NEW)) {
-            NVGR.rect(0f, 0f,  2f, height, ColorUtil.outlineColor)
-            NVGR.rect(0f, startY,  2f, 5f, ColorUtil.outlineColor)
-            NVGR.text(title, 4f, height/2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.LEFT_MIDDLE)
+            renderer.rect(0f, 0f,  2f, height, ColorUtil.outlineColor)
+            renderer.rect(0f, startY,  2f, 5f, ColorUtil.outlineColor)
+            renderer.text(title, 4f, height/2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.LEFT_MIDDLE)
         } else if (MainSettings.design.isSelected(GUIDesign.JELLYLIKE)) {
-            NVGR.rect(4f, 2f,  1f, height-4f, ColorUtil.JELLY_PANEL_COLOR)
-            NVGR.rect(width - 4f, 2f,  -1f, height - 4f, ColorUtil.JELLY_PANEL_COLOR)
-            NVGR.text(title, width/2f, height/2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_MIDDLE)
+            renderer.rect(4f, 2f,  1f, height-4f, ColorUtil.JELLY_PANEL_COLOR)
+            renderer.rect(width - 4f, 2f,  -1f, height - 4f, ColorUtil.JELLY_PANEL_COLOR)
+            renderer.text(title, width/2f, height/2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_MIDDLE)
         }
 
-        NVGR.pop()
+        renderer.pop()
     }
 
     /**

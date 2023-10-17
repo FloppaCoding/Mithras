@@ -6,7 +6,7 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.TextAlign
 import java.util.*
 
 /**
@@ -21,42 +21,42 @@ class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
 
     override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float): Float {
         val displayValue = (setting as SelectorSetting<*>).selected
-        val textWidth = NVGR.textWidth(displayValue + "00" + displayName)
+        val textWidth = renderer.textWidth(displayValue + "00" + displayName)
 
         // Render the text.
         if (textWidth <= width) {
-            NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-            NVGR.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
+            renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
+            renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
         } else {
             if (isButtonHovered(mouseX, mouseY)) {
-                NVGR.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
+                renderer.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             } else {
-                NVGR.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
+                renderer.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             }
         }
 
         // Render the tab indicating the drop-down
-        NVGR.rect(0f, 13f, width, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
-        NVGR.rect(width*0.4f, 12f, width*0.2f, 3f, ColorUtil.tabColor)
+        renderer.rect(0f, 13f, width, 2f, ColorUtil.TAB_BACKGROUND_COLOR)
+        renderer.rect(width*0.4f, 12f, width*0.2f, 3f, ColorUtil.tabColor)
 
         // Render the dropdown
         if (extended) {
             var ay = DEFAULT_HEIGHT
-            val increment = NVGR.DEFAULT_FONT_HEIGHT + 2f
+            val increment = renderer.defaultFontHeight + 2f
             for (option in setting.options) {
-                NVGR.rect(0f, ay, width, increment, ColorUtil.DROPDOWN_COLOR)
+                renderer.rect(0f, ay, width, increment, ColorUtil.DROPDOWN_COLOR)
                 val optionName = option.displayName
                 val elementtitle =
                     optionName.substring(0, 1).uppercase(Locale.getDefault()) + optionName.substring(1, optionName.length)
-                NVGR.text(elementtitle, width/2f, ay + 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
+                renderer.text(elementtitle, width/2f, ay + 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
 
                 /** Highlight the element if it is selected */
                 if (setting.isSelected(option)) {
-                    NVGR.rect(0f, ay, 2f, increment, ColorUtil.clickGUIColor.rgb)
+                    renderer.rect(0f, ay, 2f, increment, ColorUtil.clickGUIColor.rgb)
                 }
                 /** Highlight the element when it is hovered */
                 if (mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute + ay && mouseY < yAbsolute + ay + increment) {
-                    NVGR.rect(width-1f, ay, 1f, increment, ColorUtil.clickGUIColor.rgb)
+                    renderer.rect(width-1f, ay, 1f, increment, ColorUtil.clickGUIColor.rgb)
                 }
                 ay += increment
             }
@@ -78,7 +78,7 @@ class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
 
             if (!extended) return false
             var ay = DEFAULT_HEIGHT
-            val increment = NVGR.DEFAULT_FONT_HEIGHT + 2
+            val increment = renderer.defaultFontHeight + 2
             for (option in setting.options) {
                 if (mouseX >= xAbsolute && mouseX <= xAbsolute + width && mouseY >= yAbsolute + ay && mouseY <= yAbsolute + ay + increment) {
                     setting.value = option

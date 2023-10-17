@@ -6,7 +6,7 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.client.util.InputUtil
 import org.lwjgl.glfw.GLFW
 
@@ -25,8 +25,8 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
         val keyName = mod.keyBind.localizedText.string
         val displayValue = "[$keyName]"
 
-        NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-        NVGR.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
+        renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
+        renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
 
         return super.renderElement(mouseX, mouseY, partialTicks)
     }

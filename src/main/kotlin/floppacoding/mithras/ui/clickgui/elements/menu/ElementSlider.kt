@@ -5,7 +5,7 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
@@ -25,13 +25,13 @@ class ElementSlider(parent: ModuleButton, setting: NumberSetting<*>) :
         val percentBar = ((setting.doubleValue - setting.minDouble) / (setting.maxDouble - setting.minDouble)).toFloat()
 
         /** Render the text */
-        NVGR.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-        NVGR.text(displayVal, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
+        renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
+        renderer.text(displayVal, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
 
         /** Render the slider */
-        NVGR.rect(0f, 12f, width, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)
-        NVGR.rect(0f, 12f, percentBar*width, 1f, ColorUtil.sliderColor(hoveredORdragged))
-        if (percentBar > 0 && percentBar < 1) NVGR.rect(
+        renderer.rect(0f, 12f, width, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)
+        renderer.rect(0f, 12f, percentBar*width, 1f, ColorUtil.sliderColor(hoveredORdragged))
+        if (percentBar > 0 && percentBar < 1) renderer.rect(
             percentBar * width - 1,
             12f, 1f, 1f,
             ColorUtil.sliderKnobColor(hoveredORdragged)
