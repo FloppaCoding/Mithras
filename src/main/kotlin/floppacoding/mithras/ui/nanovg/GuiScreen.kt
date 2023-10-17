@@ -1,22 +1,20 @@
 package floppacoding.mithras.ui.nanovg
 
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
-import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
-import floppacoding.mithras.ui.nanovg.NVGR.endFrame
-import floppacoding.mithras.ui.nanovg.NVGR.pop
-import floppacoding.mithras.ui.nanovg.NVGR.push
 import floppacoding.mithras.utils.Extensions.seconds
 import floppacoding.mithras.utils.clock.Clock
 import floppacoding.mithras.utils.clock.Executor
+import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
-import org.lwjgl.nanovg.NanoVG
 
 /**
- * ### Parent class for GUI screens using the [NanoVG rendering library][NVGR].
+ * ### Parent class for GUI screens using the [NanoVG rendering library][renderer].
  *
  * All the methods from the superclass [Screen] which contain mouse coordinates are overridden and replaced with
  * variants which receive the correct mouse coordinates for the NanoVG coordinate space.
@@ -26,12 +24,14 @@ import org.lwjgl.nanovg.NanoVG
  *
  * @author Aton, Stivais
  */
-abstract class NVGScreen(
+abstract class GuiScreen(
     title: Text,
     var scale: Float = 1f
 ) : Screen(title) {
 
     constructor(title: String, scale: Float = 1f) : this(MutableText.of(LiteralTextContent(title)), scale)
+
+    open val renderer: Renderer2D = Mithras.renderer2D
 
     private val clock = Clock()
 
@@ -63,15 +63,15 @@ abstract class NVGScreen(
      */
     final override fun render(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
         clock.update()
-        beginFrame()
-        NVGR.scale(scale, scale)
-        push()
+        renderer.beginFrame()
+        renderer.scale(scale, scale)
+        renderer.push()
         render(getMouseX(), getMouseY(), partialTicks)
-        pop()
+        renderer.pop()
         if (displayPerformance) {
             displayPerformance()
         }
-        endFrame()
+        renderer.endFrame()
         super.render(context, mouseX, mouseY, partialTicks)
     }
 
@@ -136,10 +136,10 @@ abstract class NVGScreen(
     private fun displayPerformance() {
         frames++
         perfUpdater.run()
-        push()
-        NanoVG.nvgReset(NVGR.nanoContext)
-        NVGR.text(performance, mc.window.width - 2f, mc.window.height - 2f, -1, 16f, textAlign = TextAlign.BOTTOM_RIGHT)
-        pop()
+        renderer.push()
+        renderer.reset()
+        renderer.text(performance, mc.window.width - 2f, mc.window.height - 2f, -1, 16f, textAlign = TextAlign.BOTTOM_RIGHT)
+        renderer.pop()
     }
 
     fun getMouseX(): Float = mc.mouse.x.toFloat() / scale

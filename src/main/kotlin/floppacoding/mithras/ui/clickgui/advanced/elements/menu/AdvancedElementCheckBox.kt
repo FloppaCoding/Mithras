@@ -6,7 +6,6 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
 
 /**
  * Provides a checkbox element for the advanced gui.
@@ -27,10 +26,10 @@ class AdvancedElementCheckBox(
         else ColorUtil.BUTTON_COLOR
 
         /** Rendering the name and the checkbox */
-        NVGR.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
-        NVGR.rect(settingWidth-13f, 2f ,11f, 11f, buttonColor)
+        renderer.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
+        renderer.rect(settingWidth-13f, 2f ,11f, 11f, buttonColor)
 
-        if (isCheckHovered(mouseX, mouseY)) NVGR.rect(
+        if (isCheckHovered(mouseX, mouseY)) renderer.rect(
             settingWidth - 13,  2f, 11f,
             11f, ColorUtil.BOX_HOVER_COLOR
         )

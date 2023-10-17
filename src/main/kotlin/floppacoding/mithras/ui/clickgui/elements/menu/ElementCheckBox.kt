@@ -5,7 +5,6 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
 
 /**
  * Provides a checkbox element.
@@ -21,10 +20,10 @@ class ElementCheckBox(parent: ModuleButton, setting: BooleanSetting) :
         else ColorUtil.BUTTON_COLOR
 
         /** Rendering the name and the checkbox */
-        NVGR.text(displayName, 1f, 3f, ColorUtil.TEXT_COLOR)
-        NVGR.rect(width-13f, 2f,11f, 11f, buttonColor)
+        renderer.text(displayName, 1f, 3f, ColorUtil.TEXT_COLOR)
+        renderer.rect(width-13f, 2f,11f, 11f, buttonColor)
         if (isCheckHovered(mouseX, mouseY))
-            NVGR.rect(width-13f, 2f,11f, 11f, ColorUtil.BOX_HOVER_COLOR)
+            renderer.rect(width-13f, 2f,11f, 11f, ColorUtil.BOX_HOVER_COLOR)
 
         return super.renderElement(mouseX, mouseY, partialTicks)
     }

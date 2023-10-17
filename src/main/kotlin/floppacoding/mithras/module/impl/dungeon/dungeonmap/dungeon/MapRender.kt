@@ -9,12 +9,12 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.roomSi
 import floppacoding.mithras.ui.hud.EditHudGUI
 import floppacoding.mithras.ui.hud.HudElement
 import floppacoding.mithras.ui.nanovg.NVGImageManager
-import floppacoding.mithras.ui.nanovg.NVGR
 import floppacoding.mithras.utils.Extensions.equalsOneOf
 import floppacoding.mithras.utils.Extensions.withAlpha
 import floppacoding.mithras.utils.LocationManager.inDungeons
 import floppacoding.mithras.utils.inventory.InventoryUtils.isHoldingInMainHand
 import floppacoding.mithras.utils.inventory.SkyblockItem
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.client.render.entity.PlayerModelPart
 import java.awt.Color
 
@@ -31,7 +31,7 @@ object MapRender: HudElement(
         if (!inDungeons) return
         if (DungeonMap.hideInBoss.enabled && Dungeon.inBoss) return
         // Background
-        NVGR.roundedRect(
+        renderer.roundedRect(
             0.0f,
             0.0f,
             128.0f,
@@ -40,7 +40,7 @@ object MapRender: HudElement(
             DungeonMap.mapBackground.value.rgb
         )
         // Border
-        val borderFunction = if (DungeonMap.chromaBorder.enabled) NVGR::chromaBorder else NVGR::border
+        val borderFunction = if (DungeonMap.chromaBorder.enabled) renderer::chromaBorder else renderer::border
         borderFunction(
             0.0f,
             0.0f,
@@ -57,23 +57,23 @@ object MapRender: HudElement(
             }
         }
         // Scissor
-        NVGR.push()
-        NVGR.scissor(0f, 0f, width, 128f)
+        renderer.push()
+        renderer.scissor(0f, 0f, width, 128f)
         // Spinny map
         if (DungeonMap.spinnyMap.enabled || DungeonMap.centerOnPlayer.enabled) {
-            NVGR.translate(64.0f, 64.0f)
-            if (DungeonMap.spinnyMap.enabled) NVGR.rotate(-mc.player!!.headYaw + 180f)
+            renderer.translate(64.0f, 64.0f)
+            if (DungeonMap.spinnyMap.enabled) renderer.rotate(-mc.player!!.headYaw + 180f)
         }
         // Room scale
-        NVGR.scale(DungeonMap.roomScale.value, DungeonMap.roomScale.value)
+        renderer.scale(DungeonMap.roomScale.value, DungeonMap.roomScale.value)
         // Centering
         if (DungeonMap.centerOnPlayer.enabled) {
-            NVGR.translate(
+            renderer.translate(
                 -((mc.player!!.x - Dungeon.START_X + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2),
                 -((mc.player!!.z - Dungeon.START_Z + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2)
             )
         }else if (DungeonMap.spinnyMap.enabled){
-            NVGR.translate(-64.0f, -64.0f)
+            renderer.translate(-64.0f, -64.0f)
         }
 
         renderRooms()
@@ -83,13 +83,13 @@ object MapRender: HudElement(
             renderPlayerHeads()
         }
 
-        NVGR.endScissor()
-        NVGR.pop()
+        renderer.endScissor()
+        renderer.pop()
     }
 
     private fun renderRooms() {
-        NVGR.push()
-        NVGR.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(),)
+        renderer.push()
+        renderer.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(),)
 
         val connectorSize = roomSize shr 2
 
@@ -117,7 +117,7 @@ object MapRender: HudElement(
 
                 when {
                     xEven && yEven -> if (tile is Room) { // rooms
-                        NVGR.roundedRect(
+                        renderer.roundedRect(
                             xOffset.toFloat(),
                             yOffset.toFloat(),
                             roomSize.toFloat(),
@@ -129,7 +129,7 @@ object MapRender: HudElement(
                     !xEven && !yEven -> { // the spot at the corner in between rooms. has to be filled for 2x2. When it is empty tile is null and this point will not be reached
                         // Box covers the room to the top left again but is bigger than the room to fill the spaces in between.
                         // bigger than roomSize+connectorSize to cover rounded corners of neighbouring room!
-                        NVGR.roundedRect(
+                        renderer.roundedRect(
                             xOffset.toFloat(),
                             yOffset.toFloat(),
                             (roomSize + connectorSize*2).toFloat(),
@@ -149,7 +149,7 @@ object MapRender: HudElement(
                 }
             }
         }
-        NVGR.pop()
+        renderer.pop()
     }
 
     /**
@@ -157,8 +157,8 @@ object MapRender: HudElement(
      * This includes: Checkmarks, the question mark for unexplored rooms, room names and secret count.
      */
     private fun renderCheckmarkAndText() {
-        NVGR.push()
-        NVGR.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
+        renderer.push()
+        renderer.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
 
         val connectorSize = roomSize shr 2
         val showCheckmarks = MapRooms.mapCheckmark.value != MapRooms.CheckmarkMode.NONE && MapRooms.mapRoomSecrets.value != MapRooms.SecretsMode.REPLACE_CHECKMARK
@@ -178,7 +178,7 @@ object MapRender: HudElement(
                     if (room.isUnique || (room.state == RoomState.QUESTION_MARK)) {
 
                         getCheckmark(room)?.let {
-                            NVGR.image(it, xOffset+2f, yOffset+2f, roomSize-4f, roomSize-4f)
+                            renderer.image(it, xOffset+2f, yOffset+2f, roomSize-4f, roomSize-4f)
                         }
                     }
                 }
@@ -212,17 +212,17 @@ object MapRender: HudElement(
                     } else -1
 
                     // Offset + half of roomsize
-                    NVGR.text(name.joinToString(separator = " "),
+                    renderer.text(name.joinToString(separator = " "),
                         xOffset.toFloat()- roomSize *0.15f, yOffset.toFloat() + roomSize*0.1f, color,
-                        NVGR.DEFAULT_FONT_HEIGHT*DungeonMap.textScale.value,
-                        textAlign = NVGR.TextAlign.CENTER_TOP,
+                        renderer.defaultFontHeight*DungeonMap.textScale.value,
+                        textAlign = TextAlign.CENTER_TOP,
                         splitWidth = roomSize.toFloat() * 1.3f
                     )
                     // TODO make this split lines or just a string
                 }
             }
         }
-        NVGR.pop()
+        renderer.pop()
     }
 
     /**
@@ -230,7 +230,7 @@ object MapRender: HudElement(
      * This is for white and green checkmarks, the red cross that is shown for failed puzzles and the question mark
      * for unexplored rooms.
      */
-    private fun getCheckmark(room: Room): NVGImageManager.Image? {
+    private fun getCheckmark(room: Room): NVGImageManager.NVGImage? {
         return when (MapRooms.mapCheckmark.value) {
             MapRooms.CheckmarkMode.DEFAULT -> when (room.state) {
                 RoomState.CLEARED -> NVGImageManager.DEFAULT_WHITE
@@ -303,7 +303,7 @@ object MapRender: HudElement(
         }else  {
             if (vertical) x1 -= doorWidth / 2 else y1 -= doorWidth / 2
         }
-        NVGR.rect(
+        renderer.rect(
             x1.toFloat(), y1.toFloat(),
             (if (vertical) height else width).toFloat(),
             (if (vertical) width else height).toFloat(),
@@ -315,17 +315,17 @@ object MapRender: HudElement(
      * Renders information about the current run underneath the map.
      */
     private fun renderRunInformation() {
-        NVGR.push()
-        NVGR.translate(0f, 128f)
-        NVGR.scale(0.66f, 0.66f)
+        renderer.push()
+        renderer.translate(0f, 128f)
+        renderer.scale(0.66f, 0.66f)
         val totalSecrets = RunInformation.totalSecrets ?: "?"
 
-        NVGR.text("Secrets: ${RunInformation.secretCount}/${totalSecrets}", 5f, 0f, -1)
-        NVGR.text("Crypts: ${RunInformation.cryptsCount}", 85f, 0f, -1)
-        NVGR.text("Deaths: ${RunInformation.deathCount}", 140f, 0f, -1)
+        renderer.text("Secrets: ${RunInformation.secretCount}/${totalSecrets}", 5f, 0f, -1)
+        renderer.text("Crypts: ${RunInformation.cryptsCount}", 85f, 0f, -1)
+        renderer.text("Deaths: ${RunInformation.deathCount}", 140f, 0f, -1)
         // Second Line
-        NVGR.text("Score: ${RunInformation.score}", 5f, NVGR.DEFAULT_FONT_HEIGHT + 1 , -1)
-        NVGR.pop()
+        renderer.text("Score: ${RunInformation.score}", 5f, renderer.defaultFontHeight + 1 , -1)
+        renderer.pop()
     }
 
     /**
@@ -333,45 +333,45 @@ object MapRender: HudElement(
      */
     fun drawPlayerHead(player: DungeonPlayer) {
         if (player.dead || player.player == null) return
-        NVGR.push()
+        renderer.push()
         try {
             if (player.player == mc.player) {
-                NVGR.translate(
+                renderer.translate(
                     (mc.player!!.x - Dungeon.START_X + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2,
                     (mc.player!!.z - Dungeon.START_Z + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2
                 )
             } else {
-                NVGR.translate(player.mapX, player.mapZ)
+                renderer.translate(player.mapX, player.mapZ)
             }
 
             if (DungeonMap.playerNameMode.value == DungeonMap.NameMode.ALWAYS || DungeonMap.playerNameMode.value == DungeonMap.NameMode.HOLDING_LEAP
                  && mc.player.isHoldingInMainHand(SkyblockItem.SPIRIT_LEAP, SkyblockItem.INFINILEAP)
             ) {
-                NVGR.push()
-//                NVGR.scale(0.8f, 0.8f)
-                if (DungeonMap.spinnyMap.enabled) NVGR.rotate(mc.player!!.headYaw + 180f)
-                NVGR.text(
+                renderer.push()
+//                renderer.scale(0.8f, 0.8f)
+                if (DungeonMap.spinnyMap.enabled) renderer.rotate(mc.player!!.headYaw + 180f)
+                renderer.text(
                     player.name, 0f, 10f * DungeonMap.playerHeadScale.value, -1,
-                    NVGR.DEFAULT_FONT_HEIGHT*DungeonMap.textScale.value,
-                    textAlign = NVGR.TextAlign.CENTER_TOP,
+                    renderer.defaultFontHeight*DungeonMap.textScale.value,
+                    textAlign = TextAlign.CENTER_TOP,
                 )
-                NVGR.pop()
+                renderer.pop()
             }
             if (player.player == mc.player) {
-                NVGR.rotate(mc.player!!.headYaw + 180f)
+                renderer.rotate(mc.player!!.headYaw + 180f)
             } else {
-                NVGR.rotate(player.yaw + 180f)
+                renderer.rotate(player.yaw + 180f)
             }
-            NVGR.scale(DungeonMap.playerHeadScale.value, DungeonMap.playerHeadScale.value)
-            NVGR.border(-6.0f, -6.0f, 12.0f, 12.0f, 2.0f, 1f, Color(0, 0, 0, 255).rgb)
+            renderer.scale(DungeonMap.playerHeadScale.value, DungeonMap.playerHeadScale.value)
+            renderer.border(-6.0f, -6.0f, 12.0f, 12.0f, 2.0f, 1f, Color(0, 0, 0, 255).rgb)
             val skinImage  = player.skinImage ?: return
-            NVGR.image(skinImage,-6f, -6f, 12f, 12f, 1f, 8f, 8f, 8f, 8f)
+            renderer.image(skinImage,-6f, -6f, 12f, 12f, 1f, 8f, 8f, 8f, 8f)
             if (player.player.isPartVisible(PlayerModelPart.HAT)) {
-                NVGR.image(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 8f, 8f)
+                renderer.image(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 8f, 8f)
             }
         } catch (_: Exception) {
         }
-        NVGR.pop()
+        renderer.pop()
     }
 
     private val puzzleWithSecretsRegex = Regex("Higher|Blaze|Tic")

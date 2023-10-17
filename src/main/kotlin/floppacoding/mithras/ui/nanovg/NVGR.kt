@@ -5,6 +5,7 @@ import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
 import floppacoding.mithras.ui.nanovg.NVGR.endFrame
+import floppacoding.mithras.utils.render.*
 import org.lwjgl.nanovg.NVGColor
 import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoVG.*
@@ -14,8 +15,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-typealias TextAlign = NVGR.TextAlign
-typealias BoundigBox = NVGR.BoundingBox
 
 /**
  * # NanoVG Renderer - 2D Rendering Library
@@ -43,13 +42,10 @@ typealias BoundigBox = NVGR.BoundingBox
  * @author Aton
  */
 @Suppress("unused")
-object NVGR {
+object NVGR : Renderer2D {
     val nanoContext: Long = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS)
 
-    /**
-     * The font height that will be used for text rendering unless specified otherwise.
-     */
-    const val DEFAULT_FONT_HEIGHT = 9f
+    override val defaultFont: Font = NVGFontManager.ROBOTO
 
     /**
      * Variables for storing temporary draw style data.
@@ -79,7 +75,7 @@ object NVGR {
      *
      * All further rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
      */
-    fun beginFrame() {
+    override fun beginFrame() {
 //        saveCurrentState()
         nvgBeginFrame(
             nanoContext,
@@ -98,10 +94,14 @@ object NVGR {
      *
      * All rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
      */
-    fun endFrame() {
+    override fun endFrame() {
         nvgEndFrame(nanoContext)
 
 //        restoreOldState()
+    }
+
+    override fun reset() {
+        nvgReset(nanoContext)
     }
 
     /**
@@ -153,43 +153,43 @@ object NVGR {
     /**
      * Translates the origin of the current coordinate system.
      */
-    fun translate(x: Float, y: Float) = nvgTranslate(nanoContext, x, y)
+    override fun translate(x: Float, y: Float) = nvgTranslate(nanoContext, x, y)
 
     /**
      * Translates the origin of the current coordinate system.
      */
-    fun translate(x: Double, y: Double) = nvgTranslate(nanoContext, x.toFloat(), y.toFloat())
+    override fun translate(x: Double, y: Double) = nvgTranslate(nanoContext, x.toFloat(), y.toFloat())
 
     /**
      * Scales the current coordinate system.
      */
-    fun scale(x: Float, y: Float) = nvgScale(nanoContext, x, y)
+    override fun scale(x: Float, y: Float) = nvgScale(nanoContext, x, y)
 
     /**
      * Rotates by the given [angle] in degrees.
      */
-    fun rotate(angle: Float) = nvgRotate(nanoContext, nvgDegToRad( angle ))
+    override fun rotate(angle: Float) = nvgRotate(nanoContext, nvgDegToRad( angle ))
 
     /**
      * Pushes the current rendering state to a stack.
      * [pop] must be used to restore that state.
      */
-    fun push() = nvgSave(nanoContext)
+    override fun push() = nvgSave(nanoContext)
 
     /**
      * Restores the previous rendering state.
      */
-    fun pop() = nvgRestore(nanoContext)
+    override fun pop() = nvgRestore(nanoContext)
 
     /**
      * Draws a line from point 1 to point 2.
      * @param capStyle can be [NVG_ROUND] or [NVG_SQUARE]
      */
-    fun line(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Int, capStyle: Int = NVG_ROUND) {
+    override fun line(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Int, capStyle: CapStyle) {
         nvgBeginPath(nanoContext)
         nvgStrokeWidth(nanoContext, width)
         setStrokeColor(color)
-        nvgLineCap(nanoContext, capStyle)
+        nvgLineCap(nanoContext, capStyle.nvg)
         nvgMoveTo(nanoContext, x1, y1)
         nvgLineTo(nanoContext, x2, y2)
         nvgStroke(nanoContext)
@@ -199,7 +199,7 @@ object NVGR {
     /**
      * Draws a rectangle with the given dimensions and color.
      */
-    fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
+    override fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
         nvgBeginPath(nanoContext)
         nvgRect(nanoContext, x, y, width, height)
         setFillColor(color)
@@ -209,7 +209,7 @@ object NVGR {
     /**
      * Draws a rectangle with rounded corners.
      */
-    fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
+    override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
         nvgBeginPath(nanoContext)
         nvgRoundedRect(nanoContext, x, y, width, height, radius)
         setFillColor(color)
@@ -228,16 +228,17 @@ object NVGR {
      * @param splitWidth The width at which the test will be split into a new line. If this value is null, the text will
      * not be split. If this value is set, the alignment will be relative to a box from [x],[y] to [x]+[splitWidth],[y]+hieght.
      */
-    fun text(
+    override fun text(
         text: String,
         x: Float,
         y: Float,
         color: Int,
-        fontSize: Float = DEFAULT_FONT_HEIGHT,
-        font: NVGFont = NVGFontManager.ROBOTO,
-        textAlign: TextAlign = TextAlign.TOP_LEFT,
-        splitWidth: Float? = null
+        fontSize: Float,
+        font: Font,
+        textAlign: TextAlign,
+        splitWidth: Float?
     ) {
+        if (font !is NVGFontManager.NVGFont) throw Error("Invalid Font")
         nvgBeginPath(nanoContext)
         nvgFontSize(nanoContext, fontSize)
         nvgFontFaceId(nanoContext, font.id)
@@ -253,7 +254,8 @@ object NVGR {
     /**
      * Returns the width of the given [text].
      */
-    fun textWidth(text: String, fontSize: Float = DEFAULT_FONT_HEIGHT, font: NVGFont = NVGFontManager.ROBOTO): Float {
+    override fun textWidth(text: String, fontSize: Float, font: Font): Float {
+        if (font !is NVGFontManager.NVGFont) throw Error("Invalid Font")
         nvgFontSize(nanoContext, fontSize)
         nvgFontFaceId(nanoContext, font.id)
         return nvgTextBounds(nanoContext, 0f, 0f, text, null as FloatBuffer?)
@@ -263,7 +265,8 @@ object NVGR {
      * Returns the bounding box of the given [text] if it were drawn at 0,0 in the current coordinate system.
      * @param width If width is null then the text will be considered as one line. Otherwise
      */
-    fun textBounds(text: String, width: Float? = null, fontSize: Float = DEFAULT_FONT_HEIGHT, font: NVGFont = NVGFontManager.ROBOTO) : BoundingBox {
+    override fun textBounds(text: String, width: Float?, fontSize: Float, font: Font) : BoundingBox {
+        if (font !is NVGFontManager.NVGFont) throw Error("Invalid Font")
         nvgFontSize(nanoContext, fontSize)
         nvgFontFaceId(nanoContext, font.id)
         val buffer = ByteBuffer.allocateDirect(4 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
@@ -282,7 +285,8 @@ object NVGR {
      * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
      * @param radius radius of the corner radius.
      */
-    fun image(image: NVGImage, x: Float, y: Float, width: Float, height: Float, radius: Float = 0f, imageX: Float = 0f, imageY: Float = 0f, imageWidth: Float = image.width.toFloat(), imageHeight: Float = image.height.toFloat(), alpha: Float = 1f) {
+    override fun image(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
+        if (image !is NVGImage) throw Error("Invalid Image")
         val xScale = width / imageWidth
         val yScale = height / imageHeight
         val scaledImageWidth = image.width * xScale
@@ -304,8 +308,7 @@ object NVGR {
      * @param color does nothing but gives this method the same signature as [border], so that both can be used with the
      * same syntax through a KFunction.
      */
-    @Suppress("UNUSED_PARAMETER")
-    fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int = 0) {
+    override fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
         nvgBeginPath(nanoContext)
         nvgRoundedRect(nanoContext,x, y, width, height, radius)
         strokeWithChroma(lineWidth)
@@ -314,21 +317,22 @@ object NVGR {
     /**
      * Draws a border with rounded corner and the given dimensions.
      */
-    fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
+    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
         nvgBeginPath(nanoContext)
         nvgRoundedRect(nanoContext,x, y, width, height, radius)
         strokeWithColor(lineWidth, color)
     }
 
-    fun textField(text: String,
-                  x: Float,
-                  y: Float,
-                  width: Float,
-                  color: Int,
-                  fontSize: Float = DEFAULT_FONT_HEIGHT,
-                  radius: Float = 3f,
-                  font: NVGFont = NVGFontManager.ROBOTO
+    override fun textField(text: String,
+                           x: Float,
+                           y: Float,
+                           width: Float,
+                           color: Int,
+                           fontSize: Float,
+                           radius: Float,
+                           font: Font
     ) {
+        if (font !is NVGFontManager.NVGFont) throw Error("Invalid Font")
         val height = fontSize* 1.5f
         nvgBeginPath(nanoContext)
         nvgRGBA(255.toByte(), 255.toByte(),255.toByte(), 32.toByte(), nanoColor)
@@ -355,12 +359,12 @@ object NVGR {
      * Sets up a scissor rectangle.
      *
      */
-    fun scissor(x: Float, y: Float, width: Float, height: Float) = nvgScissor(nanoContext, x, y, width, height)
+    override fun scissor(x: Float, y: Float, width: Float, height: Float) = nvgScissor(nanoContext, x, y, width, height)
 
     /**
      * Disables scissoring.
      */
-    fun endScissor() = nvgResetScissor(nanoContext)
+    override fun endScissor() = nvgResetScissor(nanoContext)
 
     /**
      * Sets fill style for [nvgFill] to the specified color.
@@ -373,7 +377,7 @@ object NVGR {
     /**
      * Fills the current path with the given color.
      */
-    fun fillWithColor(color: Int) {
+    override fun fillWithColor(color: Int) {
         setFillColor(color)
         nvgFill(nanoContext)
     }
@@ -389,7 +393,7 @@ object NVGR {
     /**
      * Strokes the current path with the given color.
      */
-    fun strokeWithColor(width: Float, color: Int) {
+    override fun strokeWithColor(width: Float, color: Int) {
         setStrokeColor(color)
         nvgStrokeWidth(nanoContext, width)
         nvgStroke(nanoContext)
@@ -432,7 +436,7 @@ object NVGR {
     /**
      * Fills the current path with the chroma pattern
      */
-    fun fillWithChroma() {
+    override fun fillWithChroma() {
         push()
         setupChroma()
         nvgFillPaint(nanoContext, nanoPaint)
@@ -443,7 +447,7 @@ object NVGR {
     /**
      * Strokes the current path with the chroma pattern.
      */
-    fun strokeWithChroma(lineWidth: Float) {
+    override fun strokeWithChroma(lineWidth: Float) {
         push()
         setupChroma()
         nvgStrokePaint(nanoContext, nanoPaint)
@@ -460,26 +464,25 @@ object NVGR {
             result
         )
 
-    class BoundingBox(var xmin: Float, var ymin: Float, var xmax: Float, var ymax: Float) {
-        fun width(): Float = xmax - xmin
+    private val CapStyle.nvg: Int
+        get() = when(this) {
+            CapStyle.ROUND -> NVG_ROUND
+            CapStyle.SQUARE -> NVG_SQUARE
+        }
 
-        fun height() : Float = ymax - ymin
-    }
-
-    enum class TextAlign(
-        val nvg: Int
-    ) {
-        TOP_LEFT(NVG_ALIGN_LEFT or NVG_ALIGN_TOP),
-        BOTTOM_LEFT(NVG_ALIGN_LEFT or NVG_ALIGN_BOTTOM),
-        BOTTOM_RIGHT(NVG_ALIGN_BOTTOM or NVG_ALIGN_RIGHT),
-        TOP_RIGHT(NVG_ALIGN_TOP or NVG_ALIGN_RIGHT),
-        CENTER_BOTTOM(NVG_ALIGN_BOTTOM or NVG_ALIGN_CENTER),
-        CENTER_MIDDLE(NVG_ALIGN_MIDDLE or NVG_ALIGN_CENTER),
-        CENTER_TOP(NVG_ALIGN_TOP or NVG_ALIGN_CENTER),
-        LEFT_MIDDLE(NVG_ALIGN_MIDDLE or NVG_ALIGN_LEFT),
-        RIGHT_MIDDLE(NVG_ALIGN_MIDDLE or NVG_ALIGN_RIGHT),
-        LEFT(NVG_ALIGN_LEFT),
-        RIGHT(NVG_ALIGN_RIGHT),
-        MIDDLE(NVG_ALIGN_MIDDLE)
+    private val TextAlign.nvg: Int
+        get() = when(this) {
+        TextAlign.TOP_LEFT -> NVG_ALIGN_LEFT or NVG_ALIGN_TOP
+        TextAlign.BOTTOM_LEFT -> NVG_ALIGN_LEFT or NVG_ALIGN_BOTTOM
+        TextAlign.BOTTOM_RIGHT -> NVG_ALIGN_BOTTOM or NVG_ALIGN_RIGHT
+        TextAlign.TOP_RIGHT -> NVG_ALIGN_TOP or NVG_ALIGN_RIGHT
+        TextAlign.CENTER_BOTTOM -> NVG_ALIGN_BOTTOM or NVG_ALIGN_CENTER
+        TextAlign.CENTER_MIDDLE -> NVG_ALIGN_MIDDLE or NVG_ALIGN_CENTER
+        TextAlign.CENTER_TOP -> NVG_ALIGN_TOP or NVG_ALIGN_CENTER
+        TextAlign.LEFT_MIDDLE -> NVG_ALIGN_MIDDLE or NVG_ALIGN_LEFT
+        TextAlign.RIGHT_MIDDLE -> NVG_ALIGN_MIDDLE or NVG_ALIGN_RIGHT
+        TextAlign.LEFT -> NVG_ALIGN_LEFT
+        TextAlign.RIGHT -> NVG_ALIGN_RIGHT
+        TextAlign.MIDDLE -> NVG_ALIGN_MIDDLE
     }
 }

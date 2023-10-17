@@ -9,7 +9,8 @@ import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.menu.*
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.ColorUtil.TEXT_COLOR
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.util.math.MathHelper
 import java.awt.Color
 
@@ -20,6 +21,7 @@ import java.awt.Color
  */
 class AdvancedMenu(val module: Module, val clickGui: ClickGUI) {
     private val elements: MutableList<AdvancedElement<*>> = mutableListOf()
+    val renderer: Renderer2D = clickGui.renderer
     var x = 10f
         set(value) {
             MainSettings.advancedRelX.value = value / mc.window.width.toDouble() * clickGui.scale
@@ -85,18 +87,18 @@ class AdvancedMenu(val module: Module, val clickGui: ClickGUI) {
         val color = Color(temp.red, temp.green, temp.blue, 200).rgb
 
         // Set up Transform
-        NVGR.push()
-        NVGR.translate(x, y)
+        renderer.push()
+        renderer.translate(x, y)
 
         /** Rendering the background box */
-        NVGR.rect(0f, 0f, width, height, ColorUtil.elementColor)
+        renderer.rect(0f, 0f, width, height, ColorUtil.elementColor)
 
         // Render a title bar containing the name of the module
-        NVGR.rect(0f, 0f, width, 15f, color)
-        NVGR.text(module.name, width/2f, 1f+ 15f / 2f, TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_MIDDLE)
+        renderer.rect(0f, 0f, width, 15f, color)
+        renderer.text(module.name, width/2f, 1f+ 15f / 2f, TEXT_COLOR, textAlign = TextAlign.CENTER_MIDDLE)
 
         // Set up the Scissor Box
-        NVGR.scissor(0f, 15f, width, height-(15f+ indent))
+        renderer.scissor(0f, 15f, width, height-(15f+ indent))
 
         /**
          * Current render position.
@@ -104,8 +106,8 @@ class AdvancedMenu(val module: Module, val clickGui: ClickGUI) {
         var dy = 20 - scrollOffs
 
         /** Render the module description text */
-        NVGR.text(module.description, indent, dy, TEXT_COLOR, splitWidth = width -2*indent)
-        dy += NVGR.textBounds(module.description, width-2*indent).height() + 10f
+        renderer.text(module.description, indent, dy, TEXT_COLOR, splitWidth = width -2*indent)
+        dy += renderer.textBounds(module.description, width-2*indent).height() + 10f
         // Render the settings.
         for (element in elements) {
             element.setPosition(indent, dy)
@@ -116,8 +118,8 @@ class AdvancedMenu(val module: Module, val clickGui: ClickGUI) {
         length = dy + scrollOffs
 
         // Resetting the scissor test
-        NVGR.endScissor()
-        NVGR.pop()
+        renderer.endScissor()
+        renderer.pop()
     }
 
     fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean {

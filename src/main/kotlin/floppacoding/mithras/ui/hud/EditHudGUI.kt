@@ -4,8 +4,7 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.MapRender
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
-import floppacoding.mithras.ui.nanovg.NVGScreen
+import floppacoding.mithras.ui.nanovg.GuiScreen
 import net.minecraft.util.math.MathHelper
 import java.awt.Color
 
@@ -14,7 +13,7 @@ import java.awt.Color
  *
  * @author Aton
  */
-object EditHudGUI : NVGScreen("Edit Hud GUI", mc.options.guiScale.value.toFloat()) {
+object EditHudGUI : GuiScreen("Edit Hud GUI", mc.options.guiScale.value.toFloat()) {
 
     private val hudElements: ArrayList<HudElement> = arrayListOf(
         MapRender
@@ -50,9 +49,9 @@ object EditHudGUI : NVGScreen("Edit Hud GUI", mc.options.guiScale.value.toFloat(
     private fun renderResetButton(mouseX: Float, mouseY: Float) {
         val resetText = "Rest HUD"
 
-        NVGR.push()
-        val textWidth = NVGR.textWidth(resetText)
-        val textHeight = NVGR.DEFAULT_FONT_HEIGHT
+        renderer.push()
+        val textWidth = renderer.textWidth(resetText)
+        val textHeight = renderer.defaultFontHeight
         val textX = -textWidth/2f + this.windowWidth / 2f
         // The height of the hotbar is 22
         val textY = -textHeight -5 -22 + this.windowHeight
@@ -66,10 +65,10 @@ object EditHudGUI : NVGScreen("Edit Hud GUI", mc.options.guiScale.value.toFloat(
         }else {
             Color(-0x44eaeaeb, true).darker()
         }
-        NVGR.rect(buttonX, buttonY, buttonWidth, buttonHeight, buttonColor.rgb)
+        renderer.rect(buttonX, buttonY, buttonWidth, buttonHeight, buttonColor.rgb)
 
-        NVGR.text(resetText, textX, textY, ColorUtil.clickGUIColor.rgb)
-        NVGR.pop()
+        renderer.text(resetText, textX, textY, ColorUtil.clickGUIColor.rgb)
+        renderer.pop()
     }
 
     override fun mouseScrolled(mouseX: Float, mouseY: Float, amount: Float): Boolean {

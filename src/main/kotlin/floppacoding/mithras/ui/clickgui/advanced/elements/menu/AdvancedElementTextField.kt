@@ -6,7 +6,7 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.SharedConstants
 import org.lwjgl.glfw.GLFW
 
@@ -24,18 +24,18 @@ class AdvancedElementTextField(
      */
     override fun renderElement(mouseX: Float, mouseY: Float, partialTicks: Float) : Float{
         val displayValue = setting.text
-        val totalWidth = NVGR.textWidth(displayValue + "00" + setting.name)
+        val totalWidth = renderer.textWidth(displayValue + "00" + setting.name)
 
 
         /** Rendering the text */
         if (totalWidth <= settingWidth) {
-            NVGR.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
-            NVGR.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.TOP_RIGHT)
+            renderer.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
+            renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
         }else {
             if (isTextHovered(mouseX, mouseY) || listening) {
-                NVGR.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
+                renderer.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             } else {
-                NVGR.text(setting.name, settingWidth/2f, 2f, ColorUtil.TEXT_COLOR, textAlign = NVGR.TextAlign.CENTER_TOP)
+                renderer.text(setting.name, settingWidth/2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             }
         }
 
