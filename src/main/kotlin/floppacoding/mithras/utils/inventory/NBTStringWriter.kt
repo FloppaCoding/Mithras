@@ -139,6 +139,7 @@ class NBTStringWriter : NbtElementVisitor {
          * Turns the nbt data of the item stack into a nicely readable string.
          * This includes indents and new lines for individual components.
          */
+        @JvmStatic
         fun creatNbtString(stack: ItemStack): String {
             val nbt = NbtCompound()
             stack.writeNbt(nbt)

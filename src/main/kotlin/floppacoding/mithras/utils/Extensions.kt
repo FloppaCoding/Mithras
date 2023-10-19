@@ -81,6 +81,19 @@ object Extensions {
         return false
     }
 
+    /**
+     * Returns a copy of the String where the only first letter is capitalized.
+     */
+    fun String.capitalizeOnlyFirst(): String {
+        return if (this.isNotEmpty())
+            this.substring(0, 1).uppercase(Locale.getDefault()) + this.substring(1, this.length).lowercase()
+        else this
+    }
+
+    fun String.snakeCaseToFirstCapitalized(): String {
+        return this.split("_").joinToString(" ") { it.capitalizeOnlyFirst() }
+    }
+
     fun <K, V> MutableMap<K, V>.removeIf(filter: (Map.Entry<K, V>) -> Boolean) : Boolean {
         Objects.requireNonNull(filter)
         var removed = false

@@ -8,6 +8,7 @@ import java.util.*
  * @author Aton
  */
 object FontUtil {
+    // TODO remove this. The only method in here is redundant as it already exists in Extensions.
     /**
      * Returns a copy of the String where the only first letter is capitalized.
      */

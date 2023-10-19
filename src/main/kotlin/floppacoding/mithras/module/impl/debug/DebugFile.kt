@@ -1,14 +1,22 @@
 package floppacoding.mithras.module.impl.debug
 
-import net.minecraft.block.BellBlock
-import kotlin.reflect.full.functions
+import java.text.NumberFormat
+import java.util.*
 
 
 fun main() {
+    val price = 852173387
 
-    val clazz = B::class
-    val funs = clazz.functions
-    BellBlock::class.java.getDeclaredMethod("onUse")
+    val format = NumberFormat.getCurrencyInstance(Locale.US)
+    format.maximumFractionDigits = 1
+    println(format.format(price))
+    val format2 = NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.SHORT)
+    format2.minimumFractionDigits = 1
+    println(format2.format(price))
+
+    val format3 = NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.LONG)
+    format3.minimumFractionDigits = 1
+    println(format3.format(price))
 
 }
 

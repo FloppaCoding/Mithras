@@ -1,5 +1,6 @@
 package floppacoding.mithras.utils.inventory
 
+import floppacoding.mithras.utils.inventory.ItemUtils.powerAbilityScroll
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.AbstractNbtNumber
 import net.minecraft.nbt.NbtCompound
@@ -42,9 +43,43 @@ object ItemUtils {
             return (this.extraAttributes?.getInt("rarity_upgrades") ?: 0) > 0
         }
 
+    /**
+     * Returns true if the Skbylock item has an art of war applied, false otherwise.
+     */
+    val ItemStack.hasArtOfWar: Boolean
+        get() {
+            return (this.extraAttributes?.getInt("art_of_war_count") ?: 0) > 0
+        }
+
+    val ItemStack.stars: Int
+        get() {
+            return this.extraAttributes?.getInteger("upgrade_level") ?: this.extraAttributes?.getInteger("dungeon_item_level") ?: 0
+        }
+
+    /**
+     * Returns the number of master stars on this item or null if none applied.
+     */
+    val ItemStack.masterStars : Int?
+        get() {
+            val dungeonStars = this.extraAttributes?.getInteger("dungeon_item_level")?.minus(5) ?: 0
+            return if (dungeonStars > 0)
+                dungeonStars
+            else null
+        }
+
+    val ItemStack.dye: String?
+        get() {
+            return extraAttributes?.getStringOrNull("dye_item")
+        }
+
     val ItemStack.isStarred: Boolean
         get() {
-            return (this.extraAttributes?.getInt("upgrade_level") ?: 0) > 0
+            return this.stars > 0
+        }
+
+    val ItemStack.hotPotatoBooks: Int
+        get() {
+            return this.extraAttributes?.getInt("hot_potato_count") ?: 0
         }
 
     /**
@@ -57,11 +92,37 @@ object ItemUtils {
             return this.extraAttributes?.getString("id") ?: ""
         }
 
-    val ItemStack.reforge : String
+    val ItemStack.reforge : String?
         get() {
-            return this.extraAttributes?.getString("modifier") ?: ""
+            return extraAttributes?.getStringOrNull("modifier")
         }
 
+    val ItemStack.hasEtherwarp : Boolean
+        get() = this.extraAttributes?.getBoolean("ethermerge") ?: false
+
+    val ItemStack.transmissionTuners : Int?
+        get() = this.extraAttributes?.getInteger("tuned_transmission")?.div(2)
+
+    /**
+     * The applied power ability Scroll (gemstone scroll).
+     * @see abilityScrolls
+     */
+    val ItemStack.powerAbilityScroll: String?
+        get() {
+            return extraAttributes?.getStringOrNull("power_ability_scroll")
+        }
+
+    /**
+     * Returns a list of the ability scrolls present on this item. This applies for wither scrolls.
+     * @see powerAbilityScroll
+     */
+    val ItemStack.abilityScrolls: List<String>?
+        get() {
+            return this.extraAttributes?.getList("ability_scroll", NbtElement.STRING_TYPE.toInt())?.map { it.asString() }
+        }
+
+
+    // TODO implement text lore.
     /**
      * Gets the lore attribute of the item.
      * The strings will **NOT** contain formatting codes.
@@ -115,6 +176,82 @@ object ItemUtils {
         }
 
     /**
+     * Returns a map of enchantment name and level.
+     * If no enchantments present returns and empty map.
+     *
+     * @see [convertToEnchantID]
+     * @see [skyblockEnchantmentIDs]
+     */
+    val ItemStack.skyblockEnchantments: Map<String, Int>
+        get() {
+            val attributes = this.extraAttributes ?: return emptyMap()
+            if (!attributes.contains("enchantments", NbtElement.COMPOUND_TYPE.toInt())) return emptyMap()
+            val enchants = attributes.getCompound("enchantments")
+            return enchants.keys.associateWith { enchants.getInt(it) }
+        }
+
+    /**
+     * Returns a list of the IDs of the enchantments on this item.
+     * These IDs are what is used by the bazaar.
+     *
+     * @see [skyblockEnchantments]
+     */
+    val ItemStack.skyblockEnchantmentIDs: List<String>
+        get() {
+            return this.skyblockEnchantments.map { convertToEnchantID(it.key, it.value) }
+        }
+
+    /**
+     * Returns a map of all applied gemstones together with the count.
+     */
+    val ItemStack.gems: Map<Gemstone, Int>
+        get() {
+            val attributes = this.extraAttributes ?: return emptyMap()
+            if (!attributes.contains("gems", NbtElement.COMPOUND_TYPE.toInt())) return emptyMap()
+            val gems = attributes.getCompound("gems")
+            val gemMap = mutableMapOf<Gemstone, Int>()
+            for (slot in gems.keys) {
+                val matcher = gemSlotRegex.matchEntire(slot) ?: continue
+                val slotName = matcher.groups["slot"]?.value ?: continue
+                val gemInfoName = slot + "_gem"
+                val gemType: String = if (gems.contains(gemInfoName, NbtElement.STRING_TYPE.toInt())) {
+                    gems.getString(gemInfoName)
+                } else {
+                    slotName
+                }
+                val qualityname = if (gems.contains(slot, NbtElement.COMPOUND_TYPE.toInt())) {
+                    gems.getCompound(slot).getString("quality")
+                } else {
+                    gems.getString(slot)
+                }
+                val quality = try {
+                    Gemstone.Quality.valueOf(qualityname)
+                } catch (_: Exception) {
+                    continue
+                }
+
+                // check whether gem alr in the map and if so increment
+                gemMap.keys.find { it.type == gemType && it.quality == quality }?.let {
+                    gemMap[it] = gemMap[it]?.plus(1) ?: 1
+                } ?: let { gemMap[Gemstone(gemType, quality)] = 1 }
+            }
+
+            return gemMap
+        }
+
+    /**
+     * Returns a map of rune name and level.
+     * If no runes are present returns and empty map.
+     */
+    val ItemStack.runes: Map<String, Int>
+        get() {
+            val attributes = this.extraAttributes ?: return emptyMap()
+            if (!attributes.contains("runes", NbtElement.COMPOUND_TYPE.toInt())) return emptyMap()
+            val runes = attributes.getCompound("runes")
+            return runes.keys.associateWith { runes.getInt(it) }
+        }
+
+    /**
      * Gets the skyblock item rarity of this item.
      * If none could be found [ItemRarity.NONE] will be returned.
      */
@@ -146,6 +283,22 @@ object ItemUtils {
             return this?.lore?.any { it.contains("Shortbow: Instantly shoots!") } == true
         }
 
+    fun ItemStack.matchesItem(item: SkyblockItem): Boolean = this.itemID == item.itemID
+
+    val ItemStack.skyblockItem : SkyblockItem?
+        get() {
+            val itemID = this.itemID
+            return SkyblockItem.entries.find { it.itemID == itemID }
+        }
+
+    /**
+     * Maps the key and value of the enchantment in ExtraAttributes -> enchantments to the corresponding enchantment id,
+     * as is used by the bazaar.
+     */
+    fun convertToEnchantID(name: String, level: Int): String {
+        return "ENCHANTMENT_${name.uppercase()}_$level"
+    }
+
     private fun NbtCompound?.hasKey(key: String) : Boolean {
         return this?.contains(key) ?: false
     }
@@ -165,4 +318,18 @@ object ItemUtils {
         } catch (_: ClassCastException) { }
         return null
     }
+
+    /**
+     * Returns the string value associated with this [key].
+     * If the associated value is not of type string or does not exist returns null.
+     *
+     * This behaves differently than [NbtCompound.getString]
+     */
+    private fun NbtCompound.getStringOrNull(key: String) : String? {
+        return if (this.contains(key, NbtElement.STRING_TYPE.toInt())) {
+            this.getString(key)
+        }else null
+    }
+
+    private val gemSlotRegex = Regex("^(?<slot>[A-Z]+)_[\\d]$")
 }

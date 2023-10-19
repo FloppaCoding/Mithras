@@ -5,6 +5,7 @@ import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.AlwaysActive
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.settings.Setting.Companion.withInputTransform
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.*
 import org.lwjgl.glfw.GLFW
@@ -40,7 +41,10 @@ object MainSettings: Module(
     val chromaSpeed by NumberSetting("Chroma Speed",  0.5f, 0.0f,   1.0f, 0.01f, description = "Determines how fast the chroma changes with time.")
     val chromaAngle by NumberSetting("Chroma Angle", 45.0f, 0.0f, 360.0f,  1.0f, description = "Determines the direction in which the chroma changes on your screen.")
     val showUsageInfo = +BooleanSetting("Usage Info", true, visibility = Visibility.ADVANCED_ONLY, description = "Show info on how to use the GUI.")
-    val apiKey = +StringSetting("API Key", "", length = 100, visibility = Visibility.HIDDEN)
+    val apiKey = +StringSetting("API Key", "", length = 100, visibility = Visibility.HIDDEN).withInputTransform { apiKey: String ->
+        Mithras.apiHttpClient.updateAPIKey(apiKey)
+        return@withInputTransform apiKey
+    }
 
     const val ADVANCED_GUI_RELATIVE_WIDTH = 0.5
     const val ADVANCED_GUI_RELATIVE_HEIGHT = 0.5

@@ -30,6 +30,8 @@ repositories {
 		name = "meteor-maven"
 		url = "https://maven.meteordev.org/releases"
 	}
+
+	maven { url "https://repo.hypixel.net/repository/Hypixel/" }
 }
 
 loom {
@@ -56,14 +58,19 @@ dependencies {
 	// MixinExtras
 	include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.2.0-rc.4")))
 
+	// Hypixel API
+	include(implementation("net.hypixel:hypixel-api-transport-apache:4.3"))
+	include(implementation("net.hypixel:hypixel-api-core:4.3"))
+
 	// meteor orbit event bus
-	implementation "meteordevelopment:orbit:0.2.3"
-	include "meteordevelopment:orbit:0.2.3"
+	include(implementation("meteordevelopment:orbit:0.2.3"))
 
 	// NanoVG for rendering
-	implementation("org.lwjgl:lwjgl-nanovg:3.3.1")
-	include("org.lwjgl:lwjgl-nanovg:3.3.1")
-	include( "org.lwjgl:lwjgl-nanovg:3.3.1:natives-windows")
+	include(implementation("org.lwjgl:lwjgl-nanovg:3.3.1"))
+	def classifiers = ["natives-windows", "natives-linux", "natives-macos"]
+	for (classifier in classifiers) {
+		include("org.lwjgl:lwjgl-nanovg:3.3.1:${classifier}")
+	}
 }
 
 processResources {

@@ -5,15 +5,23 @@ import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.impl.render.PrefixStyle
 import floppacoding.mithras.utils.ChatUtils.chatMessage
+import floppacoding.mithras.utils.ChatUtils.createHoverableText
+import floppacoding.mithras.utils.ChatUtils.literalText
 import floppacoding.mithras.utils.ChatUtils.modMessage
 import floppacoding.mithras.utils.ChatUtils.sendMessage
+import floppacoding.mithras.utils.ChatUtils.setHoverEvent
+import floppacoding.mithras.utils.ChatUtils.setHoverText
+import net.minecraft.item.ItemStack
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
+import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.StringHelper
 import org.apache.commons.lang3.StringUtils
 
 /**
- * ## A collection of utility functions for creating and sending or displaying chat messages.
+ * # A collection of utility functions for creating and sending or displaying chat messages.
  *
  * Use [chatMessage] to put messages in chat which are only visible locally and are not sent to the server.
  *
@@ -21,10 +29,30 @@ import org.apache.commons.lang3.StringUtils
  *
  * Use [sendMessage] for sending a player message to the server.
  *
- * ### Some info about Minecraft methods:
+ * ## Some info about Minecraft methods:
  * The method [net.minecraft.client.network.ClientPlayerEntity.sendMessage] does exactly the same as
  * [net.minecraft.client.gui.hud.ChatHud.addMessage] even tho the name suggest otherwise.
  *
+ *
+ * ## Creating [Text] elements
+ * This class offers a variety of methods that make the creating of [Text] / [MutableText] elements easier.
+ * Most methods which accept string inputs generally support styled text with formatting codes containing §.
+ * When the method has an additional reformat argument it can also support formatting codes initiated with &.
+ *
+ * ### Creating text from a (formatted) String
+ * The easiest way to create a Text element is to use [literalText] which allows you to turn a string optionally
+ * containing formatting into the corresponding Text. This is equivalent to using [Text.literal].
+ *
+ * ### Creating hover events
+ * To create text with more info text as a hover event you can use [createHoverableText].
+ * Alternatively you can add hover events to already existing [MutableText] with [setHoverText] or [setHoverEvent].
+ *
+ * ### Combining [MutableText] elements
+ * To combine text elements into one use [MutableText.append]
+ *
+ * ### Further functionality
+ * If what you need does not exist look at the native minecraft methods. One which might be particularly useful is
+ * [MutableText.styled].
  *
  *
  * @author Aton
@@ -85,8 +113,9 @@ object ChatUtils {
      * @param reformat Replace the "&" in formatting strings with "§".
      * @see chatMessage
      */
+    @JvmOverloads
     fun modMessage(text: String, reformat: Boolean = true) {
-        val message: Text = Text.literal(if (reformat) reformatString(text) else text)
+        val message = literalText(text, reformat)
         modMessage(message)
     }
 
@@ -110,8 +139,9 @@ object ChatUtils {
      * @see modMessage
      * @see sendMessage
      */
+    @JvmOverloads
     fun chatMessage(text: String, reformat: Boolean = true) {
-        val message: Text = Text.literal(if (reformat) reformatString(text) else text)
+        val message = literalText(text, reformat)
         chatMessage(message)
     }
 
@@ -134,6 +164,7 @@ object ChatUtils {
      * @see chatMessage
      * @see modMessage
      */
+    @JvmOverloads
     fun sendMessage(message: String, addToHistory: Boolean = false) {
         val chatText = StringHelper.truncateChat(StringUtils.normalizeSpace(message.trim()))
         if (chatText.isNotEmpty()) {
@@ -162,18 +193,49 @@ object ChatUtils {
         mc.player?.networkHandler?.sendChatCommand(text)
     }
 
-//    /**
-//     * Creates a new IChatComponent displaying [text] and showing [hoverText] when it is hovered.
-//     * [hoverText] can include "\n" for new lines.
-//     *
-//     * Use [IChatComponent.appendSibling] to combine multiple Chat components into one.
-//     * Use the formatting characters to format the text.
-//     */
-//    fun createHoverableText(text: String, hoverText: String): IChatComponent {
-//        val message: IChatComponent = ChatComponentText(text)
-//        val style = ChatStyle()
-//        style.chatHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ChatComponentText(hoverText))
-//        message.chatStyle = style
-//        return message
-//    }
+    /**
+     * Creates a Mutable text instance from the literal representation given by [text].
+     * Supports formatting codes expressed with § and can also reformat formatting codes with &.
+     * @param reformat Replace the "&" in formatting strings with "§".
+     * @see Text.literal
+     */
+    @JvmOverloads
+    fun literalText(text: String, reformat: Boolean = true) : MutableText = Text.literal(if (reformat) reformatString(text) else text)
+
+    fun MutableText.setHoverEvent(hoverEvent: HoverEvent) : MutableText {
+        return this.setStyle(this.style.withHoverEvent(hoverEvent))
+    }
+
+    fun MutableText.setHoverText(text: Text): MutableText {
+        return this.setHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, text))
+    }
+
+    @JvmOverloads
+    fun MutableText.setHoverText(text: String, reformat: Boolean = true): MutableText {
+        return this.setHoverText(literalText(text, reformat))
+    }
+
+    fun MutableText.setHoverItem(itemStack: ItemStack): MutableText {
+        return this.setHoverEvent(HoverEvent(HoverEvent.Action.SHOW_ITEM, HoverEvent.ItemStackContent(itemStack)))
+    }
+
+    fun MutableText.setClickEvent(clickEvent: ClickEvent): MutableText {
+        return  this.setStyle(this.style.withClickEvent(clickEvent))
+    }
+
+    fun MutableText.setClickEvent(action: ClickEvent.Action, value: String) : MutableText {
+        return this.setClickEvent(ClickEvent(action, value))
+    }
+
+    /**
+     * Creates a new [MutableText] displaying [text] and showing [hoverText] when it is hovered.
+     * [hoverText] can include "\n" for new lines.
+     *
+     * Use [MutableText.append] to combine multiple Chat components into one.
+     * Use the formatting characters to format the text.
+     */
+    @JvmOverloads
+    fun createHoverableText(text: String, hoverText: String, reformat: Boolean = true): MutableText {
+        return literalText(text, reformat).setHoverText(hoverText, reformat)
+    }
 }

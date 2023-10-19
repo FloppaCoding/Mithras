@@ -15,19 +15,26 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.DungeonScan
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
+import floppacoding.mithras.ui.hud.Test
 import floppacoding.mithras.ui.hud.Test2
 import floppacoding.mithras.ui.nanovg.NVGImageManager
 import floppacoding.mithras.utils.*
 import floppacoding.mithras.utils.inventory.ItemUtils.formattedLore
 import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
+import floppacoding.mithras.utils.inventory.ItemValueCalculator
 import floppacoding.mithras.utils.inventory.NBTStringWriter
+import floppacoding.mithras.utils.network.BazaarAPI
+import floppacoding.mithras.utils.network.LowestBinAPI
+import kotlinx.coroutines.launch
 import net.minecraft.client.texture.PlayerSkinTexture
 import net.minecraft.entity.Entity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.decoration.ItemFrameEntity
 import net.minecraft.item.FilledMapItem
+import net.minecraft.text.HoverEvent
 import net.minecraft.text.MutableText
+import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import java.io.IOException
@@ -364,6 +371,17 @@ object DebugCommand : Command {
                         ChatUtils.chatMessage("Copied held item nbt data to clipboard.")
                     }
                 }
+                literal("value") {
+                    execute {
+                        val stack = mc.player?.inventory?.mainHandStack
+                        if (stack == null) {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val price = ItemValueCalculator.getStackValue(stack)
+                        ChatUtils.modMessage(price.createHoverableText())
+                    }
+                }
                 literal("lore") {
                     execute {
                         val stack = mc.player?.inventory?.mainHandStack
@@ -465,10 +483,38 @@ object DebugCommand : Command {
                         val layer = IceFillSolver.Layer(size, center,  Pair(-7,0))
                     }
                 }
+                literal("screen") {
+                    execute {
+                        Extensions.setScreen(Test2)
+                    }
+                }
+                literal("testscreen") {
+                    execute {
+                        Extensions.setScreen(Test)
+                    }
+                }
+                literal("chat") {
+                    execute {
+                        val text = Text.literal("12")
+                        val hoverText = Text.literal("Hover §ctext\nline two")
+                        val hoverEvent = HoverEvent(HoverEvent.Action.SHOW_ENTITY, HoverEvent.EntityContent(mc.player!!.getType(), mc.player!!.getUuid(), mc.player!!.getName()))
+                        text.style = text.style.withHoverEvent(hoverEvent).withInsertion("insertion")
+                        ChatUtils.chatMessage(text)
+                        mc.player?.mainHandStack?.let{ChatUtils.modMessage(it.toHoverableText()) }
+                        mc.player?.let { ChatUtils.modMessage(it.displayName) }
+                    }
+                }
             }
-            literal("screen") {
-                execute {
-                    Extensions.setScreen(Test2)
+            literal("api") {
+                literal("bazaar") {
+                    execute {
+                        Mithras.scope.launch { BazaarAPI.loadData() }
+                    }
+                }
+                literal("lbin") {
+                    execute {
+                        Mithras.scope.launch { LowestBinAPI.loadData() }
+                    }
                 }
             }
         }

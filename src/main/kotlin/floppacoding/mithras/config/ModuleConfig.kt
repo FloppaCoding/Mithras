@@ -53,6 +53,11 @@ class ModuleConfig(path: File) {
         }
     }
 
+    /**
+     * Loads the settings from the config file and updates the Modules.
+     *
+     * Modules must be loaded.
+     */
     fun loadConfig() {
         try {
             val configModules: ArrayList<ConfigModule>
