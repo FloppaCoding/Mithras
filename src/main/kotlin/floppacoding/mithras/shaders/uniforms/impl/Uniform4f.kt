@@ -1,26 +1,16 @@
 package floppacoding.mithras.shaders.uniforms.impl
 
-import floppacoding.mithras.shaders.uniforms.Uniform
+import floppacoding.mithras.shaders.uniforms.UniformGL
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL20
-import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 
-class Uniform4f(programID: Int, name: String, private val source: (() -> Vector4f)?) : Uniform<Vector4f>(programID, name) {
-    private val floatData: FloatBuffer = MemoryUtil.memAllocFloat(4)
-
-    override var lastValue: Vector4f? = null
-    override fun update() {
-        val newVal = source?.let { it() } ?: return
-        if (newVal != lastValue) {
-            floatData.position(0)
-            floatData.put(0, newVal.x)
-            floatData.put(1, newVal.y)
-            floatData.put(2, newVal.z)
-            floatData.put(3, newVal.w)
-            floatData.rewind()
-            GL20.glUniform4fv(this.uninformID, floatData)
-            lastValue = newVal
-        }
+class Uniform4f : UniformGL<Vector4f, FloatBuffer> {
+    constructor(programID: Int, name: String, updater: () -> Vector4f) : super(programID, name, Type.FLOAT, 4, updater)
+    constructor(programID: Int, name: String): super(programID, name, Type.FLOAT, 4)
+    override fun writeNewValToBuffer(newValue: Vector4f) {
+        this.buffer.put(0, newValue.x)
+        this.buffer.put(1, newValue.y)
+        this.buffer.put(2, newValue.z)
+        this.buffer.put(3, newValue.w)
     }
 }

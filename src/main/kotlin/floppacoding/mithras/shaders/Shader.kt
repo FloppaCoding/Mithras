@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.shaders.uniforms.Uniform
+import floppacoding.mithras.shaders.uniforms.UniformGL
 import floppacoding.mithras.shaders.uniforms.impl.Uniform2f
 import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix3f
 import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix4f
@@ -11,8 +12,8 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.VertexFormat
 import net.minecraft.util.Identifier
 import org.joml.Vector2f
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL40
+import org.lwjgl.opengl.GL46
+import java.io.IOException
 
 /**
  * Shaders can be used to transform the image that is being drawn.
@@ -31,17 +32,17 @@ import org.lwjgl.opengl.GL40
  * To then use the shader (let's call it SomeShader) simply invoke SomeShader.useShader() before rendering and
  * SomeShader.stopShader() after rendering the part that should be affected.
  *
- * @see Uniform
+ * @see UniformGL
  */
-open class Shader(vertexFile: String, fragmentFile: String, protected val format: VertexFormat) {
+open class Shader(private val vertexFile: String, private val fragmentFile: String, protected val format: VertexFormat) : AutoCloseable {
 
     constructor(name: String, format: VertexFormat) : this("$name.vert", "$name.frag", format)
 
-    val programID: Int
-    private val vertexShaderID: Int
-    private val fragmentShaderID: Int
+    var programID: Int
+    private var vertexShaderID: Int
+    private var fragmentShaderID: Int
 
-    private val uniforms: ArrayList<Uniform<*>> = arrayListOf()
+    private val uniforms: ArrayList<Uniform> = arrayListOf()
 
     protected val modelViewMat: UniformMatrix4f
     protected val projectionMat: UniformMatrix4f
@@ -49,13 +50,13 @@ open class Shader(vertexFile: String, fragmentFile: String, protected val format
     protected val screenSize: Uniform2f
 
     init {
-        vertexShaderID = loadShader(vertexFile, GL40.GL_VERTEX_SHADER)
-        fragmentShaderID = loadShader(fragmentFile, GL40.GL_FRAGMENT_SHADER)
-        programID = GL40.glCreateProgram()
-        GL40.glAttachShader(programID, vertexShaderID)
-        GL40.glAttachShader(programID, fragmentShaderID)
-        GL40.glLinkProgram(programID)
-        GL40.glValidateProgram(programID)
+        vertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
+        fragmentShaderID = loadShader(fragmentFile, GL46.GL_FRAGMENT_SHADER)
+        programID = GL46.glCreateProgram()
+        GL46.glAttachShader(programID, vertexShaderID)
+        GL46.glAttachShader(programID, fragmentShaderID)
+        GL46.glLinkProgram(programID)
+        GL46.glValidateProgram(programID)
 
         modelViewMat = UniformMatrix4f(programID, "ModelViewMat") {RenderSystem.getModelViewMatrix()}
         projectionMat = UniformMatrix4f(programID, "ProjMat") {RenderSystem.getProjectionMatrix()}
@@ -70,22 +71,51 @@ open class Shader(vertexFile: String, fragmentFile: String, protected val format
      * Activates this shader.
      */
     fun useShader() {
-        GL40.glUseProgram(programID)
+        GL46.glUseProgram(programID)
         updateUniforms()
+    }
+
+    /**
+     * Attempts to reload and recompile the shader from the corresponding files.
+     *
+     * If there is an error the old shader will persist and the error is printed to the logs.
+     * @throws Exception when there was an error with compiling the shader or validation the program.
+     * @throws IOException when the shader could not be read.
+     */
+    @Throws(Exception::class, IOException::class)
+    fun reloadShader() {
+        val newVertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
+        val newFragmentShaderID = loadShader(fragmentFile, GL46.GL_FRAGMENT_SHADER)
+        val newProgramID = GL46.glCreateProgram()
+        GL46.glAttachShader(newProgramID, newVertexShaderID)
+        GL46.glAttachShader(newProgramID, newFragmentShaderID)
+        GL46.glLinkProgram(newProgramID)
+        GL46.glValidateProgram(newProgramID)
+
+        if (GL46.glGetProgrami(newProgramID, GL46.GL_VALIDATE_STATUS) != GL46.GL_TRUE) {
+            throw Exception("Program validation failed.")
+        }
+
+
+        // glDeleteShader flags the shader for deletion for when it is no longer attached to a program.
+        GL46.glDeleteShader(vertexShaderID)
+        GL46.glDeleteShader(fragmentShaderID)
+        GL46.glDeleteProgram(programID)
+
+        programID = newProgramID
+        vertexShaderID = newVertexShaderID
+        fragmentShaderID = newFragmentShaderID
+
+
+        // Update the IDs of the uniforms to the new program
+        uniforms.forEach { it.updateID(programID) }
     }
 
     /**
      * Deactivates this shader by setting the current gl program to 0.
      */
     fun stopShader() {
-        GL40.glUseProgram(0)
-    }
-
-    /**
-     * Deletes this Program from the GPU Memory.
-     */
-    fun unloadShader() {
-        GL40.glDeleteProgram(programID)
+        GL46.glUseProgram(0)
     }
 
     /**
@@ -93,7 +123,7 @@ open class Shader(vertexFile: String, fragmentFile: String, protected val format
      *
      * To be used in the Implementations.
      */
-    protected fun registerUniforms(vararg uniformArgs: Uniform<*>) {
+    protected fun registerUniforms(vararg uniformArgs: Uniform) {
         uniformArgs.forEach { uniforms.add(it) }
     }
 
@@ -110,33 +140,36 @@ open class Shader(vertexFile: String, fragmentFile: String, protected val format
      * Loads the shader with the given file name relative to RESOURCE_DOMAIN\shaders.
      *
      * @return The Id of the created shader.
-     * @throws Error when there was an error with compiling the shader
+     * @throws Exception when there was an error with compiling the shader.
      * @throws IOException when the shader could not be read.
      */
-    @Throws(Error::class, Exception::class)
+    @Throws(Exception::class, IOException::class)
     private fun loadShader(file: String, type: Int): Int {
         val builder = java.lang.StringBuilder()
         try {
-            val reader = mc.resourceManager.getResource(Identifier(Mithras.RESOURCE_DOMAIN, "shaders/$file")).get()
-                .inputStream.bufferedReader()
-            var line: String? = reader.readLine()
-            while (line != null) {
-                builder.append(line).append("//\n")
-                line = reader.readLine()
-            }
-            reader.close()
+            mc.resourceManager.getResource(Identifier(Mithras.RESOURCE_DOMAIN, "shaders/$file")).get()
+                .inputStream.bufferedReader().useLines {
+                    it.forEach { line -> builder.append(line).append("\n") }
+                }
         }catch (e: Exception) {
             e.printStackTrace()
             throw  e
         }
-        val shaderId = GL40.glCreateShader(type)
-        GL40.glShaderSource(shaderId, builder)
-        GL40.glCompileShader(shaderId)
+        val shaderId = GL46.glCreateShader(type)
+        GL46.glShaderSource(shaderId, builder)
+        GL46.glCompileShader(shaderId)
 
-        if (GL40.glGetShaderi(shaderId, GL40.GL_COMPILE_STATUS) == GL11.GL_FALSE){
-            Mithras.logger.error(GL40.glGetShaderInfoLog(shaderId, 1000))
-            throw Error("Failed loading shader")
+        if (GL46.glGetShaderi(shaderId, GL46.GL_COMPILE_STATUS) == GL46.GL_FALSE){
+            Mithras.logger.error(GL46.glGetShaderInfoLog(shaderId, 1000))
+            throw Exception("Failed loading shader")
         }
         return shaderId
+    }
+
+    override fun close() {
+        GL46.glDeleteShader(vertexShaderID)
+        GL46.glDeleteShader(fragmentShaderID)
+        GL46.glDeleteProgram(programID)
+        uniforms.forEach { it.close() }
     }
 }
