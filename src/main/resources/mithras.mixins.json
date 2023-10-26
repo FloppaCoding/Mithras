@@ -5,6 +5,7 @@
   "mixins": [
     "MapStateAccessor",
     "PlayerInventoryMixin",
+    "WorldChunkMixin",
     "network.ClientConnectionMixin"
   ],
   "injectors": {

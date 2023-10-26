@@ -51,6 +51,7 @@ object ModuleManager {
         CreeperBeamsSolver,
         TeleportSolver,
         StarMobHighlight,
+        DungeonTimers,
         QuizSolver,
         IceFillSolver,
         WaterBoardSolver,

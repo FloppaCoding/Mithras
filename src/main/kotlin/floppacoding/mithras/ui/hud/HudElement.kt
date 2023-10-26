@@ -113,7 +113,7 @@ abstract class HudElement  {
      * You can use [NVGR] for nice rendering, but the vanilla [context] is also available and properly transformed.
      * So the vanilla rendering can be used as well.
      */
-    abstract fun renderHud()
+    protected abstract fun renderHud()
 
     /**
      * Used for moving the hud element.
@@ -124,9 +124,18 @@ abstract class HudElement  {
         renderer.translate(x, y)
         renderer.scale(scale.value, scale.value)
 
-        renderer.rect(0f, 0f, width, height, -0x44eaeaeb)
+        drawPreview()
 
         renderer.pop()
+    }
+
+    /**
+     * Draws a box with the dimensions of the hud element as a preview.
+     *
+     * If a custom preview is desired this can be overridden.
+     */
+    protected open fun drawPreview() {
+        renderer.rect(0f, 0f, width, height, -0x44eaeaeb)
     }
 
     companion object {

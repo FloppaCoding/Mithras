@@ -117,6 +117,8 @@ object Extensions {
     @JvmStatic
     val HORIZONTALS: List<Direction> = listOf(Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST)
 
+    fun Double.format(digits: Int) = "%.${digits}f".format(this)
+    fun Float.format(digits: Int) = "%.${digits}f".format(this)
 
     // TODO rename this
     /**

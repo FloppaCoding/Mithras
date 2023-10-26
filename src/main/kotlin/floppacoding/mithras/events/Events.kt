@@ -1,6 +1,7 @@
 package floppacoding.mithras.events
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.minecraft.block.BlockState
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
@@ -13,6 +14,7 @@ import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.slot.Slot
 import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.text.Text
+import net.minecraft.util.math.BlockPos
 
 //
 // A collection of all basic events for this mod.
@@ -171,7 +173,7 @@ class GuiOpenEvent(val screen: Screen)
  * Posted when the in game hud is being rendered.
  * Posted right after the hotbar is rendered but before everything else is rendered.
  * Does not get posted when the hud is hidden but does get posted in spectator
- * @see floppacoding.mithras.mixin.InGameHudMixin.onRenderHUD
+ * @see floppacoding.mithras.mixin.gui.InGameHudMixin.onRenderHUD
  */
 class HudRenderEvent(val partialTicks: Float)
 
@@ -222,3 +224,9 @@ class PacketReceivedEvent(val packet: Packet<*>)
  * @see floppacoding.mithras.mixin.network.ClientPlayNetwarkHandlerMixin
  */
 class TeleportEvent(val packet: PlayerPositionLookS2CPacket)
+
+/**
+ * Posted whenever a block is changed.
+ * @see floppacoding.mithras.mixin.WorldChunkMixin.onSetBlock
+ */
+class BlockStateChangeEvent(val pos: BlockPos, val oldState: BlockState, val newState: BlockState)
