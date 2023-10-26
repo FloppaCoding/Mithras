@@ -15,6 +15,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.DungeonScan
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
+import floppacoding.mithras.shaders.impl.FractalShader
 import floppacoding.mithras.ui.hud.Test
 import floppacoding.mithras.ui.hud.Test2
 import floppacoding.mithras.ui.nanovg.NVGImageManager
@@ -503,6 +504,15 @@ object DebugCommand : Command {
                         mc.player?.mainHandStack?.let{ChatUtils.modMessage(it.toHoverableText()) }
                         mc.player?.let { ChatUtils.modMessage(it.displayName) }
                     }
+                }
+                literal("reloadShader") {
+                    execute { mc.send{
+                        try {
+                            FractalShader.reloadShader()
+                        }catch (e: Exception) {
+                            ChatUtils.chatMessage(e.message ?: "Reloading shader failed.")
+                        }
+                    }}
                 }
             }
             literal("api") {
