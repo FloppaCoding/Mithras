@@ -1,11 +1,11 @@
 package floppacoding.mithras.utils.render.nanovg
 
 import com.mojang.blaze3d.systems.RenderSystem
-import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.utils.render.*
 import floppacoding.mithras.utils.render.nanovg.NVGR.beginFrame
 import floppacoding.mithras.utils.render.nanovg.NVGR.endFrame
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import org.lwjgl.nanovg.NVGColor
 import org.lwjgl.nanovg.NVGPaint
@@ -45,6 +45,8 @@ import java.nio.FloatBuffer
 @Suppress("unused")
 object NVGR : Renderer2D {
     val nanoContext: Long = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS)
+    private val mc = MinecraftClient.getInstance()
+
 
     override val defaultFont: Font = NVGFontManager.ROBOTO
 

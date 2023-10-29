@@ -1,7 +1,22 @@
 package floppacoding.mithras.utils.render
 
+import floppacoding.mithras.utils.render.nanovg.NVGR.beginFrame
+import floppacoding.mithras.utils.render.nanovg.NVGR.endFrame
 import net.minecraft.client.gui.DrawContext
+// TODO add overloads for methods with default parameters for java compatibility
 
+/**
+ * # A library for antialiased 2D rendering.
+ *
+ * This library is meant for nice GUI and HUD rendering.
+ *
+ * ## Usage
+ * All rendering related instructions from this library have to be wrapped in [beginFrame] and [endFrame].
+ * The coordinate system has its origin in the top left corner of the screen with x going to the right and y towards the bottom.
+ * The coordinates scale 1 to 1 to pixels on the screen.
+ *
+ * @author Aton
+ */
 interface Renderer2D {
 
     val defaultFontHeight: Float

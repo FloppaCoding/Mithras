@@ -31,6 +31,16 @@ repositories {
 		url = "https://maven.meteordev.org/releases"
 	}
 
+//	maven {
+//		name = 'Ladysnake Mods'
+//		url = 'https://maven.ladysnake.org/releases'
+//		content {
+//			includeGroup 'io.github.ladysnake'
+//			includeGroup 'org.ladysnake'
+//			includeGroupByRegex 'dev\\.onyxstudios.*'
+//		}
+//	}
+
 	maven { url "https://repo.hypixel.net/repository/Hypixel/" }
 }
 
@@ -64,6 +74,8 @@ dependencies {
 
 	// meteor orbit event bus
 	include(implementation("meteordevelopment:orbit:0.2.3"))
+
+//	include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
 
 	// NanoVG for rendering
 	include(implementation("org.lwjgl:lwjgl-nanovg:3.3.1"))

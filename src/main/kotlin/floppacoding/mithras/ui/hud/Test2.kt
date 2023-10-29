@@ -17,26 +17,31 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
 
         context.matrices.translate(100f, 50f, 0f)
         context.matrices.scale(0.5f, 0.5f, 1.0f)
-        NVGR.beginFrame(context)
-        GLR.beginFrame(context)
 
+
+        context.matrices.push()
         val angle = (System.currentTimeMillis() - 1698539810826)/100f
 
         context.matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle))
         context.fill(0,0,100,50,-1)
+        context.matrices.pop()
 
+        NVGR.beginFrame(context)
+        GLR.beginFrame(context)
 
+        NVGR.translate(100f, 0f)
         NVGR.rotate(angle)
         NVGR.scissor(0f,0f,100f, 50f)
-        NVGR.rect(-5f,-5f,110f,60f, Color(255,0,0,100).rgb)
+        NVGR.rect(0f,0f,100f,50f, Color(255,0,0,100).rgb)
         NVGR.endScissor()
         NVGR.endFrame()
 
 
+        GLR.translate(200f, 0f)
         GLR.rotate(angle)
         GLR.scissor(0f, 0f, 100f,50f)
 
-        GLR.rect(-5f,-5f,110f,60f,  Color(0,255,0,100).rgb)
+        GLR.rect(0f,0f,100f,50f,  Color(0,255,0,100).rgb)
         GLR.endScissor()
         GLR.endFrame()
 

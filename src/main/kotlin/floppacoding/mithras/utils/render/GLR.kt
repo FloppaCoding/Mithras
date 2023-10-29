@@ -1,9 +1,10 @@
 package floppacoding.mithras.utils.render
 
 import com.mojang.blaze3d.systems.RenderSystem
-import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.shaders.impl.GUIShader
 import floppacoding.mithras.shaders.impl.RoundedRectangle
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gl.Framebuffer
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.BufferRenderer
 import net.minecraft.client.render.VertexFormat
@@ -20,18 +21,26 @@ import kotlin.math.round
 //   and letting all transformation methods act on RenderSystem.getModelViewMatrix instead.
 //   Or maybe even use a new matrix stack,  to prevent compatibility issues.
 //
+// TODO also consider adding option for the antialising, to disable / enable it or to change the samples.
+//
+//
 //   Doing so is more efficient since it reduces teh cpu load. (might not be relevant tho)
 //   Also consider better buffering so that everything which uses the same shader gets drawn at once.
-
 
 object GLR {
 
     private var matrices: MatrixStack = MatrixStack()
-    val projectionMatrix = Matrix4f().setOrtho(0.0f, 1920f, 1080f, 0.0f, 1000.0f, 21000.0f)
+    val projectionMatrix: Matrix4f = Matrix4f().setOrtho(0.0f, 1920f, 1080f, 0.0f, 1000.0f, 21000.0f)
+
+    private val msaaBuffer: MSAAFramebuffer = MSAAFramebuffer.getInstance(8)
+    private val mainBuffer: Framebuffer = MinecraftClient.getInstance().framebuffer
+
+    private val mc = MinecraftClient.getInstance()
 
     fun beginFrame() {
         this.matrices = MatrixStack()
         projectionMatrix.setOrtho(0.0f, mc.window.framebufferWidth.toFloat(), mc.window.framebufferHeight.toFloat(), 0.0f, 1000.0f, 21000.0f)
+        msaaBuffer.useBuffer(mainBuffer)
     }
 
     fun beginFrame(context: DrawContext) {
@@ -46,7 +55,9 @@ object GLR {
         matrices.peek().normalMatrix.mul(context.matrices.peek().normalMatrix)
     }
 
-    fun endFrame() {}
+    fun endFrame() {
+        msaaBuffer.endUsingBuffer(mainBuffer)
+    }
 
     /**
      * Translates the origin of the current coordinate system.
