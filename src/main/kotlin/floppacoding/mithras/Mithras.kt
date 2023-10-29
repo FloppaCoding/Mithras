@@ -9,12 +9,12 @@ import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.ui.clickgui.ClickGUI
-import floppacoding.mithras.ui.nanovg.NVGR
 import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.HypixelAPIHttpClient
 import floppacoding.mithras.utils.network.LowestBinAPI
 import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.mithras.utils.render.nanovg.NVGR
 import kotlinx.coroutines.*
 import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler

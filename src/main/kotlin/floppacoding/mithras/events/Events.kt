@@ -175,7 +175,7 @@ class GuiOpenEvent(val screen: Screen)
  * Does not get posted when the hud is hidden but does get posted in spectator
  * @see floppacoding.mithras.mixin.gui.InGameHudMixin.onRenderHUD
  */
-class HudRenderEvent(val partialTicks: Float)
+class HudRenderEvent(val context: DrawContext, val partialTicks: Float)
 
 
 /**

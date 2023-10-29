@@ -1,11 +1,12 @@
-package floppacoding.mithras.ui.nanovg
+package floppacoding.mithras.utils.render.nanovg
 
 import com.mojang.blaze3d.systems.RenderSystem
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.render.MainSettings
-import floppacoding.mithras.ui.nanovg.NVGR.beginFrame
-import floppacoding.mithras.ui.nanovg.NVGR.endFrame
 import floppacoding.mithras.utils.render.*
+import floppacoding.mithras.utils.render.nanovg.NVGR.beginFrame
+import floppacoding.mithras.utils.render.nanovg.NVGR.endFrame
+import net.minecraft.client.gui.DrawContext
 import org.lwjgl.nanovg.NVGColor
 import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoVG.*
@@ -77,17 +78,18 @@ object NVGR : Renderer2D {
      */
     override fun beginFrame() {
 //        saveCurrentState()
-        nvgBeginFrame(
-            nanoContext,
-            mc.window.width.toFloat(),
-            mc.window.height.toFloat(),
-            1f
-        )
+        nvgBeginFrame(nanoContext, mc.window.width.toFloat(), mc.window.height.toFloat(), 1f)
         //Cull has to be disabled, otherwise sprites (grass, etc.) will be rendered incorrectly.
         RenderSystem.disableCull()
 //        RenderSystem.disableBlend() // Do not disable blend or thing might not show up correctly
     }
 
+    override fun setTransform(context: DrawContext) {
+        val posMat  = context.matrices.peek().positionMatrix
+        nvgReset(nanoContext)
+        nvgScale(nanoContext, mc.window.scaleFactor.toFloat(), mc.window.scaleFactor.toFloat())
+        nvgTransform(nanoContext, posMat.m00(), posMat.m01(), posMat.m10(), posMat.m11(), posMat.m30(), posMat.m31())
+    }
 
     /**
      * Ends drawing the frame.

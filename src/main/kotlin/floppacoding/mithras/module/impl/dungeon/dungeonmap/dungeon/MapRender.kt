@@ -8,13 +8,14 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.roomSize
 import floppacoding.mithras.ui.hud.EditHudGUI
 import floppacoding.mithras.ui.hud.HudElement
-import floppacoding.mithras.ui.nanovg.NVGImageManager
 import floppacoding.mithras.utils.Extensions.equalsOneOf
 import floppacoding.mithras.utils.Extensions.withAlpha
 import floppacoding.mithras.utils.LocationManager.inDungeons
 import floppacoding.mithras.utils.inventory.InventoryUtils.isHoldingInMainHand
 import floppacoding.mithras.utils.inventory.SkyblockItem
 import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.mithras.utils.render.nanovg.NVGImageManager
+import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.entity.PlayerModelPart
 import java.awt.Color
 
@@ -26,7 +27,7 @@ object MapRender: HudElement(
     DungeonMap.mapScale
 ){
 
-    override fun renderHud() {
+    override fun renderHud(context: DrawContext) {
 
         if (!inDungeons) return
         if (DungeonMap.hideInBoss.enabled && Dungeon.inBoss) return

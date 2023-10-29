@@ -1,8 +1,8 @@
 package floppacoding.mithras.ui.hud
 
-import floppacoding.mithras.ui.nanovg.GuiScreen
-import floppacoding.mithras.ui.nanovg.NVGImageManager
-import floppacoding.mithras.ui.nanovg.NVGR
+import floppacoding.mithras.utils.render.GuiScreen
+import floppacoding.mithras.utils.render.nanovg.NVGImageManager
+import floppacoding.mithras.utils.render.nanovg.NVGR
 import java.awt.Color
 
 object Test : GuiScreen("Hello") {

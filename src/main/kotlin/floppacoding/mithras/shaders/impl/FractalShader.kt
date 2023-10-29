@@ -21,7 +21,7 @@ object FractalShader : Shader("fractal/fractal", VertexFormats.POSITION_COLOR_TE
         this.registerUniforms(
             this.modelViewMat,
             this.projectionMat,
-            this.screenSize,
+            this.windowSize,
             width,
             corner
         )

@@ -1,4 +1,4 @@
-package floppacoding.mithras.ui.nanovg
+package floppacoding.mithras.utils.render.nanovg
 
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc

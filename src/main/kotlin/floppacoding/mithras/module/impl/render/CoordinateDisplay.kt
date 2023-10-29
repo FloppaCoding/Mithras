@@ -6,6 +6,7 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.RegisterHudElement
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.ui.hud.HudElement
+import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.util.hit.HitResult
 import kotlin.math.floor
@@ -24,10 +25,10 @@ object CoordinateDisplay : Module(
 
     @RegisterHudElement
     object CoordinateHUD : HudElement(CoordinateDisplay, 0f, 150f,
-        renderer.textWidth("123 / 12 / 123 (12.3 / 12.3)"),
-        renderer.defaultFontHeight,
+        DEFAULT_RENDERER.textWidth("123 / 12 / 123 (12.3 / 12.3)"),
+        DEFAULT_RENDERER.defaultFontHeight,
     ) {
-        override fun renderHud() {
+        override fun renderHud(context: DrawContext) {
 
             val player: ClientPlayerEntity = mc.player ?: return
 

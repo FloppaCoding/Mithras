@@ -15,6 +15,7 @@ import floppacoding.mithras.ui.hud.HudElement
 import floppacoding.mithras.utils.Extensions.format
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.Blocks
+import net.minecraft.client.gui.DrawContext
 import net.minecraft.util.math.BlockPos
 import java.awt.Color
 
@@ -61,12 +62,12 @@ object DungeonTimers : Module(
     @RegisterHudElement
     object SpiritBearTimerHUD : HudElement(
         DungeonTimers, 700f, 500f,
-        renderer.textWidth("Spirit Bear: 1.00s"),
-        renderer.defaultFontHeight,
+        DEFAULT_RENDERER.textWidth("Spirit Bear: 1.00s"),
+        DEFAULT_RENDERER.defaultFontHeight,
     ) {
         var arrivalTime: Long = 0L
 
-        override fun renderHud() {
+        override fun renderHud(context: DrawContext) {
             if (arrivalTime == 0L) return
             val remainig = arrivalTime - System.currentTimeMillis()
             if (remainig <0 ) {

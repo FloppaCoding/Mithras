@@ -1,12 +1,10 @@
-package floppacoding.mithras.ui.nanovg
+package floppacoding.mithras.utils.render
 
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.utils.Extensions.seconds
 import floppacoding.mithras.utils.clock.Clock
 import floppacoding.mithras.utils.clock.Executor
-import floppacoding.mithras.utils.render.Renderer2D
-import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent

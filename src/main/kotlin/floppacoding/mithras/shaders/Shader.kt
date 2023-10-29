@@ -8,6 +8,7 @@ import floppacoding.mithras.shaders.uniforms.UniformGL
 import floppacoding.mithras.shaders.uniforms.impl.Uniform2f
 import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix3f
 import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix4f
+import floppacoding.mithras.utils.render.GLR
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.VertexFormat
 import net.minecraft.util.Identifier
@@ -44,10 +45,41 @@ open class Shader(private val vertexFile: String, private val fragmentFile: Stri
 
     private val uniforms: ArrayList<Uniform> = arrayListOf()
 
+    /**
+     * The [model view matrix][RenderSystem.getModelViewMatrix]
+     * combines teh transformation from object coordinates to world coordinates and from those
+     * to camera coordinates.
+     *
+     * For Hud elements this should always consist of the Identity combined with a translation by z = -11000.
+     *
+     *  1 | 0 | 0 | 0
+     *  | ---: | ---: | ---: | ---:
+     *  0 | 1 | 0 | 0
+     *  0 | 0 | 1 | -11000
+     *  0 | 0 | 0 | 1
+     *
+     */
     protected val modelViewMat: UniformMatrix4f
+    /**
+     * The [projection matrix][RenderSystem.getProjectionMatrix] used by vanilla rendering.
+     * This **DOES** include the GUI Scale.
+     *
+     * This uniform is exclusive with [projectionMat].
+     *
+     * @see projectionMat
+     */
+    protected val vanillaProjectionMat: UniformMatrix4f
+    /**
+     * The [projection matrix][GLR.projectionMatrix] used for custom rendering.
+     * This does **NOT** include the GUI Scale.
+     *
+     * This uniform is exclusive with [vanillaProjectionMat].
+     *
+     * @see vanillaProjectionMat
+     */
     protected val projectionMat: UniformMatrix4f
     protected val viewRotationMat: UniformMatrix3f
-    protected val screenSize: Uniform2f
+    protected val windowSize: Uniform2f
 
     init {
         vertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
@@ -59,9 +91,10 @@ open class Shader(private val vertexFile: String, private val fragmentFile: Stri
         GL46.glValidateProgram(programID)
 
         modelViewMat = UniformMatrix4f(programID, "ModelViewMat") {RenderSystem.getModelViewMatrix()}
-        projectionMat = UniformMatrix4f(programID, "ProjMat") {RenderSystem.getProjectionMatrix()}
+        vanillaProjectionMat = UniformMatrix4f(programID, "ProjMat") {RenderSystem.getProjectionMatrix()}
+        projectionMat = UniformMatrix4f(programID, "ProjMat") { GLR.projectionMatrix }
         viewRotationMat = UniformMatrix3f(programID, "IViewRotMat") {RenderSystem.getInverseViewRotationMatrix()}
-        screenSize = Uniform2f(programID, "ScreenSize") {
+        windowSize = Uniform2f(programID, "ScreenSize") {
             val window = MinecraftClient.getInstance().window
             Vector2f(window.framebufferWidth.toFloat(), window.framebufferHeight.toFloat())
         }

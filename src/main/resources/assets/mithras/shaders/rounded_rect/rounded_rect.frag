@@ -21,7 +21,7 @@ void main() {
 
     float d = sdRoundedBox(texCoord0 - halfDimensions, halfDimensions, radius);
 
-    color.a = smoothstep(1.0, 0.0, d);
+    color.a *= smoothstep(1.0, 0.0, d);
 
     if (color.a == 0.0) {
         discard;
