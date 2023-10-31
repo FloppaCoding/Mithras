@@ -373,7 +373,7 @@ object NVGR : Renderer2D {
     /**
      * Sets fill style for [nvgFill] to the specified color.
      */
-    private fun setFillColor(color: Int) {
+    fun setFillColor(color: Int) {
         updateColor(color)
         nvgFillColor(nanoContext, nanoColor)
     }
@@ -460,7 +460,7 @@ object NVGR : Renderer2D {
         pop()
     }
 
-    private fun updateColor(color: Int, result: NVGColor = nanoColor) = nvgRGBA(
+    fun updateColor(color: Int, result: NVGColor = nanoColor) = nvgRGBA(
             (color shr 16 and 0xFF).toByte(),
             (color shr 8 and 0xFF).toByte(),
             (color and 0xFF).toByte(),
