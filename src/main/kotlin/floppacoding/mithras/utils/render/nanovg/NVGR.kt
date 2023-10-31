@@ -193,7 +193,7 @@ object NVGR : Renderer2D {
         nvgBeginPath(nanoContext)
         nvgStrokeWidth(nanoContext, width)
         setStrokeColor(color)
-        nvgLineCap(nanoContext, capStyle.nvg)
+        nvgLineCap(nanoContext, capStyle.id)
         nvgMoveTo(nanoContext, x1, y1)
         nvgLineTo(nanoContext, x2, y2)
         nvgStroke(nanoContext)
@@ -381,7 +381,7 @@ object NVGR : Renderer2D {
     /**
      * Fills the current path with the given color.
      */
-    override fun fillWithColor(color: Int) {
+    fun fillWithColor(color: Int) {
         setFillColor(color)
         nvgFill(nanoContext)
     }
@@ -397,7 +397,7 @@ object NVGR : Renderer2D {
     /**
      * Strokes the current path with the given color.
      */
-    override fun strokeWithColor(width: Float, color: Int) {
+    fun strokeWithColor(width: Float, color: Int) {
         setStrokeColor(color)
         nvgStrokeWidth(nanoContext, width)
         nvgStroke(nanoContext)
@@ -440,7 +440,7 @@ object NVGR : Renderer2D {
     /**
      * Fills the current path with the chroma pattern
      */
-    override fun fillWithChroma() {
+    fun fillWithChroma() {
         push()
         setupChroma()
         nvgFillPaint(nanoContext, nanoPaint)
@@ -451,7 +451,7 @@ object NVGR : Renderer2D {
     /**
      * Strokes the current path with the chroma pattern.
      */
-    override fun strokeWithChroma(lineWidth: Float) {
+    fun strokeWithChroma(lineWidth: Float) {
         push()
         setupChroma()
         nvgStrokePaint(nanoContext, nanoPaint)
@@ -467,12 +467,6 @@ object NVGR : Renderer2D {
             (color shr 24 and 0xFF).toByte(),
             result
         )
-
-    private val CapStyle.nvg: Int
-        get() = when(this) {
-            CapStyle.ROUND -> NVG_ROUND
-            CapStyle.SQUARE -> NVG_SQUARE
-        }
 
     private val TextAlign.nvg: Int
         get() = when(this) {

@@ -6,7 +6,7 @@ import floppacoding.mithras.shaders.uniforms.impl.Uniform2f
 import net.minecraft.client.render.VertexFormats
 import org.joml.Vector2f
 
-object FractalShader : Shader("fractal/fractal", VertexFormats.POSITION_COLOR_TEXTURE) {
+object FractalShader : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "fractal/fractal") {
     private val width = Uniform1f(this.programID, "width")
     private val corner = Uniform2f(this.programID, "corner")
 

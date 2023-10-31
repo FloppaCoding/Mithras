@@ -13,7 +13,7 @@ import kotlin.math.exp
  * This shader will put a 2d chroma effect over anything that is rendered.
  * The color of the rendered vertices is overwritten.
  */
-object Chroma2D: Shader("chroma2d/chroma2d", VertexFormats.POSITION_COLOR) {
+object Chroma2D: Shader(VertexFormats.POSITION_COLOR, "chroma2d/chroma2d") {
 
     /*
     The scaling for the values is not super straightforward, but makes configuring the chroma effect very smooth.

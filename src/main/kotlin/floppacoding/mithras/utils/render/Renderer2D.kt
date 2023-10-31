@@ -198,27 +198,6 @@ interface Renderer2D {
      */
     fun endScissor()
 
-
-    /**
-     * Fills the current path with the given color.
-     */
-    fun fillWithColor(color: Int)
-
-    /**
-     * Strokes the current path with the given color.
-     */
-    fun strokeWithColor(width: Float, color: Int)
-
-    /**
-     * Fills the current path with the chroma pattern
-     */
-    fun fillWithChroma()
-
-    /**
-     * Strokes the current path with the chroma pattern.
-     */
-    fun strokeWithChroma(lineWidth: Float)
-
     companion object {
         /**
          * The font height that will be used for text rendering unless specified otherwise.
@@ -233,9 +212,11 @@ class BoundingBox(var xmin: Float, var ymin: Float, var xmax: Float, var ymax: F
     fun height() : Float = ymax - ymin
 }
 
-enum class CapStyle {
-    ROUND,
-    SQUARE;
+enum class CapStyle(val id: Int) {
+    // The id matches NVG_BUTT / NVG_ROUND
+    // NVG_SQUARE will draw an additional square at the ends of the line increasing the length of the line by 2*LineWidth.
+    FLAT(0),
+    ROUND(1);
 }
 
 enum class TextAlign {

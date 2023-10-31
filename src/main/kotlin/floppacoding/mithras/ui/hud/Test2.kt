@@ -23,7 +23,7 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
         val angle = (System.currentTimeMillis() - 1698539810826)/100f
 
         context.matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle))
-        context.fill(0,0,100,50,-1)
+//        context.fill(0,0,100,50,-1)
         context.matrices.pop()
 
         NVGR.beginFrame(context)
@@ -31,18 +31,14 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
 
         NVGR.translate(100f, 0f)
         NVGR.rotate(angle)
-        NVGR.scissor(0f,0f,100f, 50f)
-        NVGR.rect(0f,0f,100f,50f, Color(255,0,0,100).rgb)
-        NVGR.endScissor()
+        NVGR.line(-50f,0f,50f,0f, 200f, Color(255,0,0,100).rgb)
         NVGR.endFrame()
 
 
-        GLR.translate(200f, 0f)
+//        GLR.translate(200f, 100f)
         GLR.rotate(angle)
-        GLR.scissor(0f, 0f, 100f,50f)
-
-        GLR.rect(0f,0f,100f,50f,  Color(0,255,0,100).rgb)
-        GLR.endScissor()
+//        GLR.scale(4f, 4f)
+        GLR.line(-50f,0f,50f,0f, 200f,  Color(0,255,0,100).rgb)
         GLR.endFrame()
 
         context.vertexConsumers

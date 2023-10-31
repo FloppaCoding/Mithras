@@ -5,6 +5,7 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.shaders.uniforms.Uniform
 import floppacoding.mithras.shaders.uniforms.UniformGL
+import floppacoding.mithras.shaders.uniforms.impl.Uniform1f
 import floppacoding.mithras.shaders.uniforms.impl.Uniform2f
 import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix3f
 import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix4f
@@ -33,15 +34,33 @@ import java.io.IOException
  * To then use the shader (let's call it SomeShader) simply invoke SomeShader.useShader() before rendering and
  * SomeShader.stopShader() after rendering the part that should be affected.
  *
+ * @param format The vertex format expected by this shader.
+ * @param vertexFile The file name containing the vertex shader. This is assumed to be relative to
+ * [Mithras.RESOURCE_DOMAIN]/shaders.
+ * @param fragmentFile The file name containing the fragment shader. This is assumed to be relative to
+ *  [Mithras.RESOURCE_DOMAIN]/shaders.
+ *  @param extraFiles A list of additional shader files paired together with their GL shader type.
+ *
  * @see UniformGL
  */
-open class Shader(private val vertexFile: String, private val fragmentFile: String, protected val format: VertexFormat) : AutoCloseable {
+open class Shader(
+    protected val format: VertexFormat,
+    private val vertexFile: String,
+    private val fragmentFile: String,
+    extraFiles: List<Pair<String, Int>>,
+) : AutoCloseable {
 
-    constructor(name: String, format: VertexFormat) : this("$name.vert", "$name.frag", format)
+    constructor(format: VertexFormat, vertexFile: String, fragmentFile: String): this(format, vertexFile, fragmentFile, emptyList())
+    constructor(format: VertexFormat, vertexFile: String, fragmentFile: String, vararg extraFiles: Pair<String,Int>):
+            this(format, vertexFile, fragmentFile, extraFiles.toList())
+    constructor(format: VertexFormat, vertexFile: String, fragmentFile: String, vararg extraFiles: String):
+            this(format, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  })
+    constructor(format: VertexFormat, name: String) : this(format, "$name.vert", "$name.frag")
 
     var programID: Int
     private var vertexShaderID: Int
     private var fragmentShaderID: Int
+    private var extraShares: List<ExtraShader>
 
     private val uniforms: ArrayList<Uniform> = arrayListOf()
 
@@ -80,13 +99,30 @@ open class Shader(private val vertexFile: String, private val fragmentFile: Stri
     protected val projectionMat: UniformMatrix4f
     protected val viewRotationMat: UniformMatrix3f
     protected val windowSize: Uniform2f
+    protected val lineWidth: Uniform1f
 
     init {
         vertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
         fragmentShaderID = loadShader(fragmentFile, GL46.GL_FRAGMENT_SHADER)
+
+        val newShaders = mutableListOf<ExtraShader>()
+        extraFiles.forEach {
+            val glId = loadShader(it.first, it.second)
+            newShaders.add(ExtraShader(it.first, it.second, glId))
+        }
+        extraShares = newShaders
+
         programID = GL46.glCreateProgram()
+        // bind Attributes
+        format.attributeNames.withIndex().forEach {
+            GL46.glBindAttribLocation(programID, it.index, it.value)
+        }
+
         GL46.glAttachShader(programID, vertexShaderID)
         GL46.glAttachShader(programID, fragmentShaderID)
+        extraShares.forEach {
+            GL46.glAttachShader(programID, it.id)
+        }
         GL46.glLinkProgram(programID)
         GL46.glValidateProgram(programID)
 
@@ -98,6 +134,7 @@ open class Shader(private val vertexFile: String, private val fragmentFile: Stri
             val window = MinecraftClient.getInstance().window
             Vector2f(window.framebufferWidth.toFloat(), window.framebufferHeight.toFloat())
         }
+        lineWidth = Uniform1f(programID, "LineWidth") { RenderSystem.getShaderLineWidth()}
     }
 
     /**
@@ -119,25 +156,48 @@ open class Shader(private val vertexFile: String, private val fragmentFile: Stri
     fun reloadShader() {
         val newVertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
         val newFragmentShaderID = loadShader(fragmentFile, GL46.GL_FRAGMENT_SHADER)
+        val newShaders = mutableListOf<ExtraShader>()
+        extraShares.forEach {
+            val glId = loadShader(it.fileName, it.type)
+            newShaders.add(ExtraShader(it.fileName, it.type, glId))
+        }
         val newProgramID = GL46.glCreateProgram()
+        // bind Attributes
+        format.attributeNames.withIndex().forEach {
+            GL46.glBindAttribLocation(newProgramID, it.index, it.value)
+        }
         GL46.glAttachShader(newProgramID, newVertexShaderID)
         GL46.glAttachShader(newProgramID, newFragmentShaderID)
+        newShaders.forEach {
+            GL46.glAttachShader(newProgramID, it.id)
+        }
         GL46.glLinkProgram(newProgramID)
-        GL46.glValidateProgram(newProgramID)
+        if (GL46.glGetProgrami(newProgramID, GL46.GL_LINK_STATUS) != GL46.GL_TRUE) {
+            val errorMessage = GL46.glGetProgramInfoLog(newProgramID, 1000)
+            Mithras.logger.error(errorMessage)
+            throw Exception("Program linking failed for ${this::class.simpleName}.", Exception(errorMessage))
+        }
 
+        GL46.glValidateProgram(newProgramID)
         if (GL46.glGetProgrami(newProgramID, GL46.GL_VALIDATE_STATUS) != GL46.GL_TRUE) {
-            throw Exception("Program validation failed.")
+            val errorMessage = GL46.glGetProgramInfoLog(newProgramID, 1000)
+            Mithras.logger.error(errorMessage)
+            throw Exception("Program validation failed for ${this::class.simpleName}.", Exception(errorMessage))
         }
 
 
         // glDeleteShader flags the shader for deletion for when it is no longer attached to a program.
         GL46.glDeleteShader(vertexShaderID)
         GL46.glDeleteShader(fragmentShaderID)
+        extraShares.forEach {
+            GL46.glDeleteShader(it.id)
+        }
         GL46.glDeleteProgram(programID)
 
         programID = newProgramID
         vertexShaderID = newVertexShaderID
         fragmentShaderID = newFragmentShaderID
+        extraShares = newShaders
 
 
         // Update the IDs of the uniforms to the new program
@@ -193,8 +253,9 @@ open class Shader(private val vertexFile: String, private val fragmentFile: Stri
         GL46.glCompileShader(shaderId)
 
         if (GL46.glGetShaderi(shaderId, GL46.GL_COMPILE_STATUS) == GL46.GL_FALSE){
-            Mithras.logger.error(GL46.glGetShaderInfoLog(shaderId, 1000))
-            throw Exception("Failed loading shader")
+            val errorMessage = GL46.glGetShaderInfoLog(shaderId, 1000)
+            Mithras.logger.error(errorMessage)
+            throw Exception("Failed loading shader", Exception(errorMessage))
         }
         return shaderId
     }
@@ -204,5 +265,21 @@ open class Shader(private val vertexFile: String, private val fragmentFile: Stri
         GL46.glDeleteShader(fragmentShaderID)
         GL46.glDeleteProgram(programID)
         uniforms.forEach { it.close() }
+    }
+
+    data class ExtraShader(val fileName: String, val type: Int, val id: Int)
+
+    companion object {
+        fun getShaderType(fileName: String): Int? {
+            return when(fileName.substringAfterLast(".")) {
+                "vert" -> GL46.GL_VERTEX_SHADER
+                "frag" -> GL46.GL_FRAGMENT_SHADER
+                "geom" -> GL46.GL_GEOMETRY_SHADER
+                "comp" -> GL46.GL_COMPUTE_SHADER
+                "tesc" -> GL46.GL_TESS_CONTROL_SHADER
+                "tese" -> GL46.GL_TESS_EVALUATION_SHADER
+                else -> null
+            }
+        }
     }
 }

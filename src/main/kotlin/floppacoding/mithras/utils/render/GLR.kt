@@ -2,6 +2,7 @@ package floppacoding.mithras.utils.render
 
 import com.mojang.blaze3d.systems.RenderSystem
 import floppacoding.mithras.shaders.impl.GUIShader
+import floppacoding.mithras.shaders.impl.Lines
 import floppacoding.mithras.shaders.impl.RoundedRectangle
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.Framebuffer
@@ -23,11 +24,14 @@ import kotlin.math.round
 //
 // TODO also consider adding option for the antialising, to disable / enable it or to change the samples.
 //
+// TODO also consider not using other global shader settings like line witdh.
+//   pro of using global:  the result is consistent with vanilla rendering
+//   con the state of vanilla rendering is changed.
 //
 //   Doing so is more efficient since it reduces teh cpu load. (might not be relevant tho)
 //   Also consider better buffering so that everything which uses the same shader gets drawn at once.
 
-object GLR {
+object GLR: Renderer2D {
 
     private var matrices: MatrixStack = MatrixStack()
     val projectionMatrix: Matrix4f = Matrix4f().setOrtho(0.0f, 1920f, 1080f, 0.0f, 1000.0f, 21000.0f)
@@ -36,59 +40,89 @@ object GLR {
     private val mainBuffer: Framebuffer = MinecraftClient.getInstance().framebuffer
 
     private val mc = MinecraftClient.getInstance()
+    override val defaultFont: Font
+        get() = TODO("Not yet implemented")
 
-    fun beginFrame() {
+    override fun beginFrame() {
         this.matrices = MatrixStack()
         projectionMatrix.setOrtho(0.0f, mc.window.framebufferWidth.toFloat(), mc.window.framebufferHeight.toFloat(), 0.0f, 1000.0f, 21000.0f)
         msaaBuffer.useBuffer(mainBuffer)
     }
 
-    fun beginFrame(context: DrawContext) {
+    override fun beginFrame(context: DrawContext) {
         beginFrame()
         setTransform(context)
     }
 
-    fun setTransform(context: DrawContext) {
+    override fun setTransform(context: DrawContext) {
         matrices.loadIdentity()
-        matrices.scale(mc.window.scaleFactor.toFloat(), mc.window.scaleFactor.toFloat(), 0f)
+        matrices.scale(mc.window.scaleFactor.toFloat(), mc.window.scaleFactor.toFloat(), 1f)
         matrices.peek().positionMatrix.mul(context.matrices.peek().positionMatrix)
         matrices.peek().normalMatrix.mul(context.matrices.peek().normalMatrix)
     }
 
-    fun endFrame() {
+    override fun endFrame() {
         msaaBuffer.endUsingBuffer(mainBuffer)
+    }
+
+    override fun reset() {
+        matrices.loadIdentity()
     }
 
     /**
      * Translates the origin of the current coordinate system.
      */
-    fun translate(x: Float, y: Float) = matrices.translate(x, y, 0f)
+    override fun translate(x: Float, y: Float) = matrices.translate(x, y, 0f)
 
     /**
      * Translates the origin of the current coordinate system.
      */
-    fun translate(x: Double, y: Double) = matrices.translate(x, y, 0.0)
+    override fun translate(x: Double, y: Double) = matrices.translate(x, y, 0.0)
 
     /**
      * Scales the current coordinate system.
      */
-    fun scale(x: Float, y: Float) = matrices.scale(x, y, 1f)
+    override fun scale(x: Float, y: Float) = matrices.scale(x, y, 1f)
 
     /**
      * Rotates clockwise by the given [angle] in degrees.
      */
-    fun rotate(angle: Float) = matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle))
+    override fun rotate(angle: Float) = matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle))
 
     /**
      * Pushes the current rendering state to a stack.
      * [pop] must be used to restore that state.
      */
-    fun push() = matrices.push()
+    override fun push() = matrices.push()
 
     /**
      * Restores the previous rendering state.
      */
-    fun pop() = matrices.pop()
+    override fun pop() = matrices.pop()
+
+    override fun line(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Int, capStyle: CapStyle) {
+        RenderSystem.assertOnRenderThread()
+        RenderSystem.enableBlend()
+        RenderSystem.lineWidth(width)
+        Lines.setLinesMode()
+        Lines.setCapStyle(capStyle)
+
+        val positionMatrix = matrices.peek().positionMatrix
+        val normalMatrix = matrices.peek().normalMatrix
+        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
+        bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES)
+
+        val lineNormal = Vector3f(x2-x1, y2-y1,0f).mul(normalMatrix).normalize()
+
+        bufferBuilder.vertex(positionMatrix, x1, y1, 0f).color(color).normal(lineNormal.x, lineNormal.y, 0f).next()
+        bufferBuilder.vertex(positionMatrix, x2, y2, 0f).color(color).normal(lineNormal.x, lineNormal.y, 0f).next()
+
+        val builtBuffer = bufferBuilder.end()
+
+        Lines.useShader()
+        BufferRenderer.draw(builtBuffer)
+        Lines.stopShader()
+    }
 
     /**
      * Sets up a scissor rectangle.
@@ -109,7 +143,7 @@ object GLR {
      *
      *
      */
-    fun scissor(x: Float, y: Float, width: Float, height: Float) {
+    override fun scissor(x: Float, y: Float, width: Float, height: Float) {
         val bbox = getAbsoluteBoundingBox(x, y, width, height)
 
         RenderSystem.enableScissor(
@@ -123,12 +157,12 @@ object GLR {
     /**
      * Disables scissoring.
      */
-    fun endScissor() = RenderSystem.disableScissor()
+    override fun endScissor() = RenderSystem.disableScissor()
 
     /**
      * Draws a rectangle with rounded corners.
      */
-    fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
+    override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
         RenderSystem.assertOnRenderThread()
 
         RenderSystem.enableBlend()
@@ -150,25 +184,85 @@ object GLR {
         RoundedRectangle.stopShader()
     }
 
-    fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
+    override fun text(
+        text: String,
+        x: Float,
+        y: Float,
+        color: Int,
+        fontSize: Float,
+        font: Font,
+        textAlign: TextAlign,
+        splitWidth: Float?
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun textWidth(text: String, fontSize: Float, font: Font): Float {
+        TODO("Not yet implemented")
+    }
+
+    override fun textBounds(text: String, width: Float?, fontSize: Float, font: Font): BoundingBox {
+        TODO("Not yet implemented")
+    }
+
+    override fun image(
+        image: Image,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        radius: Float,
+        imageX: Float,
+        imageY: Float,
+        imageWidth: Float,
+        imageHeight: Float,
+        alpha: Float
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun chromaBorder(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        lineWidth: Float,
+        radius: Float,
+        color: Int
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun textField(
+        text: String,
+        x: Float,
+        y: Float,
+        width: Float,
+        color: Int,
+        fontSize: Float,
+        radius: Float,
+        font: Font
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
         RenderSystem.assertOnRenderThread()
 
         RenderSystem.enableBlend()
 
         val positionMatrix = matrices.peek().positionMatrix
         val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        // For some stupid reason this just does not work with the POSITION_COLOR vertexformat.
-        // But it does work with POOSITION_COLOR_TEXTURE.
-        // I have no idea why that would be, since it works fine for DrawContext.fill.
-        // I tried to use the same buffer and shader as that uses, but it always results in open gl errors and I have no
-        // idea why. My best guess at this point is that it is some weird bug.
-        // TODO FIX this without losing your sanity!
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE)
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
 
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).texture(0f, 0f).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).texture(0f, height).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).texture(width, height).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).texture(width, 0f).next()
+        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
 
         GUIShader.useShader()
         BufferRenderer.draw(bufferBuilder.end())

@@ -1,9 +1,6 @@
 package floppacoding.mithras.shaders
 
-import floppacoding.mithras.shaders.impl.Chroma2D
-import floppacoding.mithras.shaders.impl.FractalShader
-import floppacoding.mithras.shaders.impl.GUIShader
-import floppacoding.mithras.shaders.impl.RoundedRectangle
+import floppacoding.mithras.shaders.impl.*
 
 
 object Shaders {
@@ -12,6 +9,7 @@ object Shaders {
         Chroma2D,
         FractalShader,
         RoundedRectangle,
+        Lines,
     )
 
 
