@@ -8,7 +8,7 @@ import floppacoding.mithras.utils.ChatUtils
 import floppacoding.mithras.utils.Extensions
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 
-object MainCommand : Command {
+object MainCommand : Command() {
     override val builder: LiteralArgumentBuilder<FabricClientCommandSource> =
         command("mithras") {
             execute {

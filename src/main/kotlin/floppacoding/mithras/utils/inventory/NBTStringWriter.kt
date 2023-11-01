@@ -136,6 +136,14 @@ class NBTStringWriter : NbtElementVisitor {
         private val INDENTED_NEW_LINE: String = System.lineSeparator() + INDENT
 
         /**
+         * Turns the nbt data into a readable string;
+         */
+        @JvmStatic
+        fun creatNbtString(nbt: NbtCompound): String {
+            return NBTStringWriter().apply(nbt)
+        }
+
+        /**
          * Turns the nbt data of the item stack into a nicely readable string.
          * This includes indents and new lines for individual components.
          */

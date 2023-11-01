@@ -59,28 +59,28 @@ import org.apache.commons.lang3.StringUtils
  */
 @Suppress("unused")
 object ChatUtils {
-    val BLACK         = Formatting.BLACK.toString()
-    val DARK_BLUE     = Formatting.DARK_BLUE.toString()
-    val DARK_GREEN    = Formatting.DARK_GREEN.toString()
-    val DARK_AQUA     = Formatting.DARK_AQUA.toString()
-    val DARK_RED      = Formatting.DARK_RED.toString()
-    val DARK_PURPLE   = Formatting.DARK_PURPLE.toString()
-    val GOLD          = Formatting.GOLD.toString()
-    val GRAY          = Formatting.GRAY.toString()
-    val DARK_GRAY     = Formatting.DARK_GRAY.toString()
-    val BLUE          = Formatting.BLUE.toString()
-    val GREEN         = Formatting.GREEN.toString()
-    val AQUA          = Formatting.AQUA.toString()
-    val RED           = Formatting.RED.toString()
-    val LIGHT_PURPLE  = Formatting.LIGHT_PURPLE.toString()
-    val YELLOW        = Formatting.YELLOW.toString()
-    val WHITE         = Formatting.WHITE.toString()
-    val OBFUSCATED    = Formatting.OBFUSCATED.toString()
-    val BOLD          = Formatting.BOLD.toString()
-    val STRIKETHROUGH = Formatting.STRIKETHROUGH.toString()
-    val UNDERLINE     = Formatting.UNDERLINE.toString()
-    val ITALIC        = Formatting.ITALIC.toString()
-    val RESET         = Formatting.RESET.toString()
+    @JvmStatic val BLACK         = Formatting.BLACK.toString()
+    @JvmStatic val DARK_BLUE     = Formatting.DARK_BLUE.toString()
+    @JvmStatic val DARK_GREEN    = Formatting.DARK_GREEN.toString()
+    @JvmStatic val DARK_AQUA     = Formatting.DARK_AQUA.toString()
+    @JvmStatic val DARK_RED      = Formatting.DARK_RED.toString()
+    @JvmStatic val DARK_PURPLE   = Formatting.DARK_PURPLE.toString()
+    @JvmStatic val GOLD          = Formatting.GOLD.toString()
+    @JvmStatic val GRAY          = Formatting.GRAY.toString()
+    @JvmStatic val DARK_GRAY     = Formatting.DARK_GRAY.toString()
+    @JvmStatic val BLUE          = Formatting.BLUE.toString()
+    @JvmStatic val GREEN         = Formatting.GREEN.toString()
+    @JvmStatic val AQUA          = Formatting.AQUA.toString()
+    @JvmStatic val RED           = Formatting.RED.toString()
+    @JvmStatic val LIGHT_PURPLE  = Formatting.LIGHT_PURPLE.toString()
+    @JvmStatic val YELLOW        = Formatting.YELLOW.toString()
+    @JvmStatic val WHITE         = Formatting.WHITE.toString()
+    @JvmStatic val OBFUSCATED    = Formatting.OBFUSCATED.toString()
+    @JvmStatic val BOLD          = Formatting.BOLD.toString()
+    @JvmStatic val STRIKETHROUGH = Formatting.STRIKETHROUGH.toString()
+    @JvmStatic val UNDERLINE     = Formatting.UNDERLINE.toString()
+    @JvmStatic val ITALIC        = Formatting.ITALIC.toString()
+    @JvmStatic val RESET         = Formatting.RESET.toString()
 
     /**
      * Pattern to replace formatting codes with & with the § equivalent.
@@ -104,6 +104,7 @@ object ChatUtils {
     /**
      * Remove control codes from the [receiver][String] with the [vanilla function][Formatting.strip] for it.
      */
+    @JvmStatic
     fun String.stripControlCodes(): String {
         return Formatting.strip(this) ?: ""
     }
@@ -113,6 +114,7 @@ object ChatUtils {
      * @param reformat Replace the "&" in formatting strings with "§".
      * @see chatMessage
      */
+    @JvmStatic
     @JvmOverloads
     fun modMessage(text: String, reformat: Boolean = true) {
         val message = literalText(text, reformat)
@@ -123,6 +125,7 @@ object ChatUtils {
      * Puts a message in chat client side with the mod prefix.
      * @see chatMessage
      */
+    @JvmStatic
     fun modMessage(message: Text) = chatMessage(
         Text.literal(
             when (MainSettings.prefixStyle.value) {
@@ -139,6 +142,7 @@ object ChatUtils {
      * @see modMessage
      * @see sendMessage
      */
+    @JvmStatic
     @JvmOverloads
     fun chatMessage(text: String, reformat: Boolean = true) {
         val message = literalText(text, reformat)
@@ -150,6 +154,7 @@ object ChatUtils {
      * @see modMessage
      * @see sendMessage
      */
+    @JvmStatic
     fun chatMessage(message: Text) {
         mc.inGameHud?.chatHud?.addMessage(message)
     }
@@ -165,6 +170,7 @@ object ChatUtils {
      * @see modMessage
      */
     @JvmOverloads
+    @JvmStatic
     fun sendMessage(message: String, addToHistory: Boolean = false) {
         val chatText = StringHelper.truncateChat(StringUtils.normalizeSpace(message.trim()))
         if (chatText.isNotEmpty()) {
@@ -189,6 +195,7 @@ object ChatUtils {
      * If that is not possible it is sent to the server.
      * The input is assumed to **not** include the slash "/" that signals a command.
      */
+    @JvmStatic
     fun command(text: String) {
         mc.player?.networkHandler?.sendChatCommand(text)
     }
@@ -199,30 +206,37 @@ object ChatUtils {
      * @param reformat Replace the "&" in formatting strings with "§".
      * @see Text.literal
      */
+    @JvmStatic
     @JvmOverloads
     fun literalText(text: String, reformat: Boolean = true) : MutableText = Text.literal(if (reformat) reformatString(text) else text)
 
+    @JvmStatic
     fun MutableText.setHoverEvent(hoverEvent: HoverEvent) : MutableText {
         return this.setStyle(this.style.withHoverEvent(hoverEvent))
     }
 
+    @JvmStatic
     fun MutableText.setHoverText(text: Text): MutableText {
         return this.setHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, text))
     }
 
+    @JvmStatic
     @JvmOverloads
     fun MutableText.setHoverText(text: String, reformat: Boolean = true): MutableText {
         return this.setHoverText(literalText(text, reformat))
     }
 
+    @JvmStatic
     fun MutableText.setHoverItem(itemStack: ItemStack): MutableText {
         return this.setHoverEvent(HoverEvent(HoverEvent.Action.SHOW_ITEM, HoverEvent.ItemStackContent(itemStack)))
     }
 
+    @JvmStatic
     fun MutableText.setClickEvent(clickEvent: ClickEvent): MutableText {
         return  this.setStyle(this.style.withClickEvent(clickEvent))
     }
 
+    @JvmStatic
     fun MutableText.setClickEvent(action: ClickEvent.Action, value: String) : MutableText {
         return this.setClickEvent(ClickEvent(action, value))
     }
@@ -234,6 +248,7 @@ object ChatUtils {
      * Use [MutableText.append] to combine multiple Chat components into one.
      * Use the formatting characters to format the text.
      */
+    @JvmStatic
     @JvmOverloads
     fun createHoverableText(text: String, hoverText: String, reformat: Boolean = true): MutableText {
         return literalText(text, reformat).setHoverText(hoverText, reformat)

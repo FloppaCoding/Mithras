@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
@@ -78,7 +79,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
             if (stack == null) return;
             String nbtString = NBTStringWriter.creatNbtString(stack);
             mc.keyboard.setClipboard(nbtString);
-            ChatUtils.INSTANCE.modMessage("Copied held item nbt data to clipboard.");
+            Text stackName = stack.getName();
+            ChatUtils.modMessage(ChatUtils.literalText("Copied ").append(stackName).append(" item nbt data to clipboard."));
             cir.setReturnValue(true);
         }
     }
