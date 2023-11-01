@@ -1,11 +1,13 @@
-#version 150
+#version 400
 
-in vec4 vertexColor;
+in VERTEX_DATA {
+    vec4 vertexColor;
+} fs_in;
 
 out vec4 fragColor;
 
 void main() {
-    vec4 color = vertexColor;
+    vec4 color = fs_in.vertexColor;
     if (color.a == 0.0) {
         discard;
     }

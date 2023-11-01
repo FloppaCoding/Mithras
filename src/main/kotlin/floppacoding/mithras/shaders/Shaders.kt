@@ -10,6 +10,7 @@ object Shaders {
         FractalShader,
         RoundedRectangle,
         Lines,
+        Ellipse,
     )
 
 

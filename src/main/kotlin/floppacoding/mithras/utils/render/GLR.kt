@@ -1,6 +1,8 @@
 package floppacoding.mithras.utils.render
 
+import com.google.common.collect.ImmutableMap
 import com.mojang.blaze3d.systems.RenderSystem
+import floppacoding.mithras.shaders.impl.Ellipse
 import floppacoding.mithras.shaders.impl.GUIShader
 import floppacoding.mithras.shaders.impl.Lines
 import floppacoding.mithras.shaders.impl.RoundedRectangle
@@ -9,12 +11,11 @@ import net.minecraft.client.gl.Framebuffer
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.BufferRenderer
 import net.minecraft.client.render.VertexFormat
+import net.minecraft.client.render.VertexFormatElement
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.RotationAxis
-import org.joml.Matrix3f
-import org.joml.Matrix4f
-import org.joml.Vector3f
+import org.joml.*
 import kotlin.math.round
 
 // TODO consider not using the position matrix on the cpu when creating vertices and instead let the model view matrix handle that.
@@ -268,6 +269,40 @@ object GLR: Renderer2D {
         BufferRenderer.draw(bufferBuilder.end())
         GUIShader.stopShader()
     }
+
+    fun circle(x: Float, y: Float, radius: Float, color: Int) {
+        ellipse(x, y, Vector2f(radius, 0f), radius, color)
+    }
+
+    /**
+     * Draws an ellipse centered at [[x],[y]] with semi-axes [a] and [b].
+     *
+     * @param a Is one of the semi-axes of the ellipse and determines the orientation of the ellipse.
+     * @param b Is the length of the other semi-axis of the ellipse. It is oriented internally.
+     */
+    fun ellipse(x: Float, y: Float, a: Vector2f, b: Float, color: Int) {
+        RenderSystem.assertOnRenderThread()
+
+        val positionMatrix = matrices.peek().positionMatrix
+        val transform = Matrix2f().m00(positionMatrix.m00()).m10(positionMatrix.m10()).m01(positionMatrix.m01()).m11(positionMatrix.m11())
+
+        val aVec = a.mul(transform)
+        val bVec = Vector2f(-a.y, a.x).normalize(b).mul(transform)
+        RenderSystem.enableBlend()
+
+        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
+        bufferBuilder.begin(POINTS, POSITION_COLOR_TEX_TEX)
+
+        bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).texture(aVec.x, aVec.y).texture(bVec.x, bVec.y).next()
+//        bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).texture(aVec.x, aVec.y).texture(bVec.x, bVec.y).next()
+
+        Ellipse.useShader()
+        BufferRenderer.draw(bufferBuilder.end())
+        Ellipse.stopShader()
+    }
+
+    val POSITION_COLOR_TEX_TEX = VertexFormat(ImmutableMap.builder<String, VertexFormatElement>().put("Position", VertexFormats.POSITION_ELEMENT).put("Color", VertexFormats.COLOR_ELEMENT).put("UV0", VertexFormats.TEXTURE_ELEMENT).put("UV1", VertexFormats.TEXTURE_ELEMENT).build())
+    val POINTS = VertexFormat.DrawMode.valueOf("POINTS")
 
     /**
      * Returns the bounding box of the given rectangle in screen coordinates to be used with the Scissor test.

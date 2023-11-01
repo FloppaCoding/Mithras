@@ -7,7 +7,6 @@ import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.commands.CmdSource
 import floppacoding.mithras.commands.Command
 import floppacoding.mithras.mixin.PlayerSkinAccessor
-import floppacoding.mithras.module.impl.dungeon.IceFillSolver
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.ConfigRoom
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
@@ -26,6 +25,7 @@ import floppacoding.mithras.utils.inventory.ItemValueCalculator
 import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
+import floppacoding.mithras.utils.render.GLR
 import floppacoding.mithras.utils.render.nanovg.NVGImageManager
 import kotlinx.coroutines.launch
 import net.minecraft.client.texture.PlayerSkinTexture
@@ -480,8 +480,8 @@ object DebugCommand : Command {
                 integer("size") {
                     execute {
                         val size = it.getInteger("size")
-                        val center = BlockPos(130, -40, -60)
-                        val layer = IceFillSolver.Layer(size, center,  Pair(-7,0))
+                        val center = GLR.POINTS.getIndexCount(size)
+                        ChatUtils.chatMessage("$center")
                     }
                 }
                 literal("screen2") {

@@ -60,7 +60,7 @@ open class Shader(
     var programID: Int
     private var vertexShaderID: Int
     private var fragmentShaderID: Int
-    private var extraShares: List<ExtraShader>
+    private var extraShares: List<ShaderFile>
 
     private val uniforms: ArrayList<Uniform> = arrayListOf()
 
@@ -105,10 +105,10 @@ open class Shader(
         vertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
         fragmentShaderID = loadShader(fragmentFile, GL46.GL_FRAGMENT_SHADER)
 
-        val newShaders = mutableListOf<ExtraShader>()
+        val newShaders = mutableListOf<ShaderFile>()
         extraFiles.forEach {
             val glId = loadShader(it.first, it.second)
-            newShaders.add(ExtraShader(it.first, it.second, glId))
+            newShaders.add(ShaderFile(it.first, it.second, glId))
         }
         extraShares = newShaders
 
@@ -154,12 +154,13 @@ open class Shader(
      */
     @Throws(Exception::class, IOException::class)
     fun reloadShader() {
+        shaderBuffer.clear()
         val newVertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
         val newFragmentShaderID = loadShader(fragmentFile, GL46.GL_FRAGMENT_SHADER)
-        val newShaders = mutableListOf<ExtraShader>()
+        val newShaders = mutableListOf<ShaderFile>()
         extraShares.forEach {
             val glId = loadShader(it.fileName, it.type)
-            newShaders.add(ExtraShader(it.fileName, it.type, glId))
+            newShaders.add(ShaderFile(it.fileName, it.type, glId))
         }
         val newProgramID = GL46.glCreateProgram()
         // bind Attributes
@@ -238,26 +239,29 @@ open class Shader(
      */
     @Throws(Exception::class, IOException::class)
     private fun loadShader(file: String, type: Int): Int {
-        val builder = java.lang.StringBuilder()
-        try {
-            mc.resourceManager.getResource(Identifier(Mithras.RESOURCE_DOMAIN, "shaders/$file")).get()
-                .inputStream.bufferedReader().useLines {
-                    it.forEach { line -> builder.append(line).append("\n") }
-                }
-        }catch (e: Exception) {
-            e.printStackTrace()
-            throw  e
-        }
-        val shaderId = GL46.glCreateShader(type)
-        GL46.glShaderSource(shaderId, builder)
-        GL46.glCompileShader(shaderId)
+        return shaderBuffer.getOrPut(file) putShader@{
+            val builder = java.lang.StringBuilder()
+            try {
+                mc.resourceManager.getResource(Identifier(Mithras.RESOURCE_DOMAIN, "shaders/$file")).get()
+                    .inputStream.bufferedReader().useLines {
+                        it.forEach { line -> builder.append(line).append("\n") }
+                    }
+            }catch (e: Exception) {
+                e.printStackTrace()
+                throw  e
+            }
+            val shaderId = GL46.glCreateShader(type)
+            GL46.glShaderSource(shaderId, builder)
+            GL46.glCompileShader(shaderId)
 
-        if (GL46.glGetShaderi(shaderId, GL46.GL_COMPILE_STATUS) == GL46.GL_FALSE){
-            val errorMessage = GL46.glGetShaderInfoLog(shaderId, 1000)
-            Mithras.logger.error(errorMessage)
-            throw Exception("Failed loading shader", Exception(errorMessage))
+            if (GL46.glGetShaderi(shaderId, GL46.GL_COMPILE_STATUS) == GL46.GL_FALSE){
+                val errorMessage = GL46.glGetShaderInfoLog(shaderId, 1000)
+                Mithras.logger.error(errorMessage)
+                throw Exception("Failed loading shader", Exception(errorMessage))
+            }
+
+            return@putShader shaderId
         }
-        return shaderId
     }
 
     override fun close() {
@@ -267,10 +271,15 @@ open class Shader(
         uniforms.forEach { it.close() }
     }
 
-    data class ExtraShader(val fileName: String, val type: Int, val id: Int)
+    data class ShaderFile(val fileName: String, val type: Int, val id: Int)
 
     companion object {
-        fun getShaderType(fileName: String): Int? {
+        /**
+         * Already loaded shaders mapped to their gl shader id.
+         */
+        private val shaderBuffer: MutableMap<String, Int> = mutableMapOf()
+
+        private fun getShaderType(fileName: String): Int? {
             return when(fileName.substringAfterLast(".")) {
                 "vert" -> GL46.GL_VERTEX_SHADER
                 "frag" -> GL46.GL_FRAGMENT_SHADER

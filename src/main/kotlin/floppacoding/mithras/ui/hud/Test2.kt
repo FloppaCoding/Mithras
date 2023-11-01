@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
 import net.minecraft.util.math.RotationAxis
+import org.joml.Vector2f
 import java.awt.Color
 
 object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
@@ -31,17 +32,24 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
 
         NVGR.translate(100f, 0f)
         NVGR.rotate(angle)
-        NVGR.line(-50f,0f,50f,0f, 200f, Color(255,0,0,100).rgb)
+        NVGR.line(-50f,0f,50f,0f, 20f, Color(255,0,0,100).rgb)
         NVGR.endFrame()
 
 
 //        GLR.translate(200f, 100f)
+        GLR.push()
         GLR.rotate(angle)
 //        GLR.scale(4f, 4f)
-        GLR.line(-50f,0f,50f,0f, 200f,  Color(0,255,0,100).rgb)
-        GLR.endFrame()
+        GLR.line(-50f,0f,50f,0f, 20f,  Color(0,255,0,100).rgb)
+        GLR.pop()
 
-        context.vertexConsumers
+
+        GLR.circle(0f, 200f, 7f, Color(10, 120, 240, 140).rgb)
+        GLR.circle(0f, 500f, 40f, Color(120, 10, 240, 140).rgb)
+        GLR.ellipse(500f, 500f, Vector2f(400f, 20f), 800f, Color(200, 200, 20, 140).rgb)
+
+
+        GLR.endFrame()
 
 
         context.matrices.pop()

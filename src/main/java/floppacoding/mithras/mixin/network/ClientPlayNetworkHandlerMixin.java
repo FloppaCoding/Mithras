@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * @author Aton
  */
 @Mixin(ClientPlayNetworkHandler.class)
-public abstract class ClientPlayNetwarkHandlerMixin {
+public abstract class ClientPlayNetworkHandlerMixin {
     @Inject(method = "onPlayerPositionLook", at = @At("HEAD"))
     private void mithras$onTeleport(PlayerPositionLookS2CPacket packet, CallbackInfo ci) {
         Mithras.EVENT_BUS.post(new TeleportEvent(packet));

@@ -1,11 +1,23 @@
 package floppacoding.mithras.shaders.impl
 
 import floppacoding.mithras.shaders.Shader
+import floppacoding.mithras.shaders.impl.Lines.setCapStyle
 import floppacoding.mithras.shaders.uniforms.impl.Uniform1i
 import floppacoding.mithras.utils.render.CapStyle
 import net.minecraft.client.render.VertexFormat
 import net.minecraft.client.render.VertexFormats
 
+/**
+ * ## A shader for drawing 2D lines with finite width.
+ *
+ * This shader turns input triangles of 0 width into triangles with the desired line width.
+ *
+ * It will also draw line caps as defined by [setCapStyle].
+ *
+ * The shader can be used for lines as well as for line strips.
+ *
+ * @author Aton
+ */
 object Lines: Shader(VertexFormats.LINES, "lines/lines.vert", "lines/lines.frag", "lines/lines.geom") {
 
     fun setCapStyle(style: CapStyle) {

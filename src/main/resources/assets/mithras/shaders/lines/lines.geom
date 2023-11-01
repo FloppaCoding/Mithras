@@ -10,8 +10,8 @@ layout(triangle_strip, max_vertices = 68) out;
 
 in int gl_PrimitiveIDIn[];
 
-in VS_OUT {
-    vec4 color;
+in VERTEX_DATA {
+    vec4 vertexColor;
 } gs_in[];
 
 uniform int style;
@@ -19,17 +19,26 @@ uniform int lastSegment;
 uniform float LineWidth;
 uniform vec2 ScreenSize;
 
-out vec4 vertexColor;
+out VERTEX_DATA {
+    vec4 vertexColor;
+} gs_out;
 
+/*
+* This shader constructs line caps when required.
+* When the input triangle is the end of a line a line cap will be constructed.
+* Round line caps are achieved by approximating a half circle through triangle segments.
+*
+* Author: Aton
+*/
 void main() {
     // First passing through the input triangle.
-    vertexColor = gs_in[0].color;
+    gs_out.vertexColor = gs_in[0].vertexColor;
     gl_Position = gl_in[0].gl_Position;
     EmitVertex();
-    vertexColor = gs_in[1].color;
+    gs_out.vertexColor = gs_in[1].vertexColor;
     gl_Position = gl_in[1].gl_Position;
     EmitVertex();
-    vertexColor = gs_in[2].color;
+    gs_out.vertexColor = gs_in[2].vertexColor;
     gl_Position = gl_in[2].gl_Position;
     EmitVertex();
     EndPrimitive();
@@ -60,13 +69,13 @@ void main() {
         mat2 rotationMat = mat2(c, s, -s, c);
 
         gl_Position = vec4( dir1 * midPoint.w  + midPoint.xy, midPoint.zw);
-        vertexColor = gs_in[1].color;
+        gs_out.vertexColor = gs_in[1].vertexColor;
         EmitVertex();
 
         for (int segment = 0; segment < segments; segment++) {
             gl_Position = midPoint;
 #if INTERPOLATE_COLOR
-            vertexColor = mix(gs_in[0].color, gs_in[1].color, 0.5);
+            gs_out.vertexColor = mix(gs_in[0].vertexColor, gs_in[1].vertexColor, 0.5);
 #endif
             EmitVertex();
 
@@ -74,7 +83,7 @@ void main() {
 
             gl_Position = vec4( (segDir.x * dir1 + segDir.y * dir2) * midPoint.w + midPoint.xy, midPoint.zw);
 #if INTERPOLATE_COLOR
-            vertexColor = mix(gs_in[0].color, gs_in[1].color, (segDir.x + 1.0)/2.0);
+            gs_out.vertexColor = mix(gs_in[0].vertexColor, gs_in[1].vertexColor, (segDir.x + 1.0)/2.0);
 #endif
             EmitVertex();
         }

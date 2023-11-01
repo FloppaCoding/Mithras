@@ -1,4 +1,4 @@
-#version 150
+#version 400
 
 in vec3 Position;
 in vec4 Color;
@@ -9,8 +9,8 @@ uniform mat4 ProjMat;
 uniform float LineWidth;
 uniform vec2 ScreenSize;
 
-out VS_OUT {
-    vec4 color;
+out VERTEX_DATA {
+    vec4 vertexColor;
 } vs_out;
 
 const float VIEW_SHRINK = 1.0 - (1.0 / 256.0);
@@ -41,5 +41,5 @@ void main() {
         gl_Position = vec4((ndc1 - vec3(lineOffset, 0.0)) * linePosStart.w, linePosStart.w);
     }
 
-    vs_out.color = Color;
+    vs_out.vertexColor = Color;
 }

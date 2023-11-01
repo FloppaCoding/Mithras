@@ -221,7 +221,7 @@ class PacketReceivedEvent(val packet: Packet<*>)
  *
  * **DO NOT MODIFY THE PACKET!** Luckily you cant. However, if the handling of this packet were to be modified that could easily
  * end up violation Hypixel server rules and flagging the anticheat, because a confirmation will be sent to the server.
- * @see floppacoding.mithras.mixin.network.ClientPlayNetwarkHandlerMixin
+ * @see floppacoding.mithras.mixin.network.ClientPlayNetworkHandlerMixin
  */
 class TeleportEvent(val packet: PlayerPositionLookS2CPacket)
 

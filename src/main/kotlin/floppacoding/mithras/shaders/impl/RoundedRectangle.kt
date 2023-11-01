@@ -7,8 +7,7 @@ import net.minecraft.client.render.VertexFormats
 import org.joml.Vector2f
 import org.joml.Vector4f
 
-object RoundedRectangle : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "rounded_rect/rounded_rect") {
-
+object RoundedRectangle : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "core/pos_color_tex.vert", "rounded_rect/rounded_rect.frag") {
     private var cornerRadii: Vector4f = Vector4f(0f,0f,0f,0f)
 
     private var boxSize: Vector2f = Vector2f(10f, 10f)
