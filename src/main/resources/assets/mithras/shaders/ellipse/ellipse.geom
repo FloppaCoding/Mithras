@@ -1,9 +1,9 @@
 #version 460
 
-#define PI 3.1415925
+#define TWO_PI 6.2831853
 
 layout(points) in;
-layout(triangle_strip, max_vertices = 255) out;
+layout(triangle_strip, max_vertices = 128) out;
 
 in VERTEX_DATA {
     vec4 vertexColor;
@@ -20,8 +20,8 @@ out VERTEX_DATA {
 } gs_out;
 
 /*
-* This shader creates a triangle stip approximating a circle for every point primitive it receives.
-* The number of segments in the approximation is automatically scaled with the size of the resulting circle in pixels.
+* This shader creates a triangle stip approximating an ellipse for every point primitive it receives.
+* The number of segments in the approximation is automatically scaled with the size of the resulting ellipse in pixels.
 *
 * Author: Aton
 */
@@ -38,6 +38,7 @@ void main() {
 
     // The length of the major-axis of the ellipse in pixels.
     float size = dot(max(abs(dir1), abs(dir2)), ScreenSize);
+    // segments can be even or odd
     int segments;
     if(size <= 10.0) segments = 8;
     else if (size <= 30.0) segments = 16;
@@ -45,10 +46,10 @@ void main() {
     else if (size <= 100.0) segments = 32;
     else if (size <= 200.0) segments = 48;
     else if (size <= 400.0) segments = 96;
-    else segments = 127;
+    else segments = 128;
 
     // Entries of the rotation matrix
-    float segmentAngle = 2.0 * PI / segments;
+    float segmentAngle = TWO_PI / segments;
     float c = cos(segmentAngle);
     float s = sin(segmentAngle);
     vec2 segDir = vec2(1.0, 0.0);
@@ -57,14 +58,20 @@ void main() {
     gl_Position = vec4( dir1 * midPoint.w  + midPoint.xy, midPoint.zw);
     EmitVertex();
 
-    for (int segment = 0; segment < segments; segment++) {
-        gl_Position = midPoint;
-        EmitVertex();
-
+    int limit = int((segments-1)/2.0);
+    for (int segment = 0; segment < limit; segment++) {
         segDir = rotationMat * segDir;
 
         gl_Position = vec4( (segDir.x * dir1 + segDir.y * dir2) * midPoint.w + midPoint.xy, midPoint.zw);
         EmitVertex();
+        gl_Position = vec4( (segDir.x * dir1 - segDir.y * dir2) * midPoint.w + midPoint.xy, midPoint.zw);
+        EmitVertex();
     }
+    // The opposite end only needts to be drawn for an even number of total segments.
+    if (segments % 2 == 0) {
+        gl_Position = vec4( -dir1 * midPoint.w  + midPoint.xy, midPoint.zw);
+        EmitVertex();
+    }
+
     EndPrimitive();
 }

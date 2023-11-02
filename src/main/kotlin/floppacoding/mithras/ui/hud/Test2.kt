@@ -46,7 +46,10 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
 
         GLR.circle(0f, 200f, 7f, Color(10, 120, 240, 140).rgb)
         GLR.circle(0f, 500f, 40f, Color(120, 10, 240, 140).rgb)
-        GLR.ellipse(500f, 500f, Vector2f(400f, 20f), 800f, Color(200, 200, 20, 140).rgb)
+        GLR.ellipse(500f, 500f, Vector2f(600f, 20f), 300f, Color(200, 200, 20, 140).rgb)
+
+
+//        context.drawTexture()
 
 
         GLR.endFrame()
