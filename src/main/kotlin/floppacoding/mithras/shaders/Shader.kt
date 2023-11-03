@@ -5,10 +5,8 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.shaders.uniforms.Uniform
 import floppacoding.mithras.shaders.uniforms.UniformGL
-import floppacoding.mithras.shaders.uniforms.impl.Uniform1f
-import floppacoding.mithras.shaders.uniforms.impl.Uniform2f
-import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix3f
-import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix4f
+import floppacoding.mithras.shaders.uniforms.impl.*
+import floppacoding.mithras.shaders.uniforms.withValue
 import floppacoding.mithras.utils.render.GLR
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.VertexFormat
@@ -16,6 +14,7 @@ import net.minecraft.util.Identifier
 import org.joml.Vector2f
 import org.lwjgl.opengl.GL46
 import java.io.IOException
+import kotlin.properties.Delegates
 
 /**
  * Shaders can be used to transform the image that is being drawn.
@@ -57,7 +56,7 @@ open class Shader(
             this(format, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  })
     constructor(format: VertexFormat, name: String) : this(format, "$name.vert", "$name.frag")
 
-    var programID: Int
+    var programID: Int by Delegates.notNull()
     private var vertexShaderID: Int
     private var fragmentShaderID: Int
     private var extraShares: List<ShaderFile>
@@ -78,7 +77,9 @@ open class Shader(
      *  0 | 0 | 0 | 1
      *
      */
-    protected val modelViewMat: UniformMatrix4f
+    protected val modelViewMat: UniformMatrix4f by lazy {
+        UniformMatrix4f(programID, "ModelViewMat") {RenderSystem.getModelViewMatrix()}
+    }
     /**
      * The [projection matrix][RenderSystem.getProjectionMatrix] used by vanilla rendering.
      * This **DOES** include the GUI Scale.
@@ -87,7 +88,9 @@ open class Shader(
      *
      * @see projectionMat
      */
-    protected val vanillaProjectionMat: UniformMatrix4f
+    protected val vanillaProjectionMat: UniformMatrix4f by lazy {
+        UniformMatrix4f(programID, "ProjMat") {RenderSystem.getProjectionMatrix()}
+    }
     /**
      * The [projection matrix][GLR.projectionMatrix] used for custom rendering.
      * This does **NOT** include the GUI Scale.
@@ -96,10 +99,20 @@ open class Shader(
      *
      * @see vanillaProjectionMat
      */
-    protected val projectionMat: UniformMatrix4f
-    protected val viewRotationMat: UniformMatrix3f
-    protected val windowSize: Uniform2f
-    protected val lineWidth: Uniform1f
+    protected val projectionMat: UniformMatrix4f by lazy {
+        UniformMatrix4f(programID, "ProjMat") { GLR.projectionMatrix }
+    }
+    protected val viewRotationMat: UniformMatrix3f by lazy {
+        UniformMatrix3f(programID, "IViewRotMat") {RenderSystem.getInverseViewRotationMatrix()}
+    }
+    protected val windowSize: Uniform2f by lazy { Uniform2f(programID, "ScreenSize") {
+        val window = MinecraftClient.getInstance().window
+        Vector2f(window.framebufferWidth.toFloat(), window.framebufferHeight.toFloat())
+    } }
+    protected val lineWidth: Uniform1f by lazy { Uniform1f(programID, "LineWidth") { RenderSystem.getShaderLineWidth()} }
+    protected val sampler0: Sampler by lazy { Sampler(programID, "Sampler0").withValue(0) }
+    protected val sampler1: Sampler by lazy { Sampler(programID, "Sampler1").withValue(1) }
+    protected val sampler2: Sampler by lazy { Sampler(programID, "Sampler2").withValue(2) }
 
     init {
         vertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
@@ -125,16 +138,6 @@ open class Shader(
         }
         GL46.glLinkProgram(programID)
         GL46.glValidateProgram(programID)
-
-        modelViewMat = UniformMatrix4f(programID, "ModelViewMat") {RenderSystem.getModelViewMatrix()}
-        vanillaProjectionMat = UniformMatrix4f(programID, "ProjMat") {RenderSystem.getProjectionMatrix()}
-        projectionMat = UniformMatrix4f(programID, "ProjMat") { GLR.projectionMatrix }
-        viewRotationMat = UniformMatrix3f(programID, "IViewRotMat") {RenderSystem.getInverseViewRotationMatrix()}
-        windowSize = Uniform2f(programID, "ScreenSize") {
-            val window = MinecraftClient.getInstance().window
-            Vector2f(window.framebufferWidth.toFloat(), window.framebufferHeight.toFloat())
-        }
-        lineWidth = Uniform1f(programID, "LineWidth") { RenderSystem.getShaderLineWidth()}
     }
 
     /**

@@ -164,3 +164,8 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
         abstract fun uploadData(uniformID: Int, count: Int, buffer: K)
     }
 }
+
+inline fun <T, K, reified U: UniformGL<T,K>> U.withValue(newValue: T) : U {
+    this.updateValue(newValue)
+    return this
+}

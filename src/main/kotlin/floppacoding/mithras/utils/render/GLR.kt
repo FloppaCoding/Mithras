@@ -2,10 +2,7 @@ package floppacoding.mithras.utils.render
 
 import com.google.common.collect.ImmutableMap
 import com.mojang.blaze3d.systems.RenderSystem
-import floppacoding.mithras.shaders.impl.Ellipse
-import floppacoding.mithras.shaders.impl.GUIShader
-import floppacoding.mithras.shaders.impl.Lines
-import floppacoding.mithras.shaders.impl.RoundedRectangle
+import floppacoding.mithras.shaders.impl.*
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.Framebuffer
 import net.minecraft.client.gui.DrawContext
@@ -16,6 +13,7 @@ import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.RotationAxis
 import org.joml.*
+import org.lwjgl.opengl.GL46
 import kotlin.math.round
 
 // TODO consider not using the position matrix on the cpu when creating vertices and instead let the model view matrix handle that.
@@ -219,7 +217,34 @@ object GLR: Renderer2D {
         imageHeight: Float,
         alpha: Float
     ) {
-        TODO("Not yet implemented")
+        RenderSystem.assertOnRenderThread()
+        if (image !is GLImageManager.GLImage) return
+
+        val u1 = imageX / image.width
+        val u2 = u1 + imageWidth / image.width
+        var v1 = imageY / image.height
+        var v2 = v1 + imageHeight / image.height
+        if (image.flags.contains(Image.Flags.FLIPY)) {
+            v1 = 1-v1
+            v2 = 1-v2
+        }
+
+
+        RenderSystem.enableBlend()
+        GL46.glActiveTexture(GL46.GL_TEXTURE0)
+        GL46.glBindTexture(GL46.GL_TEXTURE_2D, image.id)
+        val positionMatrix = matrices.peek().positionMatrix
+        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE)
+
+        bufferBuilder.vertex(positionMatrix, x,             y,        0f).texture(u1, v1).next()
+        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).texture(u1, v2).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).texture(u2, v2).next()
+        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).texture(u2, v1).next()
+
+        Texture.useShader()
+        BufferRenderer.draw(bufferBuilder.end())
+        Texture.stopShader()
     }
 
     override fun chromaBorder(

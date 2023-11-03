@@ -11,6 +11,7 @@ object Shaders {
         RoundedRectangle,
         Lines,
         Ellipse,
+        Texture,
     )
 
 

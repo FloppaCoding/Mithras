@@ -1,13 +1,12 @@
-package floppacoding.mithras.utils.render.nanovg
+package floppacoding.mithras.utils.render
 
 import floppacoding.mithras.Mithras
-import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.mixin.PlayerSkinAccessor
-import floppacoding.mithras.utils.render.Image
+import floppacoding.mithras.utils.render.Image.Flags
 import net.minecraft.client.texture.PlayerSkinTexture
 import net.minecraft.util.Identifier
 import org.apache.commons.io.IOUtils
-import org.lwjgl.nanovg.NanoVG.*
+import org.lwjgl.opengl.GL46.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryUtil
 import java.io.FileNotFoundException
@@ -17,27 +16,26 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Files
 
-typealias NVGImage = NVGImageManager.NVGImage
+// TODO somehow join this with NVGImageManager.
+object GLImageManager {
 
-// TODO comment this class.
-object NVGImageManager {
     // TODO it might be better to combine these two classes into one and make the constructor private.
     // That way using the buffer is enforced.
-    val ICON: NVGImage = NVGImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/icon.png")
-    val HUE_SCALE: NVGImage = NVGImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale.png")
-    val CHROMA: NVGImage = NVGImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale20_lowres.png")
+    val ICON: GLImage = GLImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/icon.png")
+    val HUE_SCALE: GLImage = GLImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale.png")
+    val CHROMA: GLImage = GLImage( "/assets/${Mithras.RESOURCE_DOMAIN}/gui/huescale20_lowres.png")
 
     //Dungeon Map
-    val NEU_GREEN        : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/green_check.png", Image.Flags.NEAREST)
-    val NEU_WHITE        : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/white_check.png", Image.Flags.NEAREST)
-    val NEU_CROSS        : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/cross.png", Image.Flags.NEAREST)
-    val NEU_QUESTION     : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/question.png", Image.Flags.NEAREST)
-    val DEFAULT_GREEN    : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/green_check.png", Image.Flags.NEAREST)
-    val DEFAULT_WHITE    : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/white_check.png", Image.Flags.NEAREST)
-    val DEFAULT_CROSS    : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/cross.png", Image.Flags.NEAREST)
-    val DEFAULT_QUESTION : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/question.png", Image.Flags.NEAREST)
+    val NEU_GREEN        : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/green_check.png", Flags.NEAREST)
+    val NEU_WHITE        : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/white_check.png", Flags.NEAREST)
+    val NEU_CROSS        : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/cross.png", Flags.NEAREST)
+    val NEU_QUESTION     : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/neu/question.png", Flags.NEAREST)
+    val DEFAULT_GREEN    : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/green_check.png", Flags.NEAREST)
+    val DEFAULT_WHITE    : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/white_check.png", Flags.NEAREST)
+    val DEFAULT_CROSS    : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/cross.png", Flags.NEAREST)
+    val DEFAULT_QUESTION : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/question.png", Flags.NEAREST)
 
-    private val bufferedImages = mutableMapOf<Identifier, NVGImage>()
+    private val bufferedImages = mutableMapOf<Identifier, GLImage>()
 
     /**
      * @param imageFlags the image flags. Any of:
@@ -49,10 +47,10 @@ object NVGImageManager {
      * [NEAREST][Image.Flags.NEAREST]
      */
     @Throws(IOException::class)
-    fun createImage(identifier: Identifier, vararg imageFlags: Image.Flags): NVGImage {
+    fun createImage(identifier: Identifier, vararg imageFlags: Flags): GLImage {
         val bufferedImage = bufferedImages[identifier]
         if (bufferedImage != null) return bufferedImage
-        val newImage = NVGImage(identifier, *imageFlags)
+        val newImage = GLImage(identifier, *imageFlags)
         bufferedImages[identifier] = newImage
         return newImage
     }
@@ -60,9 +58,8 @@ object NVGImageManager {
     /**
      * Image for NanoVG.
      */
-    class NVGImage : Image {
+    class GLImage : Image {
         private val path: String
-        private val imageBuffer : ByteBuffer
 
         /**
          * Image id according to NanoVG.
@@ -71,7 +68,7 @@ object NVGImageManager {
 
         override val width: Int
         override val height: Int
-        override val flags: List<Image.Flags>
+        override val flags: List<Flags>
 
         /**
          * @param path path to the resource. It looks like:
@@ -87,11 +84,11 @@ object NVGImageManager {
          * [NEAREST][Image.Flags.NEAREST]
          */
         @Throws(IOException::class)
-        constructor(path: String, vararg imageFlags: Image.Flags) {
+        constructor(path: String, vararg imageFlags: Flags) {
             this.path = path
             this.flags = imageFlags.toList()
-            this.imageBuffer = resourceToByteBuffer(path)
-            val tempData = createImage(*imageFlags)
+            val imageBuffer = resourceToByteBuffer(path)
+            val tempData = createImage(imageBuffer, *imageFlags)
             id = tempData.id
             width = tempData.width
             height = tempData.height
@@ -107,25 +104,76 @@ object NVGImageManager {
          * [NEAREST][Image.Flags.NEAREST]
          */
         @Throws(IOException::class)
-        constructor(identifier: Identifier, vararg imageFlags: Image.Flags) {
+        constructor(identifier: Identifier, vararg imageFlags: Flags) {
             this.path = identifier.path
             this.flags = imageFlags.toList()
-            this.imageBuffer = byteBufferFromIdentifier(identifier)
-            val tempData = createImage(*imageFlags)
+            val imageBuffer = byteBufferFromIdentifier(identifier)
+            val tempData = createImage(imageBuffer, *imageFlags)
             id = tempData.id
             width = tempData.width
             height = tempData.height
         }
 
         @Throws(IOException::class)
-        private fun createImage(vararg imageFlags: Image.Flags): TemporaryImageData {
+        private fun createImage(imageBuffer: ByteBuffer, vararg imageFlags: Flags): TemporaryImageData {
             val w = IntArray(1)
             val h = IntArray(1)
             val channels = IntArray(1)
             val data: ByteBuffer =  STBImage.stbi_load_from_memory(imageBuffer, w, h, channels, 4) ?: throw FileNotFoundException(path)
-            val id = nvgCreateImageRGBA(NVGR.nanoContext, w[0], h[0], imageFlags.nvgInt, data)
+            val texture = glGenTextures()
+            glBindTexture(GL_TEXTURE_2D, texture)
+
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, w[0] )
+            glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0)
+            glPixelStorei(GL_UNPACK_SKIP_ROWS, 0)
+
+            if (imageFlags.contains(Flags.GENERATE_MIPMAPS)) {
+                glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE)
+            }
+
+
+            if (imageFlags.contains(Flags.GENERATE_MIPMAPS)) {
+                if (imageFlags.contains(Flags.NEAREST)) {
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST)
+                } else {
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+                }
+            } else {
+                if (imageFlags.contains(Flags.NEAREST)) {
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+                } else {
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+                }
+            }
+
+            if (imageFlags.contains(Flags.NEAREST)) {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            } else {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            }
+
+            if (imageFlags.contains(Flags.REPEATX))
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+            else
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+
+            if (imageFlags.contains(Flags.REPEATY))
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+            else
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
+
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w[0], h[0], 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+
+
+
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
             MemoryUtil.memFree(data)
-            return TemporaryImageData(id, w[0], h[0])
+            MemoryUtil.memFree(imageBuffer)
+            return TemporaryImageData(texture, w[0], h[0])
         }
 
         /**
@@ -135,11 +183,11 @@ object NVGImageManager {
          */
         @Throws(IOException::class)
         private fun byteBufferFromIdentifier(identifier: Identifier): ByteBuffer {
-            val resource = mc.resourceManager.getResource(identifier)
+            val resource = Mithras.mc.resourceManager.getResource(identifier)
             val inputStream = if (resource.isPresent) {
                 resource.get().inputStream
             }else { // try to get from skin cache
-                val texture = mc.textureManager.getTexture(identifier)
+                val texture = Mithras.mc.textureManager.getTexture(identifier)
                 val cacheFile = ((texture as? PlayerSkinTexture) as? PlayerSkinAccessor)?.cacheFile
                 if (cacheFile != null) {
                     Files.newInputStream(cacheFile.toPath())
@@ -166,27 +214,10 @@ object NVGImageManager {
             // This works for mod assets, otherwise "Files.newInputStream(file.toPath())" should be used.
             val stream = this.javaClass.getResourceAsStream(path) ?: throw FileNotFoundException(path)
             val bytes = IOUtils.toByteArray(stream)
-            val data = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).put(bytes)
-            (data as Buffer).flip()
+            val data = MemoryUtil.memAlloc(bytes.size).put(0, bytes)
             stream.close()
             return data
         }
-
-        private val Array<out Image.Flags>.nvgInt: Int
-            get() {
-                var nvg = 0
-
-                this.forEach {
-                    nvg = when(it) {
-                        Image.Flags.GENERATE_MIPMAPS -> nvg or NVG_IMAGE_GENERATE_MIPMAPS
-                        Image.Flags.REPEATX -> nvg or NVG_IMAGE_REPEATX
-                        Image.Flags.REPEATY -> nvg or NVG_IMAGE_REPEATY
-                        Image.Flags.FLIPY -> nvg or NVG_IMAGE_FLIPY
-                        Image.Flags.NEAREST -> nvg or NVG_IMAGE_NEAREST
-                    }
-                }
-                return nvg
-            }
 
         private class TemporaryImageData(val id: Int, val width: Int, val height: Int)
     }
