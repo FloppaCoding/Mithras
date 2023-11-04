@@ -5,8 +5,8 @@ import java.nio.FloatBuffer
 
 class Uniform1f : UniformGL<Float, FloatBuffer> {
 
-    constructor(programID: Int, name: String, updater: () -> Float) : super(programID, name, Type.FLOAT, 1, updater)
-    constructor(programID: Int, name: String): super(programID, name, Type.FLOAT, 1)
+    constructor(programID: Int, name: String, updater: () -> Float) : super(programID, name, Type.FLOAT, Shape.SCALAR, updater)
+    constructor(programID: Int, name: String): super(programID, name, Type.FLOAT, Shape.SCALAR)
 
     override fun writeNewValToBuffer(newValue: Float) {
         this.buffer.put(0, newValue)

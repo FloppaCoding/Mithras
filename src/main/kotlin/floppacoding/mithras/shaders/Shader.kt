@@ -2,7 +2,6 @@ package floppacoding.mithras.shaders
 
 import com.mojang.blaze3d.systems.RenderSystem
 import floppacoding.mithras.Mithras
-import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.shaders.uniforms.Uniform
 import floppacoding.mithras.shaders.uniforms.UniformGL
 import floppacoding.mithras.shaders.uniforms.impl.*
@@ -10,7 +9,6 @@ import floppacoding.mithras.shaders.uniforms.withValue
 import floppacoding.mithras.utils.render.GLR
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.VertexFormat
-import net.minecraft.util.Identifier
 import org.joml.Vector2f
 import org.lwjgl.opengl.GL46
 import java.io.IOException
@@ -47,21 +45,31 @@ open class Shader(
     private val vertexFile: String,
     private val fragmentFile: String,
     extraFiles: List<Pair<String, Int>>,
+    preprocessorArgs: Collection<PreprocessorArgument>
 ) : AutoCloseable {
 
-    constructor(format: VertexFormat, vertexFile: String, fragmentFile: String): this(format, vertexFile, fragmentFile, emptyList())
+    constructor(format: VertexFormat, vertexFile: String, fragmentFile: String): this(format, vertexFile, fragmentFile, emptyList(), emptyList())
+    constructor(format: VertexFormat, preprocessorArgs: Collection<PreprocessorArgument>, vertexFile: String, fragmentFile: String):
+            this(format, vertexFile, fragmentFile, emptyList(), preprocessorArgs)
     constructor(format: VertexFormat, vertexFile: String, fragmentFile: String, vararg extraFiles: Pair<String,Int>):
-            this(format, vertexFile, fragmentFile, extraFiles.toList())
+            this(format, vertexFile, fragmentFile, extraFiles.toList(), emptyList())
     constructor(format: VertexFormat, vertexFile: String, fragmentFile: String, vararg extraFiles: String):
-            this(format, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  })
+            this(format, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  }, emptyList())
+    constructor(format: VertexFormat, preprocessorArgs: Collection<PreprocessorArgument>, vertexFile: String, fragmentFile: String, vararg extraFiles: String):
+            this(format, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  }, preprocessorArgs)
     constructor(format: VertexFormat, name: String) : this(format, "$name.vert", "$name.frag")
 
     var programID: Int by Delegates.notNull()
     private var vertexShaderID: Int
     private var fragmentShaderID: Int
-    private var extraShares: List<ShaderFile>
+    private var extraShaders: List<ShaderFile>
 
     private val uniforms: ArrayList<Uniform> = arrayListOf()
+    // TODO add support to change this so that this can be used as an external library
+    protected val resourceDomain: String = Mithras.RESOURCE_DOMAIN
+    private val preprocessor: ShaderPreprocessor = ShaderPreprocessor(resourceDomain, preprocessorArgs)
+
+
 
     /**
      * The [model view matrix][RenderSystem.getModelViewMatrix]
@@ -123,7 +131,7 @@ open class Shader(
             val glId = loadShader(it.first, it.second)
             newShaders.add(ShaderFile(it.first, it.second, glId))
         }
-        extraShares = newShaders
+        extraShaders = newShaders
 
         programID = GL46.glCreateProgram()
         // bind Attributes
@@ -133,7 +141,7 @@ open class Shader(
 
         GL46.glAttachShader(programID, vertexShaderID)
         GL46.glAttachShader(programID, fragmentShaderID)
-        extraShares.forEach {
+        extraShaders.forEach {
             GL46.glAttachShader(programID, it.id)
         }
         GL46.glLinkProgram(programID)
@@ -161,7 +169,7 @@ open class Shader(
         val newVertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
         val newFragmentShaderID = loadShader(fragmentFile, GL46.GL_FRAGMENT_SHADER)
         val newShaders = mutableListOf<ShaderFile>()
-        extraShares.forEach {
+        extraShaders.forEach {
             val glId = loadShader(it.fileName, it.type)
             newShaders.add(ShaderFile(it.fileName, it.type, glId))
         }
@@ -177,14 +185,14 @@ open class Shader(
         }
         GL46.glLinkProgram(newProgramID)
         if (GL46.glGetProgrami(newProgramID, GL46.GL_LINK_STATUS) != GL46.GL_TRUE) {
-            val errorMessage = GL46.glGetProgramInfoLog(newProgramID, 1000)
+            val errorMessage = GL46.glGetProgramInfoLog(newProgramID, 10000)
             Mithras.logger.error(errorMessage)
             throw Exception("Program linking failed for ${this::class.simpleName}.", Exception(errorMessage))
         }
 
         GL46.glValidateProgram(newProgramID)
         if (GL46.glGetProgrami(newProgramID, GL46.GL_VALIDATE_STATUS) != GL46.GL_TRUE) {
-            val errorMessage = GL46.glGetProgramInfoLog(newProgramID, 1000)
+            val errorMessage = GL46.glGetProgramInfoLog(newProgramID, 10000)
             Mithras.logger.error(errorMessage)
             throw Exception("Program validation failed for ${this::class.simpleName}.", Exception(errorMessage))
         }
@@ -193,7 +201,7 @@ open class Shader(
         // glDeleteShader flags the shader for deletion for when it is no longer attached to a program.
         GL46.glDeleteShader(vertexShaderID)
         GL46.glDeleteShader(fragmentShaderID)
-        extraShares.forEach {
+        extraShaders.forEach {
             GL46.glDeleteShader(it.id)
         }
         GL46.glDeleteProgram(programID)
@@ -201,7 +209,7 @@ open class Shader(
         programID = newProgramID
         vertexShaderID = newVertexShaderID
         fragmentShaderID = newFragmentShaderID
-        extraShares = newShaders
+        extraShaders = newShaders
 
 
         // Update the IDs of the uniforms to the new program
@@ -242,13 +250,12 @@ open class Shader(
      */
     @Throws(Exception::class, IOException::class)
     private fun loadShader(file: String, type: Int): Int {
-        return shaderBuffer.getOrPut(file) putShader@{
-            val builder = java.lang.StringBuilder()
+        return shaderBuffer.getOrPut(ShaderSource(preprocessor, file)) putShader@{
+            val builder: StringBuilder
             try {
-                mc.resourceManager.getResource(Identifier(Mithras.RESOURCE_DOMAIN, "shaders/$file")).get()
-                    .inputStream.bufferedReader().useLines {
-                        it.forEach { line -> builder.append(line).append("\n") }
-                    }
+                val stream = this.javaClass.getResourceAsStream("/assets/$resourceDomain/shaders/$file") ?:
+                    throw Exception("Shader file not found: '/assets/$resourceDomain/shaders/$file'")
+                builder = preprocessor.processShader(stream)
             }catch (e: Exception) {
                 e.printStackTrace()
                 throw  e
@@ -258,7 +265,7 @@ open class Shader(
             GL46.glCompileShader(shaderId)
 
             if (GL46.glGetShaderi(shaderId, GL46.GL_COMPILE_STATUS) == GL46.GL_FALSE){
-                val errorMessage = GL46.glGetShaderInfoLog(shaderId, 1000)
+                val errorMessage = GL46.glGetShaderInfoLog(shaderId, 10000)
                 Mithras.logger.error(errorMessage)
                 throw Exception("Failed loading shader", Exception(errorMessage))
             }
@@ -276,11 +283,13 @@ open class Shader(
 
     data class ShaderFile(val fileName: String, val type: Int, val id: Int)
 
+    data class ShaderSource(val processor: ShaderPreprocessor, val path: String)
+
     companion object {
         /**
          * Already loaded shaders mapped to their gl shader id.
          */
-        private val shaderBuffer: MutableMap<String, Int> = mutableMapOf()
+        private val shaderBuffer: MutableMap<ShaderSource, Int> = mutableMapOf()
 
         private fun getShaderType(fileName: String): Int? {
             return when(fileName.substringAfterLast(".")) {

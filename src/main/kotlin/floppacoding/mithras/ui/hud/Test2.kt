@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
 import net.minecraft.util.math.RotationAxis
+import org.joml.Vector4f
 import java.awt.Color
 
 object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
@@ -50,8 +51,10 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
         GLR.line(-50f,0f,50f,0f, 20f,  Color(0,255,0,100).rgb)
         GLR.pop()
 
-        GLR.image(GLImageManager.ICON, 0f, 200f, 200f, 200f,0f, 0f, 0f, 1f, 1f)
-        NVGR.image(NVGImageManager.ICON, 300f, 200f, 200f, 200f)
+        GLR.roundedRect2(300f, -50f, 800f, 500f, Vector4f(50f, 40f,0f, 10f), -1)
+
+        GLR.image(GLImageManager.ICON, 0f, 300f, 200f, 200f)
+        NVGR.image(NVGImageManager.ICON, 0f, 600f, 200f, 200f)
 //
 //        GLR.circle(0f, 200f, 7f, Color(10, 120, 240, 140).rgb)
 //        GLR.circle(0f, 500f, 40f, Color(120, 10, 240, 140).rgb)

@@ -19,11 +19,10 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
     programID: Int,
     val name: String,
     val type: Type<K>,
-    // TODO maybe replace this with an enum to allow for 2x2 matrices and other stuff.
-    val count: Int,
+    val shape: Shape,
 ) : Uniform {
 
-    constructor(programID: Int, name: String, type: Type<K>, count: Int, updater: () -> T) : this(programID, name, type, count) {
+    constructor(programID: Int, name: String, type: Type<K>, shape: Shape, updater: () -> T) : this(programID, name, type, shape) {
         this.updater = updater
         dirty = true
     }
@@ -41,7 +40,7 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
      * The buffer uses off-heap memory which has to be handled manually.
      * It does not get freed by the garbage collector.
      */
-    protected val buffer: K = type.provideBuffer(count)
+    protected val buffer: K = type.provideBuffer(shape.count)
 
     /**
      * Determines whether the value should be updated to the GPU.
@@ -99,7 +98,7 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
 
     private fun uploadData() {
         buffer.rewind()
-        type.uploadData(this.uniformID, count, buffer)
+        type.uploadData(this.uniformID, shape, buffer)
     }
 
     override fun close() {
@@ -115,14 +114,21 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
                 return MemoryUtil.memCallocFloat(count)
             }
 
-            override fun uploadData(uniformID: Int, count: Int, buffer: FloatBuffer) {
-                when(count) {
-                    1  -> GL46.glUniform1fv(uniformID, buffer)
-                    2  -> GL46.glUniform2fv(uniformID, buffer)
-                    3  -> GL46.glUniform3fv(uniformID, buffer)
-                    4  -> GL46.glUniform4fv(uniformID, buffer)
-                    9  -> GL46.glUniformMatrix3fv(uniformID, false, buffer)
-                    16 -> GL46.glUniformMatrix4fv(uniformID, false, buffer)
+            override fun uploadData(uniformID: Int, shape: Shape, buffer: FloatBuffer) {
+                when(shape) {
+                    Shape.SCALAR -> GL46.glUniform1fv(uniformID, buffer)
+                    Shape.VEC2   -> GL46.glUniform2fv(uniformID, buffer)
+                    Shape.VEC3   -> GL46.glUniform3fv(uniformID, buffer)
+                    Shape.VEC4   -> GL46.glUniform4fv(uniformID, buffer)
+                    Shape.MAT2   -> GL46.glUniformMatrix2fv(uniformID, false, buffer)
+                    Shape.MAT3   -> GL46.glUniformMatrix3fv(uniformID, false, buffer)
+                    Shape.MAT4   -> GL46.glUniformMatrix4fv(uniformID, false, buffer)
+                    Shape.MAT3x2 -> GL46.glUniformMatrix3x2fv(uniformID, false, buffer)
+                    Shape.MAT2x3 -> GL46.glUniformMatrix2x3fv(uniformID, false, buffer)
+                    Shape.MAT4x2 -> GL46.glUniformMatrix4x2fv(uniformID, false, buffer)
+                    Shape.MAT2x4 -> GL46.glUniformMatrix2x4fv(uniformID, false, buffer)
+                    Shape.MAT4x3 -> GL46.glUniformMatrix4x3fv(uniformID, false, buffer)
+                    Shape.MAT3x4 -> GL46.glUniformMatrix3x4fv(uniformID, false, buffer)
                 }
             }
         }
@@ -132,12 +138,13 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
                 return MemoryUtil.memCallocInt(count)
             }
 
-            override fun uploadData(uniformID: Int, count: Int, buffer: IntBuffer) {
-                when(count) {
-                    1  -> GL46.glUniform1iv(uniformID, buffer)
-                    2  -> GL46.glUniform2iv(uniformID, buffer)
-                    3  -> GL46.glUniform3iv(uniformID, buffer)
-                    4  -> GL46.glUniform4iv(uniformID, buffer)
+            override fun uploadData(uniformID: Int, shape: Shape, buffer: IntBuffer) {
+                when(shape) {
+                    Shape.SCALAR -> GL46.glUniform1iv(uniformID, buffer)
+                    Shape.VEC2   -> GL46.glUniform2iv(uniformID, buffer)
+                    Shape.VEC3   -> GL46.glUniform3iv(uniformID, buffer)
+                    Shape.VEC4   -> GL46.glUniform4iv(uniformID, buffer)
+                    else -> {}
                 }
             }
         }
@@ -147,21 +154,44 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
                 return MemoryUtil.memCallocDouble(count)
             }
 
-            override fun uploadData(uniformID: Int, count: Int, buffer: DoubleBuffer) {
-                when(count) {
-                    1  -> GL46.glUniform1dv(uniformID, buffer)
-                    2  -> GL46.glUniform2dv(uniformID, buffer)
-                    3  -> GL46.glUniform3dv(uniformID, buffer)
-                    4  -> GL46.glUniform4dv(uniformID, buffer)
-                    9  -> GL46.glUniformMatrix3dv(uniformID, false, buffer)
-                    16 -> GL46.glUniformMatrix4dv(uniformID, false, buffer)
+            override fun uploadData(uniformID: Int, shape: Shape, buffer: DoubleBuffer) {
+                when(shape) {
+                    Shape.SCALAR -> GL46.glUniform1dv(uniformID, buffer)
+                    Shape.VEC2   -> GL46.glUniform2dv(uniformID, buffer)
+                    Shape.VEC3   -> GL46.glUniform3dv(uniformID, buffer)
+                    Shape.VEC4   -> GL46.glUniform4dv(uniformID, buffer)
+                    Shape.MAT2   -> GL46.glUniformMatrix2dv(uniformID, false, buffer)
+                    Shape.MAT3   -> GL46.glUniformMatrix3dv(uniformID, false, buffer)
+                    Shape.MAT4   -> GL46.glUniformMatrix4dv(uniformID, false, buffer)
+                    Shape.MAT3x2 -> GL46.glUniformMatrix3x2dv(uniformID, false, buffer)
+                    Shape.MAT2x3 -> GL46.glUniformMatrix2x3dv(uniformID, false, buffer)
+                    Shape.MAT4x2 -> GL46.glUniformMatrix4x2dv(uniformID, false, buffer)
+                    Shape.MAT2x4 -> GL46.glUniformMatrix2x4dv(uniformID, false, buffer)
+                    Shape.MAT4x3 -> GL46.glUniformMatrix4x3dv(uniformID, false, buffer)
+                    Shape.MAT3x4 -> GL46.glUniformMatrix3x4dv(uniformID, false, buffer)
                 }
             }
         }
 
         abstract fun provideBuffer(count: Int) : K
 
-        abstract fun uploadData(uniformID: Int, count: Int, buffer: K)
+        abstract fun uploadData(uniformID: Int, shape: Shape, buffer: K)
+    }
+
+    enum class Shape(val count: Int) {
+        SCALAR(1),
+        VEC2(2),
+        VEC3(3),
+        VEC4(4),
+        MAT2(4),
+        MAT3(9),
+        MAT4(16),
+        MAT2x3(6),
+        MAT3x2(6),
+        MAT4x2(8),
+        MAT2x4(8),
+        MAT4x3(12),
+        MAT3x4(12),
     }
 }
 

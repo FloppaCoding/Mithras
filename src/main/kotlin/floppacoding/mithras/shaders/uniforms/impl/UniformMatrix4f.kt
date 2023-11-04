@@ -5,8 +5,8 @@ import org.joml.Matrix4f
 import java.nio.FloatBuffer
 
 class UniformMatrix4f : UniformGL<Matrix4f, FloatBuffer> {
-    constructor(programID: Int, name: String, updater: () -> Matrix4f) : super(programID, name, Type.FLOAT, 16, updater)
-    constructor(programID: Int, name: String): super(programID, name, Type.FLOAT, 16)
+    constructor(programID: Int, name: String, updater: () -> Matrix4f) : super(programID, name, Type.FLOAT, Shape.MAT4, updater)
+    constructor(programID: Int, name: String): super(programID, name, Type.FLOAT, Shape.MAT4)
     override fun writeNewValToBuffer(newValue: Matrix4f) {
         newValue.get(0, buffer)
     }

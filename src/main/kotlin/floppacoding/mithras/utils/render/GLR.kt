@@ -14,6 +14,7 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.RotationAxis
 import org.joml.*
 import org.lwjgl.opengl.GL46
+import java.awt.Color
 import kotlin.math.round
 
 // TODO consider not using the position matrix on the cpu when creating vertices and instead let the model view matrix handle that.
@@ -183,6 +184,29 @@ object GLR: Renderer2D {
         RoundedRectangle.stopShader()
     }
 
+    // TODO this is a test method, remove it!
+    fun roundedRect2(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int) {
+        RenderSystem.assertOnRenderThread()
+
+        RenderSystem.enableBlend()
+
+        val positionMatrix = matrices.peek().positionMatrix
+        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+
+        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(Color(255,0,0, 100).rgb).next()
+        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(Color(0,255,0,100).rgb).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(Color(0,0,255,100).rgb).next()
+        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(Color(255,255,0,100).rgb).next()
+
+        RoundedRectangle2.setRadii(radii)
+        RoundedRectangle2.setTransform(positionMatrix)
+
+        RoundedRectangle2.useShader()
+        BufferRenderer.draw(bufferBuilder.end())
+        RoundedRectangle2.stopShader()
+    }
+
     override fun text(
         text: String,
         x: Float,
@@ -308,8 +332,8 @@ object GLR: Renderer2D {
     fun ellipse(x: Float, y: Float, a: Vector2f, b: Float, color: Int) {
         RenderSystem.assertOnRenderThread()
 
-        val positionMatrix = matrices.peek().positionMatrix
-        val transform = Matrix2f().m00(positionMatrix.m00()).m10(positionMatrix.m10()).m01(positionMatrix.m01()).m11(positionMatrix.m11())
+        val posMat = matrices.peek().positionMatrix
+        val transform = Matrix2f(posMat.m00(), posMat.m10(), posMat.m01(), posMat.m11())
 
         val aVec = a.mul(transform)
         val bVec = Vector2f(-a.y, a.x).normalize(b).mul(transform)
@@ -318,7 +342,7 @@ object GLR: Renderer2D {
         val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
         bufferBuilder.begin(POINTS, POSITION_COLOR_TEX_TEX)
 
-        bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).texture(aVec.x, aVec.y).texture(bVec.x, bVec.y).next()
+        bufferBuilder.vertex(posMat, x, y, 0f).color(color).texture(aVec.x, aVec.y).texture(bVec.x, bVec.y).next()
 //        bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).texture(aVec.x, aVec.y).texture(bVec.x, bVec.y).next()
 
         Ellipse.useShader()
