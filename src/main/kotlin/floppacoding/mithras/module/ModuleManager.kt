@@ -7,6 +7,7 @@ import floppacoding.mithras.module.impl.dungeon.*
 import floppacoding.mithras.module.impl.keybinds.AddKeybind
 import floppacoding.mithras.module.impl.keybinds.KeyBind
 import floppacoding.mithras.module.impl.misc.*
+import floppacoding.mithras.module.impl.misc.rift.Mirrorverse
 import floppacoding.mithras.module.impl.player.AutoSprint
 import floppacoding.mithras.module.impl.player.DisableHotbarScroll
 import floppacoding.mithras.module.impl.render.*
@@ -81,7 +82,7 @@ object ModuleManager {
         ChatCleaner,
         ItemProtection,
         DebugModule,
-
+        Mirrorverse,
 
         //KEYBIND
         AddKeybind,

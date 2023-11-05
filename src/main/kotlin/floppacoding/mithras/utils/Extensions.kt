@@ -104,13 +104,14 @@ object Extensions {
     @JvmStatic
     val HORIZONTALS: List<Direction> = listOf(Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST)
 
-
-    // TODO rename this
     /**
      * Used for executors
      */
     inline val Int.seconds: Long
         get() = (this * 1_000_000_000).toLong()
+
+    inline val Int.millis: Long
+        get() = (this * 1_000_000).toLong()
 
     // TODO move this to a fitting class and maybe rename it?.
     fun setScreen(screen: Screen) {
@@ -119,4 +120,12 @@ object Extensions {
         }
     }
 
+    /**
+     * Factory function to use any [Number] and not just [Double] for minecraft's [Box] class
+     */
+    fun Box(x: Number, y: Number, z: Number, x1: Number, y2: Number, y3: Number): net.minecraft.util.math.Box {
+        return net.minecraft.util.math.Box(
+            x.toDouble(), y.toDouble(), z.toDouble(), x1.toDouble(), y2.toDouble(), y3.toDouble()
+        )
+    }
 }
