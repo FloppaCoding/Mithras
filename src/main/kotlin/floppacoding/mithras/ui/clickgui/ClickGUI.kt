@@ -254,7 +254,7 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
         }
     }
 
-    override val displayPerformance: Boolean = true
+    override val displayFPS: Boolean = true
 
     companion object {
         var panels: ArrayList<Panel> = arrayListOf()

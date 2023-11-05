@@ -2,9 +2,8 @@ package floppacoding.mithras.ui.nanovg
 
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
+import floppacoding.mithras.utils.Executor
 import floppacoding.mithras.utils.Extensions.seconds
-import floppacoding.mithras.utils.clock.Clock
-import floppacoding.mithras.utils.clock.Executor
 import floppacoding.mithras.utils.render.Renderer2D
 import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.client.gui.DrawContext
@@ -33,23 +32,24 @@ abstract class GuiScreen(
 
     open val renderer: Renderer2D = Mithras.renderer2D
 
-    private val clock = Clock()
+    var time = System.nanoTime()
 
     /**
-     * If this is false it will render FPS in bottom-right corner.
+     * Use to display fps in bottom of corner.
+     * This isn't very useful due to it basically showing the games fps rather than gui's performance, but It looks nice
      */
-    protected open val displayPerformance: Boolean = false
+    protected open val displayFPS: Boolean = false
 
-    /** Used to show performance*/
     private var frames = 0
+    private var frameDelta = 0f
 
-    /** Used to show performance */
     private var performance: String = ""
 
-    /** Used to update fps */
+    /** Updates [performance] every second. */
     private val perfUpdater = Executor(1.seconds) {
-        performance = "FPS : $frames, Frametime : ${clock.getTime() / 1000_000f}ms" // not avg frame time cuz too lazy for that
+        performance = "FPS : $frames, Frametime : ${frameDelta / frames}ms"
         frames = 0
+        frameDelta = 0f
     }
 
     val windowWidth: Float
@@ -62,15 +62,15 @@ abstract class GuiScreen(
      * Sets up the frame and scaling.
      */
     final override fun render(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
-        clock.update()
         renderer.beginFrame()
         renderer.scale(scale, scale)
+
         renderer.push()
         render(getMouseX(), getMouseY(), partialTicks)
         renderer.pop()
-        if (displayPerformance) {
-            displayPerformance()
-        }
+
+        if (displayFPS) displayPerformance(partialTicks)
+
         renderer.endFrame()
         super.render(context, mouseX, mouseY, partialTicks)
     }
@@ -133,8 +133,10 @@ abstract class GuiScreen(
         return false
     }
 
-    private fun displayPerformance() {
+    private fun displayPerformance(delta: Float) {
         frames++
+        frameDelta += delta
+
         perfUpdater.run()
         renderer.push()
         renderer.reset()
