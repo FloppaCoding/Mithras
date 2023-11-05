@@ -366,9 +366,9 @@ object MapRender: HudElement(
             renderer.scale(DungeonMap.playerHeadScale.value, DungeonMap.playerHeadScale.value)
             renderer.border(-6.0f, -6.0f, 12.0f, 12.0f, 2.0f, 1f, Color(0, 0, 0, 255).rgb)
             val skinImage  = player.skinImage ?: return
-            renderer.image(skinImage,-6f, -6f, 12f, 12f, 1f, 8f, 8f, 8f, 8f)
+            renderer.roundedImage(skinImage,-6f, -6f, 12f, 12f, 1f, 8f, 8f, 8f, 8f)
             if (player.player.isPartVisible(PlayerModelPart.HAT)) {
-                renderer.image(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 8f, 8f)
+                renderer.roundedImage(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 8f, 8f)
             }
         } catch (_: Exception) {
         }

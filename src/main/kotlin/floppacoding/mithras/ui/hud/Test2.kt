@@ -10,6 +10,7 @@ import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
 import net.minecraft.util.math.RotationAxis
 import org.joml.Vector4f
+import org.joml.Vector4i
 import java.awt.Color
 
 object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
@@ -51,10 +52,12 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
         GLR.line(-50f,0f,50f,0f, 20f,  Color(0,255,0,100).rgb)
         GLR.pop()
 
-        GLR.roundedRect2(300f, -50f, 800f, 500f, Vector4f(50f, 40f,0f, 10f), -1)
+        GLR.roundedRect(300f, -50f, 800f, 500f, Vector4f(50f, 40f,0f, 10f), Vector4i(Color(255,0,0,100).rgb, Color(0,255,0,100).rgb, Color(0,0,255,100).rgb, Color(0,255,255,100).rgb))
 
-        GLR.image(GLImageManager.ICON, 0f, 300f, 200f, 200f)
-        NVGR.image(NVGImageManager.ICON, 0f, 600f, 200f, 200f)
+//        GLR.image(GLImageManager.ICON, 0f, 300f, 200f, 200f)
+        GLR.roundedImage(GLImageManager.HUE_SCALE, 0f, 300f, 200f, 200f, 12f, 0.5f)
+        NVGR.roundedImage(NVGImageManager.HUE_SCALE, 0f, 600f, 200f, 200f, 12f, 0.5f)
+//        NVGR.image(NVGImageManager.ICON, 0f, 600f, 200f, 200f)
 //
 //        GLR.circle(0f, 200f, 7f, Color(10, 120, 240, 140).rgb)
 //        GLR.circle(0f, 500f, 40f, Color(120, 10, 240, 140).rgb)

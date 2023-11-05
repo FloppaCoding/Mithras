@@ -66,7 +66,7 @@ open class Shader(
 
     private val uniforms: ArrayList<Uniform> = arrayListOf()
     // TODO add support to change this so that this can be used as an external library
-    protected val resourceDomain: String = Mithras.RESOURCE_DOMAIN
+    private val resourceDomain: String = Mithras.RESOURCE_DOMAIN
     private val preprocessor: ShaderPreprocessor = ShaderPreprocessor(resourceDomain, preprocessorArgs)
 
 
@@ -267,7 +267,8 @@ open class Shader(
             if (GL46.glGetShaderi(shaderId, GL46.GL_COMPILE_STATUS) == GL46.GL_FALSE){
                 val errorMessage = GL46.glGetShaderInfoLog(shaderId, 10000)
                 Mithras.logger.error(errorMessage)
-                throw Exception("Failed loading shader", Exception(errorMessage))
+                Mithras.logger.debug(GL46.glGetShaderSource(shaderId))
+                throw Exception("Failed loading shader $file", Exception(errorMessage))
             }
 
             return@putShader shaderId

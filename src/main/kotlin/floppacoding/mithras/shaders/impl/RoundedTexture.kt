@@ -2,7 +2,7 @@ package floppacoding.mithras.shaders.impl
 
 import floppacoding.mithras.shaders.Redefine
 import floppacoding.mithras.shaders.Shader
-import floppacoding.mithras.shaders.impl.RoundedRectangle.setTransform
+import floppacoding.mithras.shaders.uniforms.impl.Uniform1f
 import floppacoding.mithras.shaders.uniforms.impl.Uniform4f
 import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix2f
 import floppacoding.mithras.shaders.uniforms.withValue
@@ -12,46 +12,23 @@ import org.joml.Matrix4f
 import org.joml.Vector4f
 
 /**
- * ## A Shader for drawing colored rounded rectangles.
+ * ## A Shader for drawing textured rounded rectangles.
  *
- * This shader will round the corners of rectangles.
- *
- * The input rectangles are assumed to be drawn from 2 triangles in the following order:
- *
- *           2
- *         0 ┌──────────┐ 1     ─> x
- *           │ ╲        │       ↓
- *           │   ╲      │       y
- *           │     ╲    │
- *           │       ╲  │
- *         1 └──────────┘ 0
- *                      2
- *
- * Where the bottom left triangle is drawn first. This layout is in respect to the current local coordinate system.
- *
- * The shader allows for 4 different corner radii for the individual corners.
- * These are ordered: top left, bottom left, bottom right, top right.
- *
- * Before the shader is used it is important to pass it the x and y unit vectors in the current coordinate system.
- * This can be done with [setTransform].
- *
- * @see RoundedRectangleSingleColor
+ * Texture version of [RoundedRectangle].
  *
  * @author Aton
  */
-object RoundedRectangle : Shader(
-    VertexFormats.POSITION_COLOR,
-    listOf(Redefine("INTERPOLATE_COLOR", "1"),
-        Redefine("TEXTURE_MODE", "0")),
-    "core/pos_color.vert",
-    "core/color.frag",
+object RoundedTexture : Shader(
+    VertexFormats.POSITION_TEXTURE,
+    listOf(Redefine("TEXTURE_MODE", "1")),
+    "core/pos_tex.vert",
+    "core/tex_alpha.frag",
     "rounded_rect/rounded_rect.geom"
 ) {
     private var cornerRadii: Vector4f = Vector4f(0f,0f,0f,0f)
-
     private val radiusUniform = Uniform4f(this.programID, "radius").withValue( cornerRadii )
-
     private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
+    private val alphaUniform = Uniform1f(this.programID, "alpha").withValue(1f)
 
     fun setTransform(posMat: Matrix4f) {
         transformUniform.updateValues(posMat.m00(), posMat.m10(), posMat.m01(), posMat.m11())
@@ -73,6 +50,10 @@ object RoundedRectangle : Shader(
         radiusUniform.updateValues(topLeft, bottomLeft, bottomRight, topRight)
     }
 
+    fun setAlpha(alpha: Float) {
+        alphaUniform.updateValue(alpha)
+    }
+
     init {
         this.registerUniforms(
             this.modelViewMat,
@@ -80,6 +61,7 @@ object RoundedRectangle : Shader(
             this.windowSize,
             transformUniform,
             radiusUniform,
+            alphaUniform
         )
     }
 }

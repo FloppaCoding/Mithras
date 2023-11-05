@@ -3,7 +3,7 @@ package floppacoding.mithras.shaders.uniforms.impl
 import floppacoding.mithras.shaders.uniforms.UniformGL
 import java.nio.IntBuffer
 
-open class Uniform1i : UniformGL<Int, IntBuffer> {
+open class Uniform1i : UniformGL<Int, Int, IntBuffer> {
     constructor(programID: Int, name: String, updater: () -> Int) : super(programID, name, Type.INT, Shape.SCALAR, updater)
     constructor(programID: Int, name: String): super(programID, name, Type.INT, Shape.SCALAR)
 

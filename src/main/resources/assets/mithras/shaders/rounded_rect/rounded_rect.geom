@@ -9,6 +9,7 @@ Author: Aton
 
 #define MAX_VERTICES 67
 #define INTERPOLATE_COLOR 0
+#define TEXTURE_MODE 0
 
 const float ONE_OVER_SQRT_2 = 0.7071068;
 const float PI_HALF = 1.5707963;
@@ -22,7 +23,11 @@ layout(triangle_strip, max_vertices = MAX_VERTICES) out;
 in int gl_PrimitiveIDIn[];
 
 in VERTEX_DATA {
+#if TEXTURE_MODE
+    vec2 texCoord0;
+#else
     vec4 vertexColor;
+#endif
 } gs_in[];
 
 uniform mat4 ModelViewMat;
@@ -32,46 +37,33 @@ uniform mat2 UnitTransform;
 uniform vec4 radius;
 
 out VERTEX_DATA {
+#if TEXTURE_MODE
+    vec2 texCoord0;
+#else
     vec4 vertexColor;
+#endif
 } gs_out;
 
-#if INTERPOLATE_COLOR
-struct Bary_Cache {
-    vec2 a;
-    vec2 v0;
-    vec2 v1;
-    float d00;
-    float d01;
-    float d11;
-    float scale;
-} bary_cache = Bary_Cache(vec2(0.0, 0.0), vec2(0.0, 0.0), vec2(0.0, 0.0), 0.0, 0.0, 0.0, 0.0);
+#if TEXTURE_MODE || INTERPOLATE_COLOR
+    #include "barycentrics.glsl"
 
-
-vec4 lerpColor(in vec2 p) {
-    vec2 v2 = p - bary_cache.a;
-    float d20 = dot(v2, bary_cache.v0);
-    float d21 = dot(v2, bary_cache.v1);
-    // Barycentric coordinates.
-    float v = (bary_cache.d11 * d20 - bary_cache.d01 * d21) * bary_cache.scale;
-    float w = (bary_cache.d00 * d21 - bary_cache.d01 * d20) * bary_cache.scale;
-    float u = 1.0f - v - w;
-
-    return u * gs_in[0].vertexColor + v * gs_in[1].vertexColor + w * gs_in[2].vertexColor;
-}
-
-void initializeBaryCache() {
-    bary_cache.a = gl_in[0].gl_Position.xy / gl_in[0].gl_Position.w;
-    bary_cache.v0 = gl_in[1].gl_Position.xy / gl_in[1].gl_Position.w - gl_in[0].gl_Position.xy / gl_in[0].gl_Position.w;
-    bary_cache.v1 = gl_in[2].gl_Position.xy / gl_in[2].gl_Position.w - gl_in[0].gl_Position.xy / gl_in[0].gl_Position.w;
-    bary_cache.d00 = dot(bary_cache.v0, bary_cache.v0);
-    bary_cache.d01 = dot(bary_cache.v0, bary_cache.v1);
-    bary_cache.d11 = dot(bary_cache.v1, bary_cache.v1);
-    bary_cache.scale = 1.0 / ( bary_cache.d00 * bary_cache.d11 - bary_cache.d01* bary_cache.d01);
-}
+    #if TEXTURE_MODE
+        vec2 lerpTex(in vec2 p) {
+            vec3 bary;
+            calculateBarycentrics(p, bary);
+            return bary.s * gs_in[0].texCoord0 + bary.t * gs_in[1].texCoord0 + bary.p * gs_in[2].texCoord0;
+        }
+    #else
+        vec4 lerpColor(in vec2 p) {
+            vec3 bary;
+            calculateBarycentrics(p, bary);
+            return bary.s * gs_in[0].vertexColor + bary.t * gs_in[1].vertexColor + bary.p * gs_in[2].vertexColor;
+        }
+    #endif
 #endif
 
 void main() {
-#if INTERPOLATE_COLOR
+#if TEXTURE_MODE || INTERPOLATE_COLOR
     initializeBaryCache();
 #else
     gs_out.vertexColor = gs_in[0].vertexColor;
@@ -162,13 +154,17 @@ void main() {
     int opposite;
     for (int jj = 0; jj < totalVertices / 2; jj++) {
         gl_Position = vertices[jj];
-        #if INTERPOLATE_COLOR
+        #if TEXTURE_MODE
+        gs_out.texCoord0 = lerpTex(vertices[jj].xy / vertices[jj].w);
+        #elif  INTERPOLATE_COLOR
         gs_out.vertexColor = lerpColor(vertices[jj].xy / vertices[jj].w);
         #endif
         EmitVertex();
         opposite = totalVertices - 1 - jj;
         gl_Position = vertices[opposite];
-        #if INTERPOLATE_COLOR
+        #if TEXTURE_MODE
+        gs_out.texCoord0 = lerpTex(vertices[opposite].xy / vertices[opposite].w);
+        #elif  INTERPOLATE_COLOR
         gs_out.vertexColor = lerpColor(vertices[opposite].xy / vertices[opposite].w);
         #endif
         EmitVertex();
@@ -178,7 +174,9 @@ void main() {
     if (totalVertices % 2 != 0) {
         opposite = totalVertices /2;
         gl_Position = vertices[opposite];
-        #if INTERPOLATE_COLOR
+        #if TEXTURE_MODE
+        gs_out.texCoord0 = lerpTex(vertices[opposite].xy / vertices[opposite].w);
+        #elif  INTERPOLATE_COLOR
         gs_out.vertexColor = lerpColor(vertices[opposite].xy / vertices[opposite].w);
         #endif
         EmitVertex();

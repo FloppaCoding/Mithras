@@ -3,6 +3,8 @@ package floppacoding.mithras.utils.render
 import floppacoding.mithras.utils.render.nanovg.NVGR.beginFrame
 import floppacoding.mithras.utils.render.nanovg.NVGR.endFrame
 import net.minecraft.client.gui.DrawContext
+import org.joml.Vector4f
+
 // TODO add overloads for methods with default parameters for java compatibility
 
 /**
@@ -123,6 +125,11 @@ interface Renderer2D {
     fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int)
 
     /**
+     * Draws a rectangle with rounded corners.
+     */
+    fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int)
+
+    /**
      * Renders text aligned with the left bottom corner to the given coordinates.
      * @param text The text to be rendered.
      * @param x Yhe text x-coordinate.
@@ -156,14 +163,72 @@ interface Renderer2D {
      */
     fun textBounds(text: String, width: Float? = null, fontSize: Float = DEFAULT_FONT_HEIGHT, font: Font = defaultFont) : BoundingBox
 
-    // TODO split this in two methods maybe.
-    // one for resized images and one for just full res
     /**
      * Draws the [image] at [x],[y].
      * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
      * @param radius radius of the corner radius.
      */
-    fun image(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float = 0f, imageX: Float = 0f, imageY: Float = 0f, imageWidth: Float = image.width.toFloat(), imageHeight: Float = image.height.toFloat(), alpha: Float = 1f)
+    fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float)
+
+    /**
+     * Draws the [image] at [x],[y].
+     * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
+     * @param radius radius of the corner radius.
+     */
+    fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float) {
+        roundedImage(image, x, y, width, height, radius, imageX, imageY, imageWidth, imageHeight, 1f)
+    }
+
+    /**
+     * Draws the [image] at [x],[y].
+     * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
+     * @param radius radius of the corner radius.
+     */
+    fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, alpha: Float) {
+        roundedImage(image, x, y, width, height, radius, 0f, 0f, image.width.toFloat(), image.height.toFloat(), alpha)
+    }
+
+    /**
+     * Draws the [image] at [x],[y].
+     * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
+     * @param radius radius of the corner radius.
+     */
+    fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float) {
+        roundedImage(image, x, y, width, height, radius, 1f)
+    }
+
+
+    /**
+     * Draws the [image] at [x],[y].
+     * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
+     */
+    fun image(image: Image, x: Float, y: Float, width: Float, height: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float){
+        roundedImage(image, x, y, width, height, 0f, imageX, imageY, imageWidth, imageHeight, alpha)
+    }
+
+    /**
+     * Draws the [image] at [x],[y].
+     * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
+     */
+    fun image(image: Image, x: Float, y: Float, width: Float, height: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float) {
+        image(image, x, y, width, height, imageX, imageY, imageWidth, imageHeight, 1f)
+    }
+
+    /**
+     * Draws the [image] at [x],[y].
+     * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
+     */
+    fun image(image: Image, x: Float, y: Float, width: Float, height: Float, alpha: Float) {
+        image(image, x, y, width, height, 0f, 0f, image.width.toFloat(), image.height.toFloat(), alpha)
+    }
+
+    /**
+     * Draws the [image] at [x],[y].
+     * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
+     */
+    fun image(image: Image, x: Float, y: Float, width: Float, height: Float) {
+        image(image, x, y, width, height, 1f)
+    }
 
     /**
      * Draws a chroma border with rounded corner and the given dimensions.

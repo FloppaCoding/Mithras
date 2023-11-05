@@ -9,11 +9,12 @@ object Shaders {
         GUIShader,
         Chroma2D,
         FractalShader,
+        RoundedRectangleLegacy,
         RoundedRectangle,
-        RoundedRectangle2,
         Lines,
         Ellipse,
         Texture,
+        RoundedTexture,
     )
 
 

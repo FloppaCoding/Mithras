@@ -15,14 +15,14 @@ import java.nio.IntBuffer
  *
  * @author Aton
  */
-abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
+abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
     programID: Int,
     val name: String,
-    val type: Type<K>,
+    val type: Type<K, N>,
     val shape: Shape,
 ) : Uniform {
 
-    constructor(programID: Int, name: String, type: Type<K>, shape: Shape, updater: () -> T) : this(programID, name, type, shape) {
+    constructor(programID: Int, name: String, type: Type<K, N>, shape: Shape, updater: () -> T) : this(programID, name, type, shape) {
         this.updater = updater
         dirty = true
     }
@@ -59,6 +59,16 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
      */
     fun updateValue(newValue: T) {
         writeNewValToBuffer(newValue)
+        dirty = true
+    }
+
+    /**
+     * Update the value of this uniform.
+     *
+     * If the Uniform is initialized with an [updater] this will have no effect.
+     */
+    fun updateValues(vararg newValues: N) {
+        type.updateData(shape, buffer, newValues)
         dirty = true
     }
 
@@ -108,10 +118,14 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
     /**
      * Determines the underlying buffer used for the uniform.
      */
-    sealed class Type<K: Buffer> {
-        data object FLOAT : Type<FloatBuffer>() {
+    abstract class Type<K: Buffer, N: Number> {
+        private object FloatInternal : Type<FloatBuffer, Float>() {
             override fun provideBuffer(count: Int): FloatBuffer {
                 return MemoryUtil.memCallocFloat(count)
+            }
+
+            override fun updateData(shape: Shape, buffer: FloatBuffer, newValues: Array<out Float>) {
+                buffer.put(0, newValues.toFloatArray(), 0, shape.count)
             }
 
             override fun uploadData(uniformID: Int, shape: Shape, buffer: FloatBuffer) {
@@ -133,9 +147,13 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
             }
         }
 
-        data object INT : Type<IntBuffer>() {
+        private object IntInternal : Type<IntBuffer, Int>() {
             override fun provideBuffer(count: Int): IntBuffer {
                 return MemoryUtil.memCallocInt(count)
+            }
+
+            override fun updateData(shape: Shape, buffer: IntBuffer, newValues: Array<out Int>) {
+                buffer.put(0, newValues.toIntArray(), 0, shape.count)
             }
 
             override fun uploadData(uniformID: Int, shape: Shape, buffer: IntBuffer) {
@@ -149,9 +167,13 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
             }
         }
 
-        data object DOUBLE : Type<DoubleBuffer>() {
+        private object DoubleInternal : Type<DoubleBuffer, Double>() {
             override fun provideBuffer(count: Int): DoubleBuffer {
                 return MemoryUtil.memCallocDouble(count)
+            }
+
+            override fun updateData(shape: Shape, buffer: DoubleBuffer, newValues: Array<out Double>) {
+                buffer.put(0, newValues.toDoubleArray(), 0, shape.count)
             }
 
             override fun uploadData(uniformID: Int, shape: Shape, buffer: DoubleBuffer) {
@@ -175,7 +197,20 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
 
         abstract fun provideBuffer(count: Int) : K
 
+        abstract fun updateData(shape: Shape, buffer: K, newValues: Array<out N>)
+
         abstract fun uploadData(uniformID: Int, shape: Shape, buffer: K)
+
+        companion object {
+            @JvmField
+            val FLOAT: Type<FloatBuffer, Float> = FloatInternal
+
+            @JvmField
+            val INT: Type<IntBuffer, Int> = IntInternal
+
+            @JvmField
+            val DOUBLE: Type<DoubleBuffer, Double> = DoubleInternal
+        }
     }
 
     enum class Shape(val count: Int) {
@@ -195,7 +230,12 @@ abstract class UniformGL<in T : Any, K: Buffer> protected constructor(
     }
 }
 
-inline fun <T, K, reified U: UniformGL<T,K>> U.withValue(newValue: T) : U {
+inline fun <T, V, K, reified U: UniformGL<T, V, K>> U.withValue(newValue: T) : U {
     this.updateValue(newValue)
+    return this
+}
+
+inline fun <T, V, K, reified U: UniformGL<T, V, K>> U.withValues(vararg newValues: V) : U {
+    this.updateValues(*newValues)
     return this
 }

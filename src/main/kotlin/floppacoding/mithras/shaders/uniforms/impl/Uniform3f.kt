@@ -4,7 +4,7 @@ import floppacoding.mithras.shaders.uniforms.UniformGL
 import org.joml.Vector3f
 import java.nio.FloatBuffer
 
-class Uniform3f : UniformGL<Vector3f, FloatBuffer> {
+class Uniform3f : UniformGL<Vector3f, Float, FloatBuffer> {
 
     constructor(programID: Int, name: String, updater: () -> Vector3f) : super(programID, name, Type.FLOAT, Shape.VEC3, updater)
     constructor(programID: Int, name: String): super(programID, name, Type.FLOAT, Shape.VEC3)

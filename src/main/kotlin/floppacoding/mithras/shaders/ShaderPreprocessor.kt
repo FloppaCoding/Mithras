@@ -14,8 +14,8 @@ import java.io.InputStream
  * This preprocessor allows you to use include statements that will load in other shader files.
  * The include statement has to look like one of the following:
  *
- *      #include filename
- *      #include path/filename
+ *      #include "filename"
+ *      #include "path/filename"
  * The filename may contain 'a-zA-Z_.' but no '/'. If path is omitted it will be assumed to be 'shaders/include/'.
  * The preprocessor will then attempt to load the file "/assets/<resourceDomain>/<>path><filename>".
  * If it can be loaded successfully it will be inserted in place of the include statement.
@@ -86,7 +86,7 @@ class ShaderPreprocessor(private val resourceDomain: String) {
     companion object {
         private val includeBuffer = mutableMapOf<String, String>()
 
-        private val includePattern = Regex("^\\s*#include\\s*(?<path>[\\w.]+/)?(?<filename>[\\w.]+)\\s*\$")
+        private val includePattern = Regex("^\\s*#include\\s*\"(?<path>[\\w.]+/)?(?<filename>[\\w.]+)\"\\s*\$")
         private val versionPattern = Regex("^\\s*#version\\s*(?<version>\\d+)\\s*\$")
         private val definePattern = Regex("^\\s*#define\\s*(?<name>\\w+)\\s[\\s\\w.]*\$")
     }

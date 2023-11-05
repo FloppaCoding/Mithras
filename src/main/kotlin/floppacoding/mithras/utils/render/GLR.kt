@@ -14,7 +14,6 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.RotationAxis
 import org.joml.*
 import org.lwjgl.opengl.GL46
-import java.awt.Color
 import kotlin.math.round
 
 // TODO consider not using the position matrix on the cpu when creating vertices and instead let the model view matrix handle that.
@@ -169,23 +168,22 @@ object GLR: Renderer2D {
 
         val positionMatrix = matrices.peek().positionMatrix
         val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE)
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
 
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).texture(0f, 0f).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).texture(0f, height).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).texture(width, height).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).texture(width, 0f).next()
+        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
 
-        RoundedRectangle.setDimensions(width, height)
-        RoundedRectangle.setRadius(radius)
+        RoundedRectangleSingleColor.setRadius(radius)
+        RoundedRectangleSingleColor.setTransform(positionMatrix)
 
-        RoundedRectangle.useShader()
+        RoundedRectangleSingleColor.useShader()
         BufferRenderer.draw(bufferBuilder.end())
-        RoundedRectangle.stopShader()
+        RoundedRectangleSingleColor.stopShader()
     }
 
-    // TODO this is a test method, remove it!
-    fun roundedRect2(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int) {
+    override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int) {
         RenderSystem.assertOnRenderThread()
 
         RenderSystem.enableBlend()
@@ -194,17 +192,39 @@ object GLR: Renderer2D {
         val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
         bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
 
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(Color(255,0,0, 100).rgb).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(Color(0,255,0,100).rgb).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(Color(0,0,255,100).rgb).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(Color(255,255,0,100).rgb).next()
+        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
 
-        RoundedRectangle2.setRadii(radii)
-        RoundedRectangle2.setTransform(positionMatrix)
+        RoundedRectangle.setRadii(radii)
+        RoundedRectangle.setTransform(positionMatrix)
 
-        RoundedRectangle2.useShader()
+        RoundedRectangle.useShader()
         BufferRenderer.draw(bufferBuilder.end())
-        RoundedRectangle2.stopShader()
+        RoundedRectangle.stopShader()
+    }
+
+    fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, colors: Vector4i) {
+        RenderSystem.assertOnRenderThread()
+
+        RenderSystem.enableBlend()
+
+        val positionMatrix = matrices.peek().positionMatrix
+        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+
+        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(colors.x).next()
+        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(colors.y).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(colors.z).next()
+        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(colors.w).next()
+
+        RoundedRectangle.setRadii(radii)
+        RoundedRectangle.setTransform(positionMatrix)
+
+        RoundedRectangle.useShader()
+        BufferRenderer.draw(bufferBuilder.end())
+        RoundedRectangle.stopShader()
     }
 
     override fun text(
@@ -228,19 +248,7 @@ object GLR: Renderer2D {
         TODO("Not yet implemented")
     }
 
-    override fun image(
-        image: Image,
-        x: Float,
-        y: Float,
-        width: Float,
-        height: Float,
-        radius: Float,
-        imageX: Float,
-        imageY: Float,
-        imageWidth: Float,
-        imageHeight: Float,
-        alpha: Float
-    ) {
+    override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
         RenderSystem.assertOnRenderThread()
         if (image !is GLImageManager.GLImage) return
 
@@ -252,7 +260,6 @@ object GLR: Renderer2D {
             v1 = 1-v1
             v2 = 1-v2
         }
-
 
         RenderSystem.enableBlend()
         GL46.glActiveTexture(GL46.GL_TEXTURE0)
@@ -266,9 +273,19 @@ object GLR: Renderer2D {
         bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).texture(u2, v2).next()
         bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).texture(u2, v1).next()
 
-        Texture.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        Texture.stopShader()
+        if (radius > 0f) {
+            RoundedTexture.setRadius(radius)
+            RoundedTexture.setTransform(positionMatrix)
+            RoundedTexture.setAlpha(alpha)
+            RoundedTexture.useShader()
+            BufferRenderer.draw(bufferBuilder.end())
+            RoundedTexture.stopShader()
+        }else {
+            Texture.setAlpha(alpha)
+            Texture.useShader()
+            BufferRenderer.draw(bufferBuilder.end())
+            Texture.stopShader()
+        }
     }
 
     override fun chromaBorder(

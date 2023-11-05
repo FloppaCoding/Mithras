@@ -7,6 +7,7 @@ import floppacoding.mithras.utils.render.nanovg.NVGR.beginFrame
 import floppacoding.mithras.utils.render.nanovg.NVGR.endFrame
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
+import org.joml.Vector4f
 import org.lwjgl.nanovg.NVGColor
 import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoVG.*
@@ -221,6 +222,16 @@ object NVGR : Renderer2D {
     }
 
     /**
+     * Draws a rectangle with rounded corners.
+     */
+    override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int) {
+        nvgBeginPath(nanoContext)
+        nvgRoundedRectVarying(nanoContext, x, y, width, height, radii.x, radii.w, radii.z, radii.y)
+        setFillColor(color)
+        nvgFill(nanoContext)
+    }
+
+    /**
      * Renders text aligned with the left bottom corner to the given coordinates.
      * @param text The text to be rendered.
      * @param x Yhe text x-coordinate.
@@ -282,14 +293,12 @@ object NVGR : Renderer2D {
         return BoundingBox(buffer[0], buffer[1], buffer[2], buffer[3])
     }
 
-    // TODO split this in two methods maybe.
-    // one for resized images and one for just full res
     /**
      * Draws the [image] at [x],[y].
      * If [width] and [height] don't match the images aspect ratio, the image will get stretched accordingly.
      * @param radius radius of the corner radius.
      */
-    override fun image(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
+    override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
         if (image !is NVGImage) throw Error("Invalid Image")
         val xScale = width / imageWidth
         val yScale = height / imageHeight
@@ -301,7 +310,11 @@ object NVGR : Renderer2D {
         push()
         translate(x, y)
         nvgBeginPath(nanoContext)
-        nvgRoundedRect(nanoContext,0f, 0f, width, height, radius)
+        if (radius > 0f) {
+            nvgRoundedRect(nanoContext, 0f, 0f, width, height, radius)
+        }else {
+            nvgRect(nanoContext, 0f, 0f, width, height)
+        }
         nvgFillPaint(nanoContext, nanoPaint)
         nvgFill(nanoContext)
         pop()

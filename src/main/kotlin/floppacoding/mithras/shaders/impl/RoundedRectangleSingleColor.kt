@@ -11,15 +11,16 @@ import org.joml.Matrix4f
 import org.joml.Vector4f
 
 /**
- * Single color version of [RoundedRectangle2].
+ * Single color version of [RoundedRectangle].
  *
  * This shader will not interpolate the colors of the vertices.
  *
  * @author Aton
  */
-object RoundedRectangle2SingleColor : Shader(
+object RoundedRectangleSingleColor : Shader(
     VertexFormats.POSITION_COLOR,
-    listOf(Redefine("INTERPOLATE_COLOR", "0")),
+    listOf(Redefine("INTERPOLATE_COLOR", "0"),
+        Redefine("TEXTURE_MODE", "0")),
     "core/pos_color.vert",
     "core/color.frag",
     "rounded_rect/rounded_rect.geom"
@@ -31,11 +32,11 @@ object RoundedRectangle2SingleColor : Shader(
     private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
 
     fun setTransform(posMat: Matrix4f) {
-        transformUniform.updateValue(Matrix2f(posMat.m00(), posMat.m10(), posMat.m01(), posMat.m11()))
+        transformUniform.updateValues(posMat.m00(), posMat.m10(), posMat.m01(), posMat.m11())
     }
 
     fun setRadius(radius: Float) {
-        radiusUniform.updateValue(Vector4f(radius, radius, radius, radius))
+        radiusUniform.updateValues(radius, radius, radius, radius)
     }
 
     fun setRadii(radii: Vector4f) {
@@ -43,7 +44,7 @@ object RoundedRectangle2SingleColor : Shader(
     }
 
     fun setRadii(topLeft: Float, bottomLeft: Float, bottomRight: Float, topRight: Float) {
-        radiusUniform.updateValue(Vector4f(topLeft, bottomLeft, bottomRight, topRight))
+        radiusUniform.updateValues(topLeft, bottomLeft, bottomRight, topRight)
     }
 
     init {
