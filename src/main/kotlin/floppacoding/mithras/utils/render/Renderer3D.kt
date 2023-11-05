@@ -321,8 +321,8 @@ object Renderer3D {
             drawFilledBox(context, box, fillColor, phase)
         }
         else if (outlineColor?.isVisible() == true && fillColor?.isVisible() == true) {
-                drawOutlinedFilledBox(context, box, outlineColor, fillColor, lineWidth, phase)
-            }
+            drawOutlinedFilledBox(context, box, outlineColor, fillColor, lineWidth, phase)
+        }
     }
 
     /**
@@ -553,35 +553,37 @@ object Renderer3D {
         bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).next()
         bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).next()
 
-        // Top side
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
+        if (y1 != y2) {
+            // Top side
+            bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
 
-        // West (-X) side
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
+            // West (-X) side
+            bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
 
-        // East (+X) side
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
+            // East (+X) side
+            bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
 
-        // North (-Z) side
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
+            // North (-Z) side
+            bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
 
-        // South (+Z) side
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
+            // South (+Z) side
+            bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
+        }
 
         tessellator.draw()
         RenderSystem.disablePolygonOffset()

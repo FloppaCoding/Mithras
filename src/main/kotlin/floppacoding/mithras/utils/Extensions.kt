@@ -100,18 +100,20 @@ object Extensions {
 
     fun Color.withAlpha(alpha: Int) = Color(this.red, this.green, this.blue, alpha)
 
+    // Maybe unfitting name but
+    /**
+     * Shifts alpha value of the color.
+     */
+    fun Color.offsetAlpha(alpha: Int) = Color(red, green, blue, (this.alpha + alpha).coerceIn(0..255))
+
     // TODO move this to a fitting class.
     @JvmStatic
     val HORIZONTALS: List<Direction> = listOf(Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST)
 
-    /**
-     * Used for executors
-     */
+
+    /** So you don't have to multiply by a billion for nanoseconds. */
     inline val Int.seconds: Long
         get() = (this * 1_000_000_000).toLong()
-
-    inline val Int.millis: Long
-        get() = (this * 1_000_000).toLong()
 
     // TODO move this to a fitting class and maybe rename it?.
     fun setScreen(screen: Screen) {
@@ -121,7 +123,7 @@ object Extensions {
     }
 
     /**
-     * Factory function to use any [Number] and not just [Double] for minecraft's [Box] class
+     * Cleaner way to check if time has passed.
      */
     fun Box(x: Number, y: Number, z: Number, x1: Number, y2: Number, y3: Number): net.minecraft.util.math.Box {
         return net.minecraft.util.math.Box(
