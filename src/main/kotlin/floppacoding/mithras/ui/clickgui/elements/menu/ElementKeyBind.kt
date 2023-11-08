@@ -26,7 +26,7 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
         val displayValue = "[$keyName]"
 
         renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-        renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+        renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
 
         return super.renderElement(mouseX, mouseY, partialTicks)
     }

@@ -136,7 +136,7 @@ abstract class GuiScreen(
         perfUpdater.run()
         renderer.push()
         renderer.reset()
-        renderer.text(performance, mc.window.width - 2f, mc.window.height - 2f, -1, 16f, textAlign = TextAlign.BOTTOM_RIGHT)
+        renderer.text(performance, mc.window.width - 2f, mc.window.height - 2f, -1, 16f, textAlign = TextAlign.RIGHT_BOTTOM)
         renderer.pop()
     }
 

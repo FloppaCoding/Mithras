@@ -148,7 +148,7 @@ interface Renderer2D {
         color: Int,
         fontSize: Float = DEFAULT_FONT_HEIGHT,
         font: Font = defaultFont,
-        textAlign: TextAlign = TextAlign.TOP_LEFT,
+        textAlign: TextAlign = TextAlign.LEFT_TOP,
         splitWidth: Float? = null
     )
 
@@ -284,17 +284,21 @@ enum class CapStyle(val id: Int) {
     ROUND(1);
 }
 
-enum class TextAlign {
-    TOP_LEFT,
-    BOTTOM_LEFT,
-    BOTTOM_RIGHT,
-    TOP_RIGHT,
-    CENTER_BOTTOM,
-    CENTER_MIDDLE,
-    CENTER_TOP,
-    LEFT_MIDDLE,
-    RIGHT_MIDDLE,
-    LEFT,
-    RIGHT,
-    MIDDLE;
+enum class TextAlign(val vertical: Vertical, val horizontal: Horizontal) {
+    LEFT_TOP(Vertical.TOP, Horizontal.LEFT),
+    LEFT_BOTTOM(Vertical.BOTTOM, Horizontal.LEFT),
+    RIGHT_BOTTOM(Vertical.BOTTOM, Horizontal.RIGHT),
+    RIGHT_TOP(Vertical.TOP, Horizontal.RIGHT),
+    CENTER_BOTTOM(Vertical.BOTTOM, Horizontal.CENTER),
+    CENTER_MIDDLE(Vertical.MIDDLE, Horizontal.CENTER),
+    CENTER_TOP(Vertical.TOP, Horizontal.CENTER),
+    LEFT_MIDDLE(Vertical.MIDDLE, Horizontal.LEFT),
+    RIGHT_MIDDLE(Vertical.MIDDLE, Horizontal.RIGHT),
+    LEFT_BASELINE(Vertical.BASELINE, Horizontal.LEFT),
+    CENTER_BASELINE(Vertical.BASELINE, Horizontal.CENTER),
+    RIGHT_BASELINE(Vertical.BASELINE, Horizontal.RIGHT);
+
+
+    enum class Vertical{TOP, MIDDLE, BOTTOM, BASELINE;}
+    enum class Horizontal{LEFT, CENTER, RIGHT;}
 }

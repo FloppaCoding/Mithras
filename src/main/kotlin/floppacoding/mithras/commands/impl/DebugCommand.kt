@@ -38,6 +38,7 @@ import net.minecraft.text.HoverEvent
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.math.Box
+import java.awt.Font
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -519,6 +520,9 @@ object DebugCommand : Command() {
                             Mithras.logger.debug("Reloading shader failed.", e)
                         }
                     }}
+                }
+                execute {
+                    val a = Font(Font.MONOSPACED, Font.PLAIN, 16)
                 }
             }
             literal("api") {

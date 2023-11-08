@@ -25,7 +25,7 @@ class ElementTextField(parent: ModuleButton, setting: StringSetting) :
         /** Rendering the text */
         if (totalWidth <= width) {
             renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-            renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+            renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
         }else {
             if (isTextHovered(mouseX, mouseY) || listening) {
                 renderer.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)

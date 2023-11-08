@@ -26,7 +26,7 @@ class ElementSelector<T>(parent: ModuleButton, setting: SelectorSetting<T>) :
         // Render the text.
         if (textWidth <= width) {
             renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-            renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+            renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
         } else {
             if (isButtonHovered(mouseX, mouseY)) {
                 renderer.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)

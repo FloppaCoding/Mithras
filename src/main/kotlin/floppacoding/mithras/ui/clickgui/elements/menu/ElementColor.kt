@@ -48,7 +48,7 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
 
                 val dispVal = "" + (setting.getNumber(currentColor) * 100.0).roundToInt() / 100.0
                 renderer.text(currentColor.getName(), 1f, currentDrawY +2f, ColorUtil.TEXT_COLOR)
-                renderer.text(dispVal, width - 1f, currentDrawY +2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+                renderer.text(dispVal, width - 1f, currentDrawY +2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
 
                 val maxVal = currentColor.maxValue()
                 val percentage = (setting.getNumber(currentColor)  / maxVal).toFloat()

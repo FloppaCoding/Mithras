@@ -31,7 +31,7 @@ class AdvancedElementKeyBind(parent: AdvancedMenu, module: Module) :
 
         // Rendering the text and the keybind.
         renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-        renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+        renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
         return this.settingHeight
     }
 

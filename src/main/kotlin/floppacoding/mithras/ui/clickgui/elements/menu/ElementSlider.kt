@@ -26,7 +26,7 @@ class ElementSlider(parent: ModuleButton, setting: NumberSetting<*>) :
 
         /** Render the text */
         renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-        renderer.text(displayVal, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+        renderer.text(displayVal, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
 
         /** Render the slider */
         renderer.rect(0f, 12f, width, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)

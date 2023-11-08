@@ -30,7 +30,7 @@ class AdvancedElementTextField(
         /** Rendering the text */
         if (totalWidth <= settingWidth) {
             renderer.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
-            renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+            renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
         }else {
             if (isTextHovered(mouseX, mouseY) || listening) {
                 renderer.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)

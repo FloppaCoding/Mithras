@@ -15,6 +15,8 @@ object Shaders {
         Ellipse,
         Texture,
         RoundedTexture,
+        Text,
+        Text2,
     )
 
 

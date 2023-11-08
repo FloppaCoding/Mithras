@@ -1,14 +1,13 @@
 package floppacoding.mithras.ui.hud
 
-import floppacoding.mithras.utils.render.GLImageManager
+import floppacoding.mithras.utils.render.GLFontManager
 import floppacoding.mithras.utils.render.GLR
-import floppacoding.mithras.utils.render.nanovg.NVGImageManager
+import floppacoding.mithras.utils.render.TextAlign
 import floppacoding.mithras.utils.render.nanovg.NVGR
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
-import net.minecraft.util.math.RotationAxis
 import org.joml.Vector4f
 import org.joml.Vector4i
 import java.awt.Color
@@ -18,50 +17,36 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
 
         context.matrices.push()
-
-        context.matrices.translate(100f, 50f, 0f)
         context.matrices.scale(0.5f, 0.5f, 1.0f)
 
-
-        context.matrices.push()
-        val angle = (System.currentTimeMillis() - 1698539810826)/100f
-
-        context.matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle))
-//        context.fill(0,0,100,50,-1)
-        context.matrices.pop()
 
         NVGR.beginFrame(context)
         GLR.beginFrame(context)
 
-        NVGR.push()
-        NVGR.translate(100f, 0f)
-        NVGR.rotate(angle)
-        NVGR.line(-50f,0f,50f,0f, 20f, Color(255,0,0,100).rgb)
-        NVGR.pop()
-
-
-//
-//     GLR.translate(200f, 100f)
-
-
-
-        GLR.push()
-
-        GLR.rotate(angle)
-//        GLR.scale(4f, 4f)
-        GLR.line(-50f,0f,50f,0f, 20f,  Color(0,255,0,100).rgb)
-        GLR.pop()
-
         GLR.roundedRect(300f, -50f, 800f, 500f, Vector4f(50f, 40f,0f, 10f), Vector4i(Color(255,0,0,100).rgb, Color(0,255,0,100).rgb, Color(0,0,255,100).rgb, Color(0,255,255,100).rgb))
 
-//        GLR.image(GLImageManager.ICON, 0f, 300f, 200f, 200f)
-        GLR.roundedImage(GLImageManager.HUE_SCALE, 0f, 300f, 200f, 200f, 12f, 0.5f)
-        NVGR.roundedImage(NVGImageManager.HUE_SCALE, 0f, 600f, 200f, 200f, 12f, 0.5f)
-//        NVGR.image(NVGImageManager.ICON, 0f, 600f, 200f, 200f)
-//
-//        GLR.circle(0f, 200f, 7f, Color(10, 120, 240, 140).rgb)
-//        GLR.circle(0f, 500f, 40f, Color(120, 10, 240, 140).rgb)
-//        GLR.ellipse(500f, 500f, Vector2f(600f, 20f), 300f, Color(200, 200, 20, 140).rgb)
+
+//        GLR.textTest("", 0f, 0f)
+
+//        GLR.textTest(" ", 0f, 0f)
+
+
+
+        GLR.translate(400f, 230f)
+//        GLR.rotate(40f)
+        GLR.rect(0f, -32f, 10f, 32f, Color(0,0,0).rgb)
+        GLR.textTest2("Floppa is better than youf ʔʕ⧈⚔☠ҚқҒғҰұ", 0f, 0f, Color(255,0,0).rgb, 60f, GLFontManager.KURINTO, TextAlign.CENTER_BOTTOM)
+
+        GLR.translate(0f, 100f)
+        GLR.rect(0f, -32f, 10f, 32f, Color(0,0,0).rgb)
+        GLR.scale(1.23f, 1.23f)
+        GLR.textTest3("Floppa is better than youf ʔʕ⧈⚔☠ҚқҒғҰұ", 0f, 0f, Color(0,255,0).rgb, 60f, GLFontManager.KURINTO, TextAlign.CENTER_BOTTOM)
+
+        NVGR.translate(400f, 280f)
+//        NVGR.rotate(40f)
+        NVGR.rect(-200f, -32f, 400f, 32f, Color(0,0,0).rgb)
+        NVGR.text("Floppa is better than youf ʔʕ⧈⚔☠ҚқҒғҰұ", 0f, 0f, Color(255,255,0).rgb, 32f,  textAlign = TextAlign.CENTER_BOTTOM)
+
 
         GLR.endFrame()
         NVGR.endFrame()

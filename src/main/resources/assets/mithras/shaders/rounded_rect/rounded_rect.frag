@@ -1,7 +1,9 @@
 #version 400
 
-in vec4 vertexColor;
-in vec2 texCoord0;
+in VERTEX_DATA {
+    vec4 vertexColor;
+    vec2 texCoord0;
+} fs_in;
 
 uniform vec4 radius;
 uniform vec2 halfDimensions;
@@ -17,9 +19,9 @@ float sdRoundedBox( in vec2 p, in vec2 b, in vec4 r )
 }
 
 void main() {
-    vec4 color = vertexColor;
+    vec4 color = fs_in.vertexColor;
 
-    float d = sdRoundedBox(texCoord0 - halfDimensions, halfDimensions, radius);
+    float d = sdRoundedBox(fs_in.texCoord0 - halfDimensions, halfDimensions, radius);
 
     color.a *= smoothstep(1.0, 0.0, d);
 

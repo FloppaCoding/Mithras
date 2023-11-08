@@ -57,7 +57,7 @@ class AdvancedElementColor(
 
                 val dispVal = "" + (setting.getNumber(currentColor) * 100.0).roundToInt() / 100.0
                 renderer.text(currentColor.getName(), 1f, ay + 2f, TEXT_COLOR)
-                renderer.text(dispVal, settingWidth -1f, ay+ 2f, TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+                renderer.text(dispVal, settingWidth -1f, ay+ 2f, TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
 
                 val maxVal = currentColor.maxValue()
                 val percentage = (setting.getNumber(currentColor)  / maxVal).toFloat()
