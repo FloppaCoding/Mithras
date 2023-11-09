@@ -13,6 +13,7 @@ import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.HypixelAPIHttpClient
 import floppacoding.mithras.utils.network.LowestBinAPI
+import floppacoding.mithras.utils.render.GLFontManager
 import floppacoding.mithras.utils.render.Renderer2D
 import floppacoding.mithras.utils.render.nanovg.NVGR
 import kotlinx.coroutines.*
@@ -103,6 +104,9 @@ object Mithras : ModInitializer {
 	@EventHandler
 	fun onGameStart(event: GameStartEvent) {
 		renderer2D = NVGR
+
+		// Load and generate fonts.
+		GLFontManager
 
 		// Moved here from onInitialize because at that time some minecraft classes are not yet loaded in.
 		// Loads in all modules and sets up automatically generated functionality

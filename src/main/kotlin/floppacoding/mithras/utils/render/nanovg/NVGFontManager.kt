@@ -4,16 +4,15 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.utils.render.Font
 import org.apache.commons.io.IOUtils
 import org.lwjgl.nanovg.NanoVG
+import org.lwjgl.system.MemoryUtil
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.nio.Buffer
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 typealias NVGFont = NVGFontManager.NVGFont
 
 /**
- * Provides fonts for the [VanoVG Renderer][NVGR].
+ * Provides fonts for the [NanoVG Renderer][NVGR].
  *
  * When a font file is not present when it is being loaded in the game will crash.
  * @author Aton
@@ -23,6 +22,9 @@ object NVGFontManager {
     val ROBOTO: NVGFont =
         NVGFont("roboto", "/assets/${Mithras.RESOURCE_DOMAIN}/gui/fonts/roboto-regular.ttf")
 
+    val KURINTO: NVGFont =
+        NVGFont("kurinto", "/assets/${Mithras.RESOURCE_DOMAIN}/gui/fonts/KurintoSans-Rg.ttf")
+
     /**
      * Font for NanoVG.
      * @param path path to the resource. It looks like:
@@ -30,12 +32,15 @@ object NVGFontManager {
      *      "/assets/mithras/gui/fonts/roboto-regular.ttf"
      */
     class NVGFont(val name: String, val path: String) : Font {
-        val fontBuffer : ByteBuffer = resourceToByteBuffer(path)
-
         /**
          * Font id according to NanoVG.
          */
-        val id = NanoVG.nvgCreateFontMem(NVGR.nanoContext, "roboto", fontBuffer, 0)
+        val id: Int
+
+        init {
+            val fontBuffer : ByteBuffer = resourceToByteBuffer(path)
+            id = NanoVG.nvgCreateFontMem(NVGR.nanoContext, name, fontBuffer, 1)
+        }
 
         /**
          * Loads the resource as a byte buffer for use with NanoVG.
@@ -49,8 +54,7 @@ object NVGFontManager {
         private fun resourceToByteBuffer(path: String): ByteBuffer {
             val stream = this.javaClass.getResourceAsStream(path) ?: throw FileNotFoundException(path)
             val bytes = IOUtils.toByteArray(stream)
-            val data = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).put(bytes)
-            (data as Buffer).flip()
+            val data = MemoryUtil.memAlloc(bytes.size).put(0, bytes)
             stream.close()
             return data
         }

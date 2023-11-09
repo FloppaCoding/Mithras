@@ -16,7 +16,6 @@ object Shaders {
         Texture,
         RoundedTexture,
         Text,
-        Text2,
     )
 
 

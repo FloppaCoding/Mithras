@@ -30,6 +30,9 @@ import kotlin.math.round
 //   Doing so is more efficient since it reduces teh cpu load. (might not be relevant tho)
 //   Also consider better buffering so that everything which uses the same shader gets drawn at once.
 
+// TODO Consider making the padding wider: 3 -5 texels maybe instead of just 2, or alternatively just less steep.
+//  This may be used for special outline effects around characters
+
 object GLR: Renderer2D {
 
     private var matrices: MatrixStack = MatrixStack()
@@ -40,7 +43,7 @@ object GLR: Renderer2D {
 
     private val mc = MinecraftClient.getInstance()
     override val defaultFont: Font
-        get() = TODO("Not yet implemented")
+        get() = GLFontManager.ROBOTO
 
     override fun beginFrame() {
         this.matrices = MatrixStack()
@@ -227,11 +230,11 @@ object GLR: Renderer2D {
         RoundedRectangle.stopShader()
     }
 
-    fun textTest(text: String, x: Float, y: Float) {
+    fun fontAtlas(font: GLFontManager.GLFont, x: Float, y: Float) {
         RenderSystem.assertOnRenderThread()
 
         val width = 1024f
-        val height = 2560f
+        val height = 2048f
 
         val u1 = 0f
         val u2 = 1f
@@ -239,8 +242,7 @@ object GLR: Renderer2D {
         val v2 = 1f
 
         RenderSystem.enableBlend()
-        GL46.glActiveTexture(GL46.GL_TEXTURE0)
-        GL46.glBindTexture(GL46.GL_TEXTURE_2D, GLFontManager.KURINTO.id3)
+        font.bindFont()
         val positionMatrix = matrices.peek().positionMatrix
         val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
         bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE)
@@ -257,94 +259,54 @@ object GLR: Renderer2D {
 
     }
 
-    fun textTest2(text: String, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign) {
+    override fun text(
+        text: String,
+        x: Float,
+        y: Float,
+        color: Int,
+        fontSize: Float,
+        font: Font,
+        textAlign: TextAlign,
+        splitWidth: Float?
+    ) {
+        //TODO implement line spits.
         if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
         RenderSystem.assertOnRenderThread()
 
         var metrics: GLFontManager.GLFont.GlyphMetrics
-        val fontMetrics = font.fontMetrics2
+        val fontMetrics = font.fontMetrics
 
-        val y0: Float; val y1: Float; var x0: Float; var x1: Float; var pos = 0f
-        val scale = fontSize/fontMetrics.size
+        var y0: Float; var y1: Float; var x0: Float; var x1: Float; var pos = 0f
+        val scale = fontSize/(fontMetrics.normalHeight)
         when(textAlign.vertical) {
-            TextAlign.Vertical.TOP -> { y0 = 0f; y1 = fontMetrics.ascent - fontMetrics.descemt }
+            TextAlign.Vertical.TOP -> { y0 = -fontMetrics.topOffset; y1 =  y0 + fontMetrics.totalHeight }
             TextAlign.Vertical.MIDDLE -> {
-                val mid = (fontMetrics.ascent - fontMetrics.descemt)/2
-                y0 = - mid; y1 = mid
+                val mid = (fontMetrics.normalAscent - fontMetrics.normalDescent)/2
+                y0 = - mid - fontMetrics.topOffset; y1 = mid - fontMetrics.bottomOffset
             }
-            TextAlign.Vertical.BOTTOM -> {y0 =- fontMetrics.ascent + fontMetrics.descemt; y1 = 0f}
-            TextAlign.Vertical.BASELINE -> { y0 = -fontMetrics.ascent; y1 = -fontMetrics.descemt }
-        }
-        val xOffse: Float = when(textAlign.horizontal) {
-            TextAlign.Horizontal.LEFT -> 0f
-            TextAlign.Horizontal.CENTER -> -textWidth2(text, fontSize, font)/2
-            TextAlign.Horizontal.RIGHT -> -textWidth2(text, fontSize, font)
-        }
-        push()
-        translate(x+xOffse,y)
-        scale(scale, scale)
-
-        RenderSystem.enableBlend()
-        GL46.glActiveTexture(GL46.GL_TEXTURE0)
-        GL46.glBindTexture(GL46.GL_TEXTURE_2D, font.id2)
-        val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE)
-
-        for(char in text) {
-            metrics = font.glyphMetrics2[char] ?: continue
-            x0 = pos+metrics.leftSiderBearing
-            x1 = x0 + metrics.width
-            bufferBuilder.vertex(positionMatrix, x0,y0,0f).color(color).texture(metrics.u0, metrics.v0).next()
-            bufferBuilder.vertex(positionMatrix, x0,y1,0f).color(color).texture(metrics.u0, metrics.v1).next()
-            bufferBuilder.vertex(positionMatrix, x1,y1,0f).color(color).texture(metrics.u1, metrics.v1).next()
-            bufferBuilder.vertex(positionMatrix, x1,y0,0f).color(color).texture(metrics.u1, metrics.v0).next()
-            pos += metrics.advance
-        }
-
-        Text2.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        Text2.stopShader()
-        pop()
-    }
-
-    fun textTest3(text: String, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign) {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
-        RenderSystem.assertOnRenderThread()
-
-        var metrics: GLFontManager.GLFont.GlyphMetrics
-        val fontMetrics = font.fontMetrics3
-
-        val y0: Float; val y1: Float; var x0: Float; var x1: Float; var pos = 0f
-        val scale = fontSize/(fontMetrics.ascent - fontMetrics.descemt)
-        when(textAlign.vertical) {
-            TextAlign.Vertical.TOP -> { y0 = 0f; y1 = fontMetrics.ascent - fontMetrics.descemt }
-            TextAlign.Vertical.MIDDLE -> {
-                val mid = (fontMetrics.ascent - fontMetrics.descemt)/2
-                y0 = - mid; y1 = mid
-            }
-            TextAlign.Vertical.BOTTOM -> {y0 =- fontMetrics.ascent + fontMetrics.descemt; y1 = 0f}
-            TextAlign.Vertical.BASELINE -> { y0 = -fontMetrics.ascent; y1 = -fontMetrics.descemt }
+            TextAlign.Vertical.BOTTOM -> {y1 = -fontMetrics.bottomOffset; y0 = y1 - fontMetrics.totalHeight}
+            TextAlign.Vertical.BASELINE -> { y0 = -fontMetrics.ascent; y1 = -fontMetrics.descent }
         }
         val xOffs: Float = when(textAlign.horizontal) {
             TextAlign.Horizontal.LEFT -> 0f
-            TextAlign.Horizontal.CENTER -> -textWidth3(text, fontSize, font)/2
-            TextAlign.Horizontal.RIGHT -> -textWidth3(text, fontSize, font)
+            TextAlign.Horizontal.CENTER -> -textWidth(text, fontSize, font)/2
+            TextAlign.Horizontal.RIGHT -> -textWidth(text, fontSize, font)
         }
+        y0 -= fontMetrics.padding
+        y1 += fontMetrics.padding
         push()
         translate(x+xOffs,y)
         scale(scale, scale)
 
         RenderSystem.enableBlend()
-        GL46.glActiveTexture(GL46.GL_TEXTURE0)
-        GL46.glBindTexture(GL46.GL_TEXTURE_2D, font.id3)
+        font.bindFont()
         val positionMatrix = matrices.peek().positionMatrix
         val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
         bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE)
 
         for(char in text) {
-            metrics = font.glyphMetrics3[char] ?: continue
-            x0 = pos+metrics.leftSiderBearing
+            metrics = font.glyphMetrics[char] ?: continue
+            x0 = pos+metrics.leftSiderBearing - fontMetrics.padding
             x1 = x0 + metrics.width
             bufferBuilder.vertex(positionMatrix, x0,y0,0f).color(color).texture(metrics.u0, metrics.v0).next()
             bufferBuilder.vertex(positionMatrix, x0,y1,0f).color(color).texture(metrics.u0, metrics.v1).next()
@@ -361,39 +323,13 @@ object GLR: Renderer2D {
         pop()
     }
 
-    override fun text(
-        text: String,
-        x: Float,
-        y: Float,
-        color: Int,
-        fontSize: Float,
-        font: Font,
-        textAlign: TextAlign,
-        splitWidth: Float?
-    ) {
-        TODO("Not yet implemented")
-    }
-
     override fun textWidth(text: String, fontSize: Float, font: Font): Float {
-        TODO("Not yet implemented")
-    }
-
-    fun textWidth2(text: String, fontSize: Float, font: Font): Float {
         if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
         var width = 0f
         for(char in text) {
-            width += font.glyphMetrics2[char]?.advance ?: 0f
+            width += font.glyphMetrics[char]?.advance ?: 0f
         }
-        return width * fontSize / font.fontMetrics2.size
-    }
-
-    fun textWidth3(text: String, fontSize: Float, font: Font): Float {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
-        var width = 0f
-        for(char in text) {
-            width += font.glyphMetrics3[char]?.advance ?: 0f
-        }
-        return width * fontSize / font.fontMetrics3.size
+        return width * fontSize / font.fontMetrics.normalHeight
     }
 
     override fun textBounds(text: String, width: Float?, fontSize: Float, font: Font): BoundingBox {
