@@ -33,19 +33,22 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
 //        GLR.fontAtlas(" ", 0f, 0f)
 //        GLR.pop()
 
-        val text = """ÀÆÇÈẔ|||aasdfgASDFQq⌠⌡""" +
-                """░▒▓│┤╡╢╖╕╣║╗╝╜╛┐""" +
+        val text = """ÀÆÇÈẔ|||
+aasdfgASDFQq⌠⌡""" +
+                "░▒▓│┤╡╢╖╕╣║╗╝╜╛┐" +
                 """╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀"""
 
 
-        GLR.translate(500f, 100f)
-        GLR.rect(0f, -32f, 3000f, 32f, Color(0,0,0).rgb)
-        GLR.text(text, 0f, 0f, Color(0,255,0).rgb, 32f, GLFontManager.KURINTO, TextAlign.CENTER_BASELINE)
+        val width= 250f
 
-        NVGR.translate(500f, 150f)
+        GLR.translate(500f, 100f)
+        GLR.rect(0f, -32f, width, 32f, Color(0,0,0).rgb)
+        GLR.textBox(text, 0f, 0f, Color(0,255,0).rgb, width, 32f, GLFontManager.KURINTO, TextAlign.RIGHT_TOP, TextAlign.LEFT_TOP)
+
+        NVGR.translate(500f, 250f)
 //        NVGR.rotate(40f)
-        NVGR.rect(0f, -32f, 3000f, 32f, Color(0,0,0).rgb)
-        NVGR.text(text, 0f, 0f, Color(255,255,0).rgb, 32f, NVGFontManager.KURINTO,  textAlign = TextAlign.CENTER_BASELINE)
+        NVGR.rect(0f, -32f, width, 32f, Color(0,0,0).rgb)
+        NVGR.textBox(text, 0f, 0f, Color(255,255,0).rgb, width, 32f, NVGFontManager.KURINTO,  textAlign = TextAlign.RIGHT_TOP, TextAlign.LEFT_TOP)
 
 
         GLR.endFrame()

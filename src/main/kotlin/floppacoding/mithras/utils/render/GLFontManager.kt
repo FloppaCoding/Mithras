@@ -303,6 +303,10 @@ object GLFontManager {
              */
             val totalHeight = ascent - descent
             /**
+             * Sum of [totalHeight] and [lineGap]
+             */
+            val lineHeight = ascent - descent + lineGap
+            /**
              * Difference between [ascent] and [normalAscent].
              * This is >= 0.
              */

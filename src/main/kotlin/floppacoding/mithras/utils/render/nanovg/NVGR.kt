@@ -13,6 +13,7 @@ import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoVG.*
 import org.lwjgl.nanovg.NanoVGGL3
 import org.lwjgl.opengl.*
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -244,7 +245,7 @@ object NVGR : Renderer2D {
      * not be split. If this value is set, the alignment will be relative to a box from [x],[y] to [x]+[splitWidth],[y]+hieght.
      */
     override fun text(
-        text: String,
+        text: CharSequence,
         x: Float,
         y: Float,
         color: Int,
@@ -266,10 +267,47 @@ object NVGR : Renderer2D {
         }
     }
 
+    override fun textBox(text: CharSequence, x: Float, y: Float, color: Int, width: Float, fontSize: Float, font: Font, textAlign: TextAlign, boxAlign: TextAlign) {
+        if (font !is NVGFontManager.NVGFont) throw Error("Invalid Font")
+        nvgBeginPath(nanoContext)
+        nvgFontSize(nanoContext, fontSize)
+        nvgFontFaceId(nanoContext, font.id)
+        nvgTextAlign(nanoContext, textAlign.nvg)
+        setFillColor(color)
+
+        val buffer = MemoryUtil.memAllocFloat(4)
+        nvgTextBoxBounds(nanoContext, 0f, 0f, width, text, buffer)
+        val yShift = when(boxAlign.vertical) {
+            TextAlign.Vertical.TOP -> 0f
+            TextAlign.Vertical.MIDDLE -> -(buffer[3]- buffer[1]) / 2
+            TextAlign.Vertical.BOTTOM -> -buffer[3]- buffer[1]
+            TextAlign.Vertical.BASELINE -> -buffer[3]- buffer[1]
+        }
+        val xShift = when(boxAlign.horizontal) {
+            TextAlign.Horizontal.LEFT -> 0f
+            TextAlign.Horizontal.CENTER -> - width /2
+            TextAlign.Horizontal.RIGHT -> -width
+        }
+
+        nvgTextBox(nanoContext, x + xShift, y + yShift, width, text)
+        MemoryUtil.memFree(buffer)
+
+    }
+
+    override fun textLine(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign) {
+        if (font !is NVGFontManager.NVGFont) throw Error("Invalid Font")
+        nvgBeginPath(nanoContext)
+        nvgFontSize(nanoContext, fontSize)
+        nvgFontFaceId(nanoContext, font.id)
+        nvgTextAlign(nanoContext, textAlign.nvg)
+        setFillColor(color)
+        nvgText(nanoContext, x, y, text)
+    }
+
     /**
      * Returns the width of the given [text].
      */
-    override fun textWidth(text: String, fontSize: Float, font: Font): Float {
+    override fun textWidth(text: CharSequence, fontSize: Float, font: Font): Float {
         if (font !is NVGFontManager.NVGFont) throw Error("Invalid Font")
         nvgFontSize(nanoContext, fontSize)
         nvgFontFaceId(nanoContext, font.id)
@@ -280,7 +318,7 @@ object NVGR : Renderer2D {
      * Returns the bounding box of the given [text] if it were drawn at 0,0 in the current coordinate system.
      * @param width If width is null then the text will be considered as one line. Otherwise
      */
-    override fun textBounds(text: String, width: Float?, fontSize: Float, font: Font) : BoundingBox {
+    override fun textBounds(text: CharSequence, width: Float?, fontSize: Float, font: Font) : BoundingBox {
         if (font !is NVGFontManager.NVGFont) throw Error("Invalid Font")
         nvgFontSize(nanoContext, fontSize)
         nvgFontFaceId(nanoContext, font.id)
