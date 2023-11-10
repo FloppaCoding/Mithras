@@ -69,7 +69,7 @@ void main() {
     gs_out.vertexColor = gs_in[0].vertexColor;
 #endif
 
-    // transformed unti vectors.
+    // transformed unit vectors.
     vec4 e1 = ProjMat * ModelViewMat * vec4(UnitTransform[0], 0.0, 0.0);
     vec4 e2 = ProjMat * ModelViewMat * vec4(UnitTransform[1], 0.0, 0.0);
 

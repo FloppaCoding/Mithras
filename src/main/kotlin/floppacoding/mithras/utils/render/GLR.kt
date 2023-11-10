@@ -124,40 +124,24 @@ object GLR: Renderer2D {
         Lines.stopShader()
     }
 
-    /**
-     * Sets up a scissor rectangle.
-     *
-     * The coordinates are assumed to be in the current coordinate space and are transformed accordingly.
-     * The scissor rectangle will be aligned with the screen coordinate system and will be the bounding box of the given possibly
-     * rotated rectangle. If the axis of the current coordinate system are not aligned with screen coordinates the scissor
-     * will set up a rectangle *ABCD* as shown in the following example.
-     *
-     *         A      (x+width,y)  B
-     *          ┌─────────────╳───┐
-     *          │      __──‾‾  ╲  │
-     *    (x,y) │__──‾‾          ╲│ (x+width,y+height)
-     *          │╲          __──‾‾│
-     *          │  ╲  __──‾‾      │
-     *          └───╳─────────────┘
-     *         D    (x,y+height)   C
-     *
-     *
-     */
-    override fun scissor(x: Float, y: Float, width: Float, height: Float) {
-        val bbox = getAbsoluteBoundingBox(x, y, width, height)
+    override fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
+        RenderSystem.assertOnRenderThread()
 
-        RenderSystem.enableScissor(
-            round(bbox.xmin).toInt(),
-            round(mc.window.height - bbox.ymax).toInt(),
-            round(bbox.width()).toInt(),
-            round(bbox.height()).toInt()
-        )
+        RenderSystem.enableBlend()
+
+        val positionMatrix = matrices.peek().positionMatrix
+        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+
+        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
+
+        GUIShader.useShader()
+        BufferRenderer.draw(bufferBuilder.end())
+        GUIShader.stopShader()
     }
-
-    /**
-     * Disables scissoring.
-     */
-    override fun endScissor() = RenderSystem.disableScissor()
 
     /**
      * Draws a rectangle with rounded corners.
@@ -583,7 +567,26 @@ object GLR: Renderer2D {
     }
 
     override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
-        TODO("Not yet implemented")
+        RenderSystem.assertOnRenderThread()
+        RenderSystem.enableBlend()
+
+        val positionMatrix = matrices.peek().positionMatrix
+        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
+        bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR)
+
+        bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x, y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x+width, y, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).next()
+
+        RectBorder.setLineWidth(lineWidth)
+        RectBorder.setTransform(positionMatrix)
+
+        RectBorder.useShader()
+        BufferRenderer.draw(bufferBuilder.end())
+        RectBorder.stopShader()
     }
 
     override fun textField(
@@ -597,25 +600,6 @@ object GLR: Renderer2D {
         font: Font
     ) {
         TODO("Not yet implemented")
-    }
-
-    override fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
-        RenderSystem.assertOnRenderThread()
-
-        RenderSystem.enableBlend()
-
-        val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
-
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
-
-        GUIShader.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        GUIShader.stopShader()
     }
 
     fun circle(x: Float, y: Float, radius: Float, color: Int) {
@@ -648,6 +632,41 @@ object GLR: Renderer2D {
         BufferRenderer.draw(bufferBuilder.end())
         Ellipse.stopShader()
     }
+
+    /**
+     * Sets up a scissor rectangle.
+     *
+     * The coordinates are assumed to be in the current coordinate space and are transformed accordingly.
+     * The scissor rectangle will be aligned with the screen coordinate system and will be the bounding box of the given possibly
+     * rotated rectangle. If the axis of the current coordinate system are not aligned with screen coordinates the scissor
+     * will set up a rectangle *ABCD* as shown in the following example.
+     *
+     *         A      (x+width,y)  B
+     *          ┌─────────────╳───┐
+     *          │      __──‾‾  ╲  │
+     *    (x,y) │__──‾‾          ╲│ (x+width,y+height)
+     *          │╲          __──‾‾│
+     *          │  ╲  __──‾‾      │
+     *          └───╳─────────────┘
+     *         D    (x,y+height)   C
+     *
+     *
+     */
+    override fun scissor(x: Float, y: Float, width: Float, height: Float) {
+        val bbox = getAbsoluteBoundingBox(x, y, width, height)
+
+        RenderSystem.enableScissor(
+            round(bbox.xmin).toInt(),
+            round(mc.window.height - bbox.ymax).toInt(),
+            round(bbox.width()).toInt(),
+            round(bbox.height()).toInt()
+        )
+    }
+
+    /**
+     * Disables scissoring.
+     */
+    override fun endScissor() = RenderSystem.disableScissor()
 
     val POSITION_COLOR_TEX_TEX = VertexFormat(ImmutableMap.builder<String, VertexFormatElement>().put("Position", VertexFormats.POSITION_ELEMENT).put("Color", VertexFormats.COLOR_ELEMENT).put("UV0", VertexFormats.TEXTURE_ELEMENT).put("UV1", VertexFormats.TEXTURE_ELEMENT).build())
     val POINTS = VertexFormat.DrawMode.valueOf("POINTS")

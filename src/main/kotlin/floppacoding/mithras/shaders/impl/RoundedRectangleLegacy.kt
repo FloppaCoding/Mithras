@@ -8,7 +8,7 @@ import org.joml.Vector2f
 import org.joml.Vector4f
 
 @Deprecated("Uses a fragment shader to generate rounded corners.", replaceWith = ReplaceWith("RoundedRectangle"))
-object RoundedRectangleLegacy : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "core/pos_color_tex.vert", "rounded_rect/rounded_rect.frag") {
+object RoundedRectangleLegacy : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "core/pos_color_tex.vert", "rect/rounded_rect.frag") {
     private var cornerRadii: Vector4f = Vector4f(0f,0f,0f,0f)
 
     private var boxSize: Vector2f = Vector2f(10f, 10f)

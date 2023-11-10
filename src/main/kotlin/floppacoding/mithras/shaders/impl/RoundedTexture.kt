@@ -23,7 +23,7 @@ object RoundedTexture : Shader(
     listOf(Redefine("TEXTURE_MODE", "1")),
     "core/pos_tex.vert",
     "core/tex_alpha.frag",
-    "rounded_rect/rounded_rect.geom"
+    "rect/rounded_rect.geom"
 ) {
     private var cornerRadii: Vector4f = Vector4f(0f,0f,0f,0f)
     private val radiusUniform = Uniform4f(this.programID, "radius").withValue( cornerRadii )

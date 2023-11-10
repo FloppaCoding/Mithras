@@ -45,7 +45,7 @@ object RoundedRectangle : Shader(
         Redefine("TEXTURE_MODE", "0")),
     "core/pos_color.vert",
     "core/color.frag",
-    "rounded_rect/rounded_rect.geom"
+    "rect/rounded_rect.geom"
 ) {
     private var cornerRadii: Vector4f = Vector4f(0f,0f,0f,0f)
 
