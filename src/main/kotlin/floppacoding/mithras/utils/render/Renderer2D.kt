@@ -287,9 +287,36 @@ interface Renderer2D {
     fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int = 0)
 
     /**
-     * Draws a border with rounded corner and the given dimensions.
+     * Draws a rectangle border with rounded corners.
+     *
+     * [width] and [height] are expected to be >= 0.
+     * @param lineWidth The border extends half of this in both directions from the specified rectangle. This width is
+     * affected by the coordinate transform and not a fixed pixel width on the screen.
      */
-    fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int)
+    fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
+        border(x, y, width, height, lineWidth, Vector4f(radius), color)
+    }
+
+    /**
+     * Draws a rectangle border with rounded corners.
+     *
+     * [width] and [height] are expected to be >= 0.
+     * @param lineWidth The border extends half of this in both directions from the specified rectangle. This width is
+     * affected by the coordinate transform and not a fixed pixel width on the screen.
+     * @param radii 4 individual corner radii in the order top-left, bottom-left, bottom-right, top-right.
+     */
+    fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radii: Vector4f?, color: Int)
+
+    /**
+     * Draws a rectangle border with square corners.
+     *
+     * [width] and [height] are expected to be >= 0.
+     * @param lineWidth The border extends half of this in both directions from the specified rectangle. This width is
+     * affected by the coordinate transform and not a fixed pixel width on the screen.
+     */
+    fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, color: Int) {
+        border(x, y, width, height, lineWidth, null, color)
+    }
 
     fun textField(text: String,
                   x: Float,

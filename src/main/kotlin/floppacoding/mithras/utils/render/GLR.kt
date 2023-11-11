@@ -554,19 +554,11 @@ object GLR: Renderer2D {
         }
     }
 
-    override fun chromaBorder(
-        x: Float,
-        y: Float,
-        width: Float,
-        height: Float,
-        lineWidth: Float,
-        radius: Float,
-        color: Int
-    ) {
+    override fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
+    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radii: Vector4f?, color: Int) {
         RenderSystem.assertOnRenderThread()
         RenderSystem.enableBlend()
 
@@ -579,14 +571,22 @@ object GLR: Renderer2D {
         bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
         bufferBuilder.vertex(positionMatrix, x+width, y, 0f).color(color).next()
         bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x, y, 0f).color(color).next()
 
-        RectBorder.setLineWidth(lineWidth)
-        RectBorder.setTransform(positionMatrix)
+        if (radii == null || radii.x == 0f && radii.y == 0f && radii.z == 0f && radii.w == 0f) {
+            RectBorder.setLineWidth(lineWidth)
+            RectBorder.setTransform(positionMatrix)
+            RectBorder.useShader()
+            BufferRenderer.draw(bufferBuilder.end())
+            RectBorder.stopShader()
+        }else {
+            RoundedRectBorder.setLineWidth(lineWidth)
+            RoundedRectBorder.setRadii(radii)
+            RoundedRectBorder.setTransform(positionMatrix)
+            RoundedRectBorder.useShader()
+            BufferRenderer.draw(bufferBuilder.end())
+            RoundedRectBorder.stopShader()
+        }
 
-        RectBorder.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        RectBorder.stopShader()
     }
 
     override fun textField(

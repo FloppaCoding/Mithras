@@ -23,7 +23,8 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
 
         GLR.roundedRect(300f, -50f, 800f, 500f, Vector4f(50f, 40f,0f, 10f), Vector4i(Color(255,0,0,100).rgb, Color(0,255,0,100).rgb, Color(0,0,255,100).rgb, Color(0,255,255,100).rgb))
 
-        GLR.border(100f, 100f, 200f, 200f, 10f, 0f ,-1)
+        GLR.roundedRect(100f, 100f, 200f, 200f, Vector4f(50f, 40f, 10f ,1f), -1)
+        GLR.border(100f, 100f, 200f, 200f, 50f, Vector4f(50f, 40f, 10f ,1f) ,Color(255,0,0,100).rgb)
 //        GLR.rect(80f, 95f,40f, 10f, Color(0,0,0).rgb)
 
         GLR.endFrame()

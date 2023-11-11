@@ -1,18 +1,21 @@
 package floppacoding.mithras.shaders.impl
 
 import floppacoding.mithras.shaders.Shader
-import floppacoding.mithras.shaders.impl.RectBorder.setLineWidth
-import floppacoding.mithras.shaders.impl.RectBorder.setTransform
+import floppacoding.mithras.shaders.impl.RoundedRectBorder.setLineWidth
+import floppacoding.mithras.shaders.impl.RoundedRectBorder.setTransform
 import floppacoding.mithras.shaders.uniforms.impl.Uniform1f
+import floppacoding.mithras.shaders.uniforms.impl.Uniform4f
 import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix2f
 import floppacoding.mithras.shaders.uniforms.withValue
+import floppacoding.mithras.shaders.uniforms.withValues
 import net.minecraft.client.render.VertexFormat
 import net.minecraft.client.render.VertexFormats
 import org.joml.Matrix2f
 import org.joml.Matrix4f
+import org.joml.Vector4f
 
 /**
- * ## A shader for drawing a rectangle border with square corners.
+ * ## A shader for drawing a rectangle border with round corners.
  *
  * This shader expects an OpenGL line strip enclosing a rectangle.
  * Said line strip is expected to start in the top left corner and go in counter-clockwise direction as shown below,
@@ -30,9 +33,14 @@ import org.joml.Matrix4f
  * To get the desired result you need to update the shader about your desired line width through [setLineWidth],
  * as well as inform it about the scale and orientation of your current coordinate system through [setTransform].
  *
+ * This shader supports different radii for the individual corners.
+ *
  * @author Aton
  */
-object RectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", "core/color.frag", "rect/rect_border.geom") {
+object RoundedRectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", "core/color.frag", "rect/rounded_rect_border.geom") {
+
+    private val radiusUniform = Uniform4f(this.programID, "radius").withValues( 0f, 0f, 0f, 0f)
+
     private val widthUniform = Uniform1f(this.programID, "HalfWidth").withValue(1f)
 
     private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
@@ -48,6 +56,18 @@ object RectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", 
     fun setTransform(transform: Matrix2f) {
         transformUniform.updateValue(transform)
     }
+    fun setRadius(radius: Float) {
+        radiusUniform.updateValues(radius, radius, radius, radius)
+    }
+
+    fun setRadii(radii: Vector4f) {
+        radiusUniform.updateValue(radii)
+    }
+
+    fun setRadii(topLeft: Float, bottomLeft: Float, bottomRight: Float, topRight: Float) {
+        radiusUniform.updateValues(topLeft, bottomLeft, bottomRight, topRight)
+    }
+
 
     init {
         this.registerUniforms(
@@ -55,7 +75,8 @@ object RectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", 
             this.projectionMat,
             this.windowSize,
             transformUniform,
-            widthUniform
+            widthUniform,
+            radiusUniform
         )
     }
 }

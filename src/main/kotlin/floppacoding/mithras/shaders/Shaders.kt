@@ -17,6 +17,7 @@ object Shaders {
             RoundedTexture,
             Text,
             RectBorder,
+            RoundedRectBorder,
         )
 
 

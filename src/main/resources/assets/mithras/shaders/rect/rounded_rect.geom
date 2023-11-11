@@ -15,7 +15,7 @@ const float ONE_OVER_SQRT_2 = 0.7071068;
 const float PI_HALF = 1.5707963;
 const float PI_QUATER = 0.7853982;
 
-const vec2 offsets[4] = vec2[4](vec2(1.0,1.0), vec2(1.0,-1.0), vec2(-1.0,-1.0), vec2(-1.0,1.0));
+const mat4x2 offsets = mat4x2(vec2(1.0,1.0), vec2(1.0,-1.0), vec2(-1.0,-1.0), vec2(-1.0,1.0));
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices = MAX_VERTICES) out;
@@ -93,7 +93,7 @@ void main() {
         }
         else if (size <=  10.0) segments[ii] =   2;
         else if (size <=  30.0) segments[ii] =   4;
-        else if (size <=  50.0) segments[ii] =   5;
+        else if (size <=  50.0) segments[ii] =   6;
         else if (size <= 100.0) segments[ii] =   8;
         else if (size <= 200.0) segments[ii] =  12;
         else if (size <= 400.0) segments[ii] =  24;

@@ -369,12 +369,23 @@ object NVGR : Renderer2D {
         strokeWithChroma(lineWidth)
     }
 
-    /**
-     * Draws a border with rounded corner and the given dimensions.
-     */
     override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
         nvgBeginPath(nanoContext)
-        nvgRoundedRect(nanoContext,x, y, width, height, radius)
+        if (radius == 0f) {
+            nvgRect(nanoContext, x, y, width, height)
+        } else {
+            nvgRoundedRect(nanoContext, x, y, width, height, radius)
+        }
+        strokeWithColor(lineWidth, color)
+    }
+
+    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radii: Vector4f?, color: Int) {
+        nvgBeginPath(nanoContext)
+        if(radii == null || radii.x == 0f && radii.y == 0f && radii.z == 0f && radii.w == 0f) {
+            nvgRect(nanoContext, x, y, width, height)
+        }else {
+            nvgRoundedRectVarying(nanoContext, x, y, width, height, radii.x, radii.w, radii.z, radii.y)
+        }
         strokeWithColor(lineWidth, color)
     }
 
