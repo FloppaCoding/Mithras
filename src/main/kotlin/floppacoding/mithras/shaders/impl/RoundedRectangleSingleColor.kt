@@ -22,7 +22,7 @@ object RoundedRectangleSingleColor : Shader(
     listOf(Redefine("INTERPOLATE_COLOR", "0"),
         Redefine("TEXTURE_MODE", "0")),
     "core/pos_color.vert",
-    "core/color.frag",
+    "core/color_chroma.frag",
     "rect/rounded_rect.geom"
 ) {
     private var cornerRadii: Vector4f = Vector4f(0f,0f,0f,0f)
@@ -52,6 +52,10 @@ object RoundedRectangleSingleColor : Shader(
             this.modelViewMat,
             this.projectionMat,
             this.windowSize,
+            this.colorEffect,
+            this.chromaTime,
+            this.chromaAngle,
+            this.chromaSize,
             transformUniform,
             radiusUniform,
         )

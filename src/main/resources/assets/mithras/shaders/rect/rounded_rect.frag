@@ -24,9 +24,5 @@ void main() {
     float d = sdRoundedBox(fs_in.texCoord0 - halfDimensions, halfDimensions, radius);
 
     color.a *= smoothstep(1.0, 0.0, d);
-
-    if (color.a == 0.0) {
-        discard;
-    }
     fragColor = color;
 }

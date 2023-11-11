@@ -7,9 +7,5 @@ in VERTEX_DATA {
 out vec4 fragColor;
 
 void main() {
-    vec4 color = fs_in.vertexColor;
-    if (color.a == 0.0) {
-        discard;
-    }
-    fragColor = color;
+    fragColor = fs_in.vertexColor;
 }

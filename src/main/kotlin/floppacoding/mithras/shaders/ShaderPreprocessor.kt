@@ -86,6 +86,10 @@ class ShaderPreprocessor(private val resourceDomain: String) {
     companion object {
         private val includeBuffer = mutableMapOf<String, String>()
 
+        fun clearIncludeBuffer() {
+            includeBuffer.clear()
+        }
+
         private val includePattern = Regex("^\\s*#include\\s*\"(?<path>[\\w.]+/)?(?<filename>[\\w.]+)\"\\s*\$")
         private val versionPattern = Regex("^\\s*#version\\s*(?<version>\\d+)\\s*\$")
         private val definePattern = Regex("^\\s*#define\\s*(?<name>\\w+)\\s[\\s\\w.]*\$")

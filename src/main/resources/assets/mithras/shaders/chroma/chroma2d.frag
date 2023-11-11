@@ -6,6 +6,8 @@ in VERTEX_DATA {
 
 out vec4 fragColor;
 
+#include "chroma.glsl"
+
 void main() {
-    fragColor = fs_in.vertexColor;
+    fragColor = vec4(chroma_color(), fs_in.vertexColor.a);
 }

@@ -4,10 +4,6 @@ uniform float chromaSize;
 uniform float chromaTime;
 uniform float chromaAngle;
 
-in vec4 vertexColor;
-
-out vec4 fragColor;
-
 //
 // Taken from
 // https://www.shadertoy.com/view/MsS3Wc
@@ -21,7 +17,7 @@ vec3 hsv2rgb_smooth( in vec3 c )
     return c.z * mix( vec3(1.0), rgb, c.y);
 }
 
-void main() {
+vec3 chroma_color() {
     float hue = mod( (sin(chromaAngle) * gl_FragCoord.x + cos(chromaAngle) * gl_FragCoord.y) * chromaSize + chromaTime, 1.0);
-    fragColor = vec4(hsv2rgb_smooth(vec3(hue, 1.0, 1.0)), vertexColor.a);
+    return hsv2rgb_smooth(vec3(hue, 1.0, 1.0));
 }

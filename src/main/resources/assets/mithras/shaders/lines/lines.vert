@@ -31,15 +31,7 @@ void main() {
     vec2 lineScreenDirection = normalize((ndc2.xy - ndc1.xy) * ScreenSize);
     vec2 lineOffset = vec2(-lineScreenDirection.y, lineScreenDirection.x) * LineWidth / ScreenSize;
 
-    if (lineOffset.x < 0.0) {
-        lineOffset *= -1.0;
-    }
-
-    if (gl_VertexID % 2 == 0) {
-        gl_Position = vec4((ndc1 + vec3(lineOffset, 0.0)) * linePosStart.w, linePosStart.w);
-    } else {
-        gl_Position = vec4((ndc1 - vec3(lineOffset, 0.0)) * linePosStart.w, linePosStart.w);
-    }
+    gl_Position = vec4((ndc1 -2.0*(float(gl_VertexID % 2) -0.5 ) * vec3(lineOffset, 0.0)) * linePosStart.w, linePosStart.w);
 
     vs_out.vertexColor = Color;
 }

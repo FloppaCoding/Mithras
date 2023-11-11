@@ -32,7 +32,7 @@ import org.joml.Matrix4f
  *
  * @author Aton
  */
-object RectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", "core/color.frag", "rect/rect_border.geom") {
+object RectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", "core/color_chroma.frag", "rect/rect_border.geom") {
     private val widthUniform = Uniform1f(this.programID, "HalfWidth").withValue(1f)
 
     private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
@@ -54,6 +54,10 @@ object RectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", 
             this.modelViewMat,
             this.projectionMat,
             this.windowSize,
+            this.colorEffect,
+            this.chromaTime,
+            this.chromaAngle,
+            this.chromaSize,
             transformUniform,
             widthUniform
         )

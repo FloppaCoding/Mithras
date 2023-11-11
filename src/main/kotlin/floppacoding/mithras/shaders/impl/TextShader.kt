@@ -1,7 +1,7 @@
 package floppacoding.mithras.shaders.impl
 
 import floppacoding.mithras.shaders.Shader
-import floppacoding.mithras.shaders.impl.Text.adjustAAwidth
+import floppacoding.mithras.shaders.impl.TextShader.adjustAAwidth
 import floppacoding.mithras.shaders.uniforms.impl.Uniform1f
 import floppacoding.mithras.shaders.uniforms.withValue
 import net.minecraft.client.render.VertexFormats
@@ -24,7 +24,7 @@ import kotlin.math.sqrt
  *
  * @author Aton
  */
-object Text : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "core/pos_color_tex.vert", "text/text.frag") {
+object TextShader : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "core/pos_color_tex.vert", "text/text_chroma.frag") {
 
     /**
      * This value determines the width of the antialiasing.
@@ -51,6 +51,11 @@ object Text : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "core/pos_color_tex.v
             this.modelViewMat,
             this.projectionMat,
             this.sampler0,
+            this.windowSize,
+            this.colorEffect,
+            this.chromaTime,
+            this.chromaAngle,
+            this.chromaSize,
             aaUniform
         )
     }

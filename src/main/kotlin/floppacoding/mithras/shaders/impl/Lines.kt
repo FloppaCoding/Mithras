@@ -18,7 +18,7 @@ import net.minecraft.client.render.VertexFormats
  *
  * @author Aton
  */
-object Lines: Shader(VertexFormats.LINES, "lines/lines.vert", "lines/lines.frag", "lines/lines.geom") {
+object Lines: Shader(VertexFormats.LINES, "lines/lines.vert", "core/color_chroma.frag", "lines/lines.geom") {
 
     fun setCapStyle(style: CapStyle) {
         styleUniform.updateValue(style.id)
@@ -53,6 +53,10 @@ object Lines: Shader(VertexFormats.LINES, "lines/lines.vert", "lines/lines.frag"
             this.projectionMat,
             this.lineWidth,
             this.windowSize,
+            this.colorEffect,
+            this.chromaTime,
+            this.chromaAngle,
+            this.chromaSize,
             lengthUniform,
             styleUniform
         )

@@ -182,12 +182,12 @@ object GLR: Renderer2D {
         bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
         bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
 
-        RoundedRectangle.setRadii(radii)
-        RoundedRectangle.setTransform(positionMatrix)
+        RoundedRectangleSingleColor.setRadii(radii)
+        RoundedRectangleSingleColor.setTransform(positionMatrix)
 
-        RoundedRectangle.useShader()
+        RoundedRectangleSingleColor.useShader()
         BufferRenderer.draw(bufferBuilder.end())
-        RoundedRectangle.stopShader()
+        RoundedRectangleSingleColor.stopShader()
     }
 
     fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, colors: Vector4i) {
@@ -289,10 +289,10 @@ object GLR: Renderer2D {
             translate(-line.right, fontMetrics.normalHeight)
         }
 
-        Text.adjustAAwidth(positionMatrix)
-        Text.useShader()
+        TextShader.adjustAAwidth(positionMatrix)
+        TextShader.useShader()
         BufferRenderer.draw(bufferBuilder.end())
-        Text.stopShader()
+        TextShader.stopShader()
         pop()
     }
 
@@ -361,10 +361,10 @@ object GLR: Renderer2D {
             translate(-line.right, fontMetrics.normalHeight)
         }
 
-        Text.adjustAAwidth(positionMatrix)
-        Text.useShader()
+        TextShader.adjustAAwidth(positionMatrix)
+        TextShader.useShader()
         BufferRenderer.draw(bufferBuilder.end())
-        Text.stopShader()
+        TextShader.stopShader()
         pop()
     }
 
@@ -409,10 +409,10 @@ object GLR: Renderer2D {
         drawLineInternal(bufferBuilder, text, y0, y1, font, color)
 
 
-        Text.adjustAAwidth(positionMatrix)
-        Text.useShader()
+        TextShader.adjustAAwidth(positionMatrix)
+        TextShader.useShader()
         BufferRenderer.draw(bufferBuilder.end())
-        Text.stopShader()
+        TextShader.stopShader()
         pop()
     }
 
@@ -555,7 +555,12 @@ object GLR: Renderer2D {
     }
 
     override fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
-        TODO("Not yet implemented")
+        if (radius == 0f) {
+            RectBorder.setChroma(true)
+        }else {
+            RoundedRectBorder.setChroma(true)
+        }
+        border(x, y, width, height, lineWidth, radius, color)
     }
 
     override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radii: Vector4f?, color: Int) {
@@ -589,16 +594,7 @@ object GLR: Renderer2D {
 
     }
 
-    override fun textField(
-        text: String,
-        x: Float,
-        y: Float,
-        width: Float,
-        color: Int,
-        fontSize: Float,
-        radius: Float,
-        font: Font
-    ) {
+    override fun textField(text: String, x: Float, y: Float, width: Float, color: Int, fontSize: Float, radius: Float, font: Font) {
         TODO("Not yet implemented")
     }
 

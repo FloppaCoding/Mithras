@@ -6,29 +6,43 @@ import floppacoding.mithras.shaders.uniforms.Uniform
 import floppacoding.mithras.shaders.uniforms.UniformGL
 import floppacoding.mithras.shaders.uniforms.impl.*
 import floppacoding.mithras.shaders.uniforms.withValue
+import floppacoding.mithras.utils.Extensions.renderTickCounter
 import floppacoding.mithras.utils.render.GLR
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.VertexFormat
 import org.joml.Vector2f
 import org.lwjgl.opengl.GL46
 import java.io.IOException
+import kotlin.math.exp
 import kotlin.properties.Delegates
 
 /**
- * Shaders can be used to transform the image that is being drawn.
- * There are multiple types of shaders. So far vertex and fragment shaders are supported.
- * The vertex shader acts on all the vertices that are being drawn and allows to modify those.
+ * # Super class for OpenGL shader programs.
+ *
+ * ## What is a shader program
+ * Shader programs run on the GPU and determine how the primitives passed to the GPU are to be drawn.
+ *
+ * Typically, a shader program consists of a vertex and a fragment shader.
+ * The vertex shader acts on all the vertices passed to the GPU and may transform those as well as evaluate or
+ * generate attributes.
  * The fragment shader acts on the pixels that are being drawn and can be used to adjust the color of those.
+ * It also is responsible for filling a shape with a texture.
+ *
+ * Shaders are written in GLSL. For further information refer to the
+ * [Wiki](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language), or the
+ * [Language Specifications](https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.pdf).
+ *
+ *
+ * ## About this class
  *
  * This class offers a framework to use those shaders.
  * The shader code itself has to be written in GLSL and placed in the resources package.
  * You will always need both a vertex adn a fragment shader.
- * To use a shader program it first has to be compiled and register on the GPU. All of that is automatically done for
+ * To use a shader program it first has to be compiled and registered on the GPU. All of that is automatically done for
  * you simply by creating an instance of this class.
- * The best way to do this is to create an object that inherits from this class.
- * It is recommended that you do that in an object file within ./impl/ .
+ * The best way to do this is to create a singleton / kotlin object that inherits from this class.
  *
- * To then use the shader (let's call it SomeShader) simply invoke SomeShader.useShader() before rendering and
+ * To then use the shader (let's call it SomeShader) simply invoke SomeShader.useShader() before your draw call and
  * SomeShader.stopShader() after rendering the part that should be affected.
  *
  * @param format The vertex format expected by this shader.
@@ -39,6 +53,7 @@ import kotlin.properties.Delegates
  *  @param extraFiles A list of additional shader files paired together with their GL shader type.
  *
  * @see UniformGL
+ * @author Aton
  */
 open class Shader(
     protected val format: VertexFormat,
@@ -60,6 +75,7 @@ open class Shader(
     constructor(format: VertexFormat, name: String) : this(format, "$name.vert", "$name.frag")
 
     var programID: Int by Delegates.notNull()
+        private set
     private var vertexShaderID: Int
     private var fragmentShaderID: Int
     private var extraShaders: List<ShaderFile>
@@ -71,6 +87,8 @@ open class Shader(
 
 
 
+
+    //<editor-fold desc="Default Uniforms">
     /**
      * The [model view matrix][RenderSystem.getModelViewMatrix]
      * combines teh transformation from object coordinates to world coordinates and from those
@@ -122,6 +140,26 @@ open class Shader(
     protected val sampler1: Sampler by lazy { Sampler(programID, "Sampler1").withValue(1) }
     protected val sampler2: Sampler by lazy { Sampler(programID, "Sampler2").withValue(2) }
 
+    /**
+     * Determines the use of special coloring effects.
+     */
+    protected val colorEffect: Uniform1i by lazy {
+        hasColorEffect = true
+        Uniform1i(programID, "ColorEffect").withValue(0)
+    }
+    protected val chromaSize: Uniform1f by lazy { Uniform1f(programID, "chromaSize") { chromaSizeInternal } }
+    protected val chromaTime: Uniform1f by lazy { Uniform1f(programID, "chromaTime") {
+        if (chromaSpeedInternal == 0f)
+            0f
+        else
+            ((Mithras.totalTicks % 100_000 + Mithras.mc.renderTickCounter.tickDelta) * chromaSpeedInternal)
+    } }
+    protected val chromaAngle: Uniform1f by lazy { Uniform1f(programID, "chromaAngle") { chromaAngleInternal } }
+
+    private var hasColorEffect: Boolean = false
+
+    //</editor-fold>
+
     init {
         vertexShaderID = loadShader(vertexFile, GL46.GL_VERTEX_SHADER)
         fragmentShaderID = loadShader(fragmentFile, GL46.GL_FRAGMENT_SHADER)
@@ -154,6 +192,54 @@ open class Shader(
     fun useShader() {
         GL46.glUseProgram(programID)
         updateUniforms()
+    }
+
+    /**
+     * Deactivates this shader by setting the current gl program to 0.
+     */
+    fun stopShader() {
+        if (hasColorEffect) colorEffect.updateValue(ColorEffect.DEFAULT.id)
+        GL46.glUseProgram(0)
+    }
+
+    /**
+     * Sets the shaders special coloring effect.
+     *
+     * This will only work for shaders which support the desired effect.
+     */
+    fun setColorEffect(effect: ColorEffect): Boolean {
+        if (!hasColorEffect) return false
+        colorEffect.updateValue(effect.id)
+        return true
+    }
+
+    /**
+     * Enables or disables the chroma effect.
+     *
+     * This will only work for shaders which support this effect.
+     */
+    fun setChroma(newState: Boolean): Boolean {
+        if (!hasColorEffect) return false
+        colorEffect.updateValue(if (newState) ColorEffect.CHROMA.id else ColorEffect.DEFAULT.id)
+        return true
+    }
+
+    /**
+     * Registers the given uniforms to this shader.
+     *
+     * To be used in the Implementations.
+     */
+    protected fun registerUniforms(vararg uniformArgs: Uniform) {
+        uniformArgs.forEach { uniforms.add(it) }
+    }
+
+    /**
+     * Updates all the impl values to the GPU.
+     */
+    private fun updateUniforms() {
+        uniforms.forEach {
+            it.update()
+        }
     }
 
     /**
@@ -217,31 +303,6 @@ open class Shader(
     }
 
     /**
-     * Deactivates this shader by setting the current gl program to 0.
-     */
-    fun stopShader() {
-        GL46.glUseProgram(0)
-    }
-
-    /**
-     * Registers the given uniforms to this shader.
-     *
-     * To be used in the Implementations.
-     */
-    protected fun registerUniforms(vararg uniformArgs: Uniform) {
-        uniformArgs.forEach { uniforms.add(it) }
-    }
-
-    /**
-     * Updates all the impl values to the GPU.
-     */
-    private fun updateUniforms() {
-        uniforms.forEach {
-            it.update()
-        }
-    }
-
-    /**
      * Loads the shader with the given file name relative to RESOURCE_DOMAIN\shaders.
      *
      * @return The Id of the created shader.
@@ -286,11 +347,58 @@ open class Shader(
 
     data class ShaderSource(val processor: ShaderPreprocessor, val path: String)
 
+    /**
+     * A coloring effect for the fragment shader.
+     */
+    enum class ColorEffect(val id: Int) {
+        /**
+         * The default coloring behaviour.
+         * This will usually be the interpolated vertex color attribute.
+         */
+        DEFAULT(0),
+        CHROMA(1)
+    }
+
     companion object {
         /**
          * Already loaded shaders mapped to their gl shader id.
          */
         private val shaderBuffer: MutableMap<ShaderSource, Int> = mutableMapOf()
+
+        fun clearLoadBuffers() {
+            shaderBuffer.clear()
+            ShaderPreprocessor.clearIncludeBuffer()
+        }
+
+        //chroma settings
+        private var chromaSizeInternal: Float = 0f
+        private var chromaAngleInternal: Float = 0f
+        private var chromaSpeedInternal: Float = 0f
+
+        /**
+         * Expects a [size] between 0 and 1.
+         */
+        @JvmStatic
+        fun setChromaSize(size: Float) {
+            chromaSizeInternal = (exp( size * 0.5f ) -1f)  / 30f
+        }
+
+        /**
+         * Angle of the chroma effect in degrees.
+         */
+        @JvmStatic
+        fun setChromaAngle(angle: Float) {
+            chromaAngleInternal = (angle + 90f) * 0.017453292f
+        }
+
+        /**
+         * Expects a [speed] value between 0 and 1.
+         */
+        @JvmStatic
+        fun setChromaSpeed(speed: Float) {
+            chromaSpeedInternal = (1 - exp(speed) ) / 20f
+        }
+
 
         private fun getShaderType(fileName: String): Int? {
             return when(fileName.substringAfterLast(".")) {

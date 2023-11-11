@@ -37,12 +37,10 @@ import org.joml.Vector4f
  *
  * @author Aton
  */
-object RoundedRectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", "core/color.frag", "rect/rounded_rect_border.geom") {
+object RoundedRectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", "core/color_chroma.frag", "rect/rounded_rect_border.geom") {
 
     private val radiusUniform = Uniform4f(this.programID, "radius").withValues( 0f, 0f, 0f, 0f)
-
     private val widthUniform = Uniform1f(this.programID, "HalfWidth").withValue(1f)
-
     private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
 
     fun setLineWidth(width: Float) {
@@ -74,6 +72,10 @@ object RoundedRectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.
             this.modelViewMat,
             this.projectionMat,
             this.windowSize,
+            this.colorEffect,
+            this.chromaTime,
+            this.chromaAngle,
+            this.chromaSize,
             transformUniform,
             widthUniform,
             radiusUniform

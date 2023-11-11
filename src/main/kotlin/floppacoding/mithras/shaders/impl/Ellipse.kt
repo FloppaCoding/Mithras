@@ -30,7 +30,7 @@ import floppacoding.mithras.utils.render.GLR
 object Ellipse : Shader(
     GLR.POSITION_COLOR_TEX_TEX,
     "core/pos_color_tex_tex.vert",
-    "core/color.frag",
+    "core/color_chroma.frag",
     "ellipse/ellipse.geom"
 ) {
 
@@ -38,7 +38,11 @@ object Ellipse : Shader(
         this.registerUniforms(
             this.modelViewMat,
             this.projectionMat,
-            this.windowSize
+            this.windowSize,
+            this.colorEffect,
+            this.chromaTime,
+            this.chromaAngle,
+            this.chromaSize,
         )
     }
 }

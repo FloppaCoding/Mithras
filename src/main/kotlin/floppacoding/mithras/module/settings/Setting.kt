@@ -138,5 +138,23 @@ abstract class Setting<T>(
             processInput = transform
             return this
         }
+
+        /**
+         * Can be used to run an extra action when setting the new value.
+         *
+         * This acts as a shortcut for:
+         *
+         *      .withInputTransform { input ->
+         *          action(input)
+         *          return@withInputTransform input
+         *      }
+         */
+        fun <K: Setting<T>, T> K.onSet(action: (input: T) -> Unit): K {
+            processInput = {
+                action(it)
+                it
+            }
+            return this
+        }
     }
 }

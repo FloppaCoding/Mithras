@@ -15,7 +15,7 @@ object Shaders {
             Ellipse,
             Texture,
             RoundedTexture,
-            Text,
+            TextShader,
             RectBorder,
             RoundedRectBorder,
         )
@@ -23,6 +23,7 @@ object Shaders {
 
     @Throws(Exception::class)
     fun reloadShaders() {
+        Shader.clearLoadBuffers()
         shaders.forEach {
             it.reloadShader()
         }
