@@ -2,12 +2,18 @@ package floppacoding.mithras.commands.reflectcommands
 
 data class GreedyString(val string: String)
 
+/**
+ * Takes remaining arguments and combines them
+ * For example: this is used to be able to write sentences in commands
+ *
+ * @see CommandFunction.parseArgs
+ */
 object GreedyStringParser : Parser<GreedyString> {
     override fun parse(args: String): GreedyString {
         return GreedyString(args)
     }
 
-    override fun consumesArg(): Boolean = false
+    override fun consumesAll(): Boolean = true
 }
 
 object StringParser : Parser<String> {
@@ -28,7 +34,26 @@ object FloatParser : Parser<Float> {
     }
 }
 
+/**
+ * Interface to create parsers for [CommandFunction].
+ *
+ *
+ * @see CommandFunction
+ * @see IntParser
+ * @see GreedyStringParser
+ * @param E the class the parser parses to
+ */
 interface Parser<E> {
+    /**
+     * Function on how to take a string and convert it into corresponding class
+     */
     fun parse(args: String): E?
-    fun consumesArg(): Boolean = true
+
+    /**
+     * If the parser takes all the remaining arguments or not
+     *
+     * @see GreedyStringParser
+     * @see CommandFunction.parseArgs
+     */
+    fun consumesAll(): Boolean = false
 }
