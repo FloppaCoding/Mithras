@@ -7,8 +7,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.mapX
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.mapZ
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.yaw
 import floppacoding.mithras.utils.render.Image
-import floppacoding.mithras.utils.render.nanovg.NVGImage
-import floppacoding.mithras.utils.render.nanovg.NVGImageManager
+import floppacoding.mithras.utils.render.ImageManager
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.item.map.MapIcon
 import java.io.IOException
@@ -39,11 +38,11 @@ class DungeonPlayer(
 
 
     // TODO add abstraction here for general image.
-    var skinImage: NVGImage? = try {
-        NVGImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)} catch (e: IOException){null}
+    var skinImage: Image? = try {
+        ImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)} catch (e: IOException){null}
         get() {
             if (field == null) try{
-                field = NVGImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)
+                field = ImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)
             }catch (_: IOException) {
             }
             return field
@@ -93,7 +92,7 @@ class DungeonPlayer(
     }*/
 
     fun loadSkinImage() {
-        skinImage = NVGImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)
+        skinImage = ImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)
     }
 
     /**

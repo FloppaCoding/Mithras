@@ -36,6 +36,7 @@ object GLImageManager {
     val DEFAULT_QUESTION : GLImage = GLImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/question.png", Flags.NEAREST)
 
     private val bufferedImages = mutableMapOf<Identifier, GLImage>()
+    private val bufferedImages2 = mutableMapOf<String, GLImage>()
 
     /**
      * @param imageFlags the image flags. Any of:
@@ -52,6 +53,15 @@ object GLImageManager {
         if (bufferedImage != null) return bufferedImage
         val newImage = GLImage(identifier, *imageFlags)
         bufferedImages[identifier] = newImage
+        return newImage
+    }
+
+    @Throws(IOException::class)
+    fun createImage(path: String, vararg imageFlags: Flags): GLImage {
+        val bufferedImage = bufferedImages2[path]
+        if (bufferedImage != null) return bufferedImage
+        val newImage = GLImage(path, *imageFlags)
+        bufferedImages2[path] = newImage
         return newImage
     }
 

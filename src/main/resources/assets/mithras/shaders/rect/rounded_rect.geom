@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 /*
 This shader rounds the corners of input tirnangles.
@@ -20,7 +20,7 @@ const mat4x2 offsets = mat4x2(vec2(1.0,1.0), vec2(1.0,-1.0), vec2(-1.0,-1.0), ve
 layout(triangles) in;
 layout(triangle_strip, max_vertices = MAX_VERTICES) out;
 
-in int gl_PrimitiveIDIn[];
+//in int gl_PrimitiveIDIn[];
 
 in VERTEX_DATA {
 #if TEXTURE_MODE
@@ -81,7 +81,7 @@ void main() {
     int segments[3], corners[3];
     int corner;
     for (int ii = 0; ii < 3; ii++) {
-        corner = ii + (2*(gl_PrimitiveIDIn[0] % 2))%4;
+        corner = ii + (2*(gl_PrimitiveIDIn % 2))%4;
         r1[ii] = radius[corner] * e1.xy;
         r2[ii] = radius[corner] * e2.xy;
         midPoints[ii] = gl_in[ii].gl_Position + vec4((offsets[corner].x * r1[ii] + offsets[corner].y * r2[ii]) * gl_in[ii].gl_Position.w, 0., 0.);
@@ -128,7 +128,7 @@ void main() {
     rotationMat[2] = mat2(c, -s, s, c);
 
     // Start positions on the circle.
-    if( gl_PrimitiveIDIn[0] % 2 == 0) {
+    if( gl_PrimitiveIDIn % 2 == 0) {
         segDir[0] = vec2(-ONE_OVER_SQRT_2, -ONE_OVER_SQRT_2);
         segDir[1] = vec2(-1.0, 0.0);
         segDir[2] = vec2(0.0, 1.0);

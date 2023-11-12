@@ -23,7 +23,8 @@ abstract class HudElement  {
     var width: Float
     var height: Float
 
-    open val renderer: Renderer2D = DEFAULT_RENDERER
+    open val renderer: Renderer2D
+        get() = Mithras.renderer2D
 
     private val zoomIncrement = 0.05f
 
@@ -151,6 +152,7 @@ abstract class HudElement  {
     }
 
     companion object {
-        val DEFAULT_RENDERER: Renderer2D = Mithras.renderer2D
+        val DEFAULT_RENDERER: Renderer2D
+            get() = Mithras.renderer2D
     }
 }

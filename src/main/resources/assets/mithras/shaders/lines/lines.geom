@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 #define PI_HALF 1.5707963
 // Change this to a 1 to interpolate the color along with width of the line.
@@ -7,8 +7,6 @@
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 35) out;
-
-in int gl_PrimitiveIDIn[];
 
 in VERTEX_DATA {
     vec4 vertexColor;
@@ -44,7 +42,7 @@ void main() {
     EndPrimitive();
 
     if(style == 0) { return; }
-    bool hasCap = lastSegment == 0 || gl_PrimitiveIDIn[0] == 0 || gl_PrimitiveIDIn[0] == lastSegment;
+    bool hasCap = lastSegment == 0 || gl_PrimitiveIDIn == 0 || gl_PrimitiveIDIn == lastSegment;
     if(!hasCap) { return; }
     if(style == 1) {
         vec4 midPoint = (gl_in[1].gl_Position + gl_in[0].gl_Position) / 2.0;

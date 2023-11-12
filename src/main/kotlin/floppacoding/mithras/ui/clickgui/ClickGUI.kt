@@ -8,7 +8,7 @@ import floppacoding.mithras.ui.clickgui.elements.menu.ElementColor
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementSlider
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.utils.render.GuiScreen
-import floppacoding.mithras.utils.render.nanovg.NVGImageManager
+import floppacoding.mithras.utils.render.ImageManager
 import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
@@ -83,7 +83,7 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
 
         renderer.scale(2f, 2f)
 
-        renderer.image(NVGImageManager.ICON, -5f- logoSize, -5f - logoSize, logoSize, logoSize)
+        renderer.image(ImageManager.ICON, -5f- logoSize, -5f - logoSize, logoSize, logoSize)
         renderer.text(
             MainSettings.clientName.text,
              - 10f - logoSize,

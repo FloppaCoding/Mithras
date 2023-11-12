@@ -52,6 +52,8 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
      */
     private var updater: (() -> T)? = null
 
+    var transpose = false
+
     /**
      * Update the value of this uniform.
      *
@@ -108,7 +110,7 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
 
     private fun uploadData() {
         buffer.rewind()
-        type.uploadData(this.uniformID, shape, buffer)
+        type.uploadData(this.uniformID, shape, buffer, transpose)
     }
 
     override fun close() {
@@ -128,21 +130,21 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
                 buffer.put(0, newValues.toFloatArray(), 0, shape.count)
             }
 
-            override fun uploadData(uniformID: Int, shape: Shape, buffer: FloatBuffer) {
+            override fun uploadData(uniformID: Int, shape: Shape, buffer: FloatBuffer, transpose: Boolean) {
                 when(shape) {
                     Shape.SCALAR -> GL46.glUniform1fv(uniformID, buffer)
                     Shape.VEC2   -> GL46.glUniform2fv(uniformID, buffer)
                     Shape.VEC3   -> GL46.glUniform3fv(uniformID, buffer)
                     Shape.VEC4   -> GL46.glUniform4fv(uniformID, buffer)
-                    Shape.MAT2   -> GL46.glUniformMatrix2fv(uniformID, false, buffer)
-                    Shape.MAT3   -> GL46.glUniformMatrix3fv(uniformID, false, buffer)
-                    Shape.MAT4   -> GL46.glUniformMatrix4fv(uniformID, false, buffer)
-                    Shape.MAT3x2 -> GL46.glUniformMatrix3x2fv(uniformID, false, buffer)
-                    Shape.MAT2x3 -> GL46.glUniformMatrix2x3fv(uniformID, false, buffer)
-                    Shape.MAT4x2 -> GL46.glUniformMatrix4x2fv(uniformID, false, buffer)
-                    Shape.MAT2x4 -> GL46.glUniformMatrix2x4fv(uniformID, false, buffer)
-                    Shape.MAT4x3 -> GL46.glUniformMatrix4x3fv(uniformID, false, buffer)
-                    Shape.MAT3x4 -> GL46.glUniformMatrix3x4fv(uniformID, false, buffer)
+                    Shape.MAT2   -> GL46.glUniformMatrix2fv  (uniformID, transpose, buffer)
+                    Shape.MAT3   -> GL46.glUniformMatrix3fv  (uniformID, transpose, buffer)
+                    Shape.MAT4   -> GL46.glUniformMatrix4fv  (uniformID, transpose, buffer)
+                    Shape.MAT3x2 -> GL46.glUniformMatrix3x2fv(uniformID, transpose, buffer)
+                    Shape.MAT2x3 -> GL46.glUniformMatrix2x3fv(uniformID, transpose, buffer)
+                    Shape.MAT4x2 -> GL46.glUniformMatrix4x2fv(uniformID, transpose, buffer)
+                    Shape.MAT2x4 -> GL46.glUniformMatrix2x4fv(uniformID, transpose, buffer)
+                    Shape.MAT4x3 -> GL46.glUniformMatrix4x3fv(uniformID, transpose, buffer)
+                    Shape.MAT3x4 -> GL46.glUniformMatrix3x4fv(uniformID, transpose, buffer)
                 }
             }
         }
@@ -156,7 +158,7 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
                 buffer.put(0, newValues.toIntArray(), 0, shape.count)
             }
 
-            override fun uploadData(uniformID: Int, shape: Shape, buffer: IntBuffer) {
+            override fun uploadData(uniformID: Int, shape: Shape, buffer: IntBuffer, transpose: Boolean) {
                 when(shape) {
                     Shape.SCALAR -> GL46.glUniform1iv(uniformID, buffer)
                     Shape.VEC2   -> GL46.glUniform2iv(uniformID, buffer)
@@ -176,21 +178,21 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
                 buffer.put(0, newValues.toDoubleArray(), 0, shape.count)
             }
 
-            override fun uploadData(uniformID: Int, shape: Shape, buffer: DoubleBuffer) {
+            override fun uploadData(uniformID: Int, shape: Shape, buffer: DoubleBuffer, transpose: Boolean) {
                 when(shape) {
                     Shape.SCALAR -> GL46.glUniform1dv(uniformID, buffer)
                     Shape.VEC2   -> GL46.glUniform2dv(uniformID, buffer)
                     Shape.VEC3   -> GL46.glUniform3dv(uniformID, buffer)
                     Shape.VEC4   -> GL46.glUniform4dv(uniformID, buffer)
-                    Shape.MAT2   -> GL46.glUniformMatrix2dv(uniformID, false, buffer)
-                    Shape.MAT3   -> GL46.glUniformMatrix3dv(uniformID, false, buffer)
-                    Shape.MAT4   -> GL46.glUniformMatrix4dv(uniformID, false, buffer)
-                    Shape.MAT3x2 -> GL46.glUniformMatrix3x2dv(uniformID, false, buffer)
-                    Shape.MAT2x3 -> GL46.glUniformMatrix2x3dv(uniformID, false, buffer)
-                    Shape.MAT4x2 -> GL46.glUniformMatrix4x2dv(uniformID, false, buffer)
-                    Shape.MAT2x4 -> GL46.glUniformMatrix2x4dv(uniformID, false, buffer)
-                    Shape.MAT4x3 -> GL46.glUniformMatrix4x3dv(uniformID, false, buffer)
-                    Shape.MAT3x4 -> GL46.glUniformMatrix3x4dv(uniformID, false, buffer)
+                    Shape.MAT2   -> GL46.glUniformMatrix2dv  (uniformID, transpose, buffer)
+                    Shape.MAT3   -> GL46.glUniformMatrix3dv  (uniformID, transpose, buffer)
+                    Shape.MAT4   -> GL46.glUniformMatrix4dv  (uniformID, transpose, buffer)
+                    Shape.MAT3x2 -> GL46.glUniformMatrix3x2dv(uniformID, transpose, buffer)
+                    Shape.MAT2x3 -> GL46.glUniformMatrix2x3dv(uniformID, transpose, buffer)
+                    Shape.MAT4x2 -> GL46.glUniformMatrix4x2dv(uniformID, transpose, buffer)
+                    Shape.MAT2x4 -> GL46.glUniformMatrix2x4dv(uniformID, transpose, buffer)
+                    Shape.MAT4x3 -> GL46.glUniformMatrix4x3dv(uniformID, transpose, buffer)
+                    Shape.MAT3x4 -> GL46.glUniformMatrix3x4dv(uniformID, transpose, buffer)
                 }
             }
         }
@@ -199,7 +201,7 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
 
         abstract fun updateData(shape: Shape, buffer: K, newValues: Array<out N>)
 
-        abstract fun uploadData(uniformID: Int, shape: Shape, buffer: K)
+        abstract fun uploadData(uniformID: Int, shape: Shape, buffer: K, transpose: Boolean)
 
         companion object {
             @JvmField

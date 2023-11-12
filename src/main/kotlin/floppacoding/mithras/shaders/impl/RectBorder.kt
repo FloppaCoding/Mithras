@@ -35,7 +35,7 @@ import org.joml.Matrix4f
 object RectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.vert", "core/color_chroma.frag", "rect/rect_border.geom") {
     private val widthUniform = Uniform1f(this.programID, "HalfWidth").withValue(1f)
 
-    private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
+    private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f()).apply { transpose = true }
 
     fun setLineWidth(width: Float) {
         widthUniform.updateValues(width * 0.5f)

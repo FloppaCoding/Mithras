@@ -59,7 +59,6 @@ object Mithras : ModInitializer {
 
 	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
 	lateinit var renderer2D: Renderer2D
-		private set
 	lateinit var clickGUI: ClickGUI
 		private set
 	/**

@@ -29,7 +29,8 @@ abstract class GuiScreen(
 
     constructor(title: String, scale: Float = 1f) : this(MutableText.of(LiteralTextContent(title)), scale)
 
-    open val renderer: Renderer2D = Mithras.renderer2D
+    open val renderer: Renderer2D
+        get() = Mithras.renderer2D
 
     private val clock = Clock()
 

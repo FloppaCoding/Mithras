@@ -7,7 +7,7 @@ import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.ColorUtil.TEXT_COLOR
-import floppacoding.mithras.utils.render.nanovg.NVGImageManager
+import floppacoding.mithras.utils.render.ImageManager
 import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
@@ -52,7 +52,7 @@ class AdvancedElementColor(
                 val isColorDragged = dragging == currentColor.ordinal
                 // If hue selected, render the hue bar.
                 if (currentColor == ColorSetting.ColorComponent.HUE) {
-                    renderer.image(NVGImageManager.HUE_SCALE, 0f, ay, settingWidth, 11f)
+                    renderer.image(ImageManager.HUE_SCALE, 0f, ay, settingWidth, 11f)
                 }
 
                 val dispVal = "" + (setting.getNumber(currentColor) * 100.0).roundToInt() / 100.0

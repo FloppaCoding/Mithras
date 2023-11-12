@@ -27,6 +27,7 @@ import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
 import floppacoding.mithras.utils.render.GLR
 import floppacoding.mithras.utils.render.nanovg.NVGImageManager
+import floppacoding.mithras.utils.render.nanovg.NVGR
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.client.texture.PlayerSkinTexture
@@ -520,6 +521,15 @@ object DebugCommand : Command() {
                             Mithras.logger.debug("Reloading shader failed.", e)
                         }
                     }}
+                }
+                literal("switchrenderer") {
+                    execute {
+                        when(Mithras.renderer2D){
+                            NVGR -> Mithras.renderer2D = GLR
+                            GLR -> Mithras.renderer2D = NVGR
+                        }
+                        ChatUtils.chatMessage("Switched to ${Mithras.renderer2D::class.simpleName}")
+                    }
                 }
                 execute {
                     val a = Font(Font.MONOSPACED, Font.PLAIN, 16)

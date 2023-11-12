@@ -41,7 +41,7 @@ object RoundedRectBorder : Shader(VertexFormats.POSITION_COLOR, "core/pos_color.
 
     private val radiusUniform = Uniform4f(this.programID, "radius").withValues( 0f, 0f, 0f, 0f)
     private val widthUniform = Uniform1f(this.programID, "HalfWidth").withValue(1f)
-    private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
+    private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f()).apply { transpose = true }
 
     fun setLineWidth(width: Float) {
         widthUniform.updateValues(width * 0.5f)

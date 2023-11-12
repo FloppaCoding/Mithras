@@ -21,7 +21,7 @@ abstract class Element<S: Setting<*>>(
     val type: ElementType
 ) {
     val clickgui: ClickGUI = parent.panel.clickgui
-    protected val renderer: Renderer2D = parent.renderer
+    protected val renderer: Renderer2D by parent::renderer
     /** Relative position of this element in respect to [parent]. */
     var x = 2f
     /** Relative position of this element in respect to [parent]. */

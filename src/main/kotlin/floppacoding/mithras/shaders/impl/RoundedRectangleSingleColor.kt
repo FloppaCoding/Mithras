@@ -29,7 +29,7 @@ object RoundedRectangleSingleColor : Shader(
 
     private val radiusUniform = Uniform4f(this.programID, "radius").withValue( cornerRadii )
 
-    private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
+    private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f()).apply { transpose = true }
 
     fun setTransform(posMat: Matrix4f) {
         transformUniform.updateValues(posMat.m00(), posMat.m10(), posMat.m01(), posMat.m11())

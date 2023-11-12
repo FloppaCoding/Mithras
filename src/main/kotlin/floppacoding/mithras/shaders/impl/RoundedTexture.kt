@@ -27,7 +27,7 @@ object RoundedTexture : Shader(
 ) {
     private var cornerRadii: Vector4f = Vector4f(0f,0f,0f,0f)
     private val radiusUniform = Uniform4f(this.programID, "radius").withValue( cornerRadii )
-    private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f())
+    private val transformUniform = UniformMatrix2f(this.programID, "UnitTransform").withValue(Matrix2f()).apply { transpose = true }
     private val alphaUniform = Uniform1f(this.programID, "alpha").withValue(1f)
 
     fun setTransform(posMat: Matrix4f) {

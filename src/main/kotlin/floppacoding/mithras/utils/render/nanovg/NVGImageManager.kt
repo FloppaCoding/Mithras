@@ -38,6 +38,7 @@ object NVGImageManager {
     val DEFAULT_QUESTION : NVGImage = NVGImage("/assets/${Mithras.RESOURCE_DOMAIN}/dungeonmap/default/question.png", Image.Flags.NEAREST)
 
     private val bufferedImages = mutableMapOf<Identifier, NVGImage>()
+    private val bufferedImages2 = mutableMapOf<String, NVGImage>()
 
     /**
      * @param imageFlags the image flags. Any of:
@@ -54,6 +55,15 @@ object NVGImageManager {
         if (bufferedImage != null) return bufferedImage
         val newImage = NVGImage(identifier, *imageFlags)
         bufferedImages[identifier] = newImage
+        return newImage
+    }
+
+    @Throws(IOException::class)
+    fun createImage(path: String, vararg imageFlags: Image.Flags): NVGImage {
+        val bufferedImage = bufferedImages2[path]
+        if (bufferedImage != null) return bufferedImage
+        val newImage = NVGImage(path, *imageFlags)
+        bufferedImages2[path] = newImage
         return newImage
     }
 

@@ -44,6 +44,7 @@ object GLR: Renderer2D {
         get() = GLFontManager.ROBOTO
 
     override fun beginFrame() {
+        RenderSystem.disableCull()
         this.matrices = MatrixStack()
         projectionMatrix.setOrtho(0.0f, mc.window.framebufferWidth.toFloat(), mc.window.framebufferHeight.toFloat(), 0.0f, 1000.0f, 21000.0f)
         msaaBuffer.useBuffer(mainBuffer)

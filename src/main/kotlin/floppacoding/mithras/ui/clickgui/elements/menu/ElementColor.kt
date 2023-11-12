@@ -5,7 +5,7 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.nanovg.NVGImageManager
+import floppacoding.mithras.utils.render.ImageManager
 import floppacoding.mithras.utils.render.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
@@ -43,7 +43,7 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
                 val isColorDragged = dragging == currentColor.ordinal
                 /** For hue render the hue bar. */
                 if (currentColor == ColorSetting.ColorComponent.HUE) {
-                    renderer.image(NVGImageManager.HUE_SCALE, 0f, currentDrawY, width, 11f)
+                    renderer.image(ImageManager.HUE_SCALE, 0f, currentDrawY, width, 11f)
                 }
 
                 val dispVal = "" + (setting.getNumber(currentColor) * 100.0).roundToInt() / 100.0

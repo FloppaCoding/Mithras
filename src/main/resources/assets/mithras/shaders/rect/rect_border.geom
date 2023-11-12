@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 /*
 This a wide rectangle border from a line strip containing 4 segments.
@@ -11,8 +11,6 @@ const vec2 offsets[4] = vec2[4](vec2(1.0,1.0), vec2(1.0,-1.0), vec2(-1.0,-1.0), 
 
 layout(lines) in;
 layout(triangle_strip, max_vertices = 4) out;
-
-in int gl_PrimitiveIDIn[];
 
 in VERTEX_DATA {
     vec4 vertexColor;
@@ -36,14 +34,16 @@ void main() {
     };
     // Direction pointing inwards from both vertices of this line segment.
     mat2 corners = {
-        offsets[gl_PrimitiveIDIn[0]],
-        offsets[(gl_PrimitiveIDIn[0] + 1) % 4]
+        offsets[gl_PrimitiveIDIn],
+        offsets[(gl_PrimitiveIDIn + 1) % 4]
     };
     // Those same direction transformed to the local coordinate system.
     mat2x4 directions = unitVecs*corners;
 
+    gs_out.vertexColor = vec4(float(gl_PrimitiveIDIn) / 5.0, 0.0, 0.0, 1.0);
+
     for (int ii = 0; ii < 2; ii++) {
-        gs_out.vertexColor = gs_in[ii].vertexColor;
+//        gs_out.vertexColor = gs_in[ii].vertexColor;
         gl_Position = gl_in[ii].gl_Position + directions[ii] * gl_in[ii].gl_Position.w;
         EmitVertex();
 

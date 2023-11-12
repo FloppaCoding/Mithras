@@ -19,7 +19,7 @@ import floppacoding.mithras.utils.render.TextAlign
  */
 class ModuleButton(val module: Module, val panel: Panel) {
     val menuElements: ArrayList<Element<*>> = ArrayList()
-    val renderer: Renderer2D = panel.renderer
+    val renderer: Renderer2D by panel::renderer
     /** Relative position of this button in respect to [panel]. */
     var x = 0f
     /** Relative position of this button in respect to [panel]. */

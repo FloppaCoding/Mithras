@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 const float ONE_OVER_SQRT_2 = 0.7071068;
 const float SQRT_2 = 1.414214;
@@ -8,8 +8,6 @@ const mat4x2 startDirs = mat4x2(vec2(0.0,1.0), vec2(1.0,0.0), vec2(0.0,-1.0), ve
 
 layout(lines) in;
 layout(triangle_strip, max_vertices = 64) out;
-
-in int gl_PrimitiveIDIn[];
 
 in VERTEX_DATA {
     vec4 vertexColor;
@@ -33,7 +31,7 @@ void main() {
         ProjMat * ModelViewMat * vec4(UnitTransform[0], 0.0, 0.0),
         ProjMat * ModelViewMat * vec4(UnitTransform[1], 0.0, 0.0)
     };
-    ivec2 corners = ivec2(gl_PrimitiveIDIn[0], (gl_PrimitiveIDIn[0] + 1) % 4);
+    ivec2 corners = ivec2(gl_PrimitiveIDIn, (gl_PrimitiveIDIn + 1) % 4);
     // Direction pointing inwards from both vertices of this line segment.
     mat2 inward = { offsets[corners[0]], offsets[corners[1]] };
     // Those same direction transformed to the local coordinate system.

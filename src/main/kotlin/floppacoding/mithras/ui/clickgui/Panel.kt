@@ -22,7 +22,7 @@ class Panel(
 ) {
     private val title: String = category.name.capitalizeOnlyFirst()
 
-    val renderer: Renderer2D = clickgui.renderer
+    val renderer: Renderer2D by clickgui::renderer
 
     var dragging = false
     val visible = true // Currently unused, but can be used in future for hiding categories
