@@ -56,23 +56,30 @@ import kotlin.properties.Delegates
  * @author Aton
  */
 open class Shader(
-    protected val format: VertexFormat,
-    private val vertexFile: String,
-    private val fragmentFile: String,
-    extraFiles: List<Pair<String, Int>>,
-    preprocessorArgs: Collection<PreprocessorArgument>
+        private val attributes: List<String>,
+        private val vertexFile: String,
+        private val fragmentFile: String,
+        extraFiles: List<Pair<String, Int>>,
+        preprocessorArgs: Collection<PreprocessorArgument>
 ) : AutoCloseable {
 
-    constructor(format: VertexFormat, vertexFile: String, fragmentFile: String): this(format, vertexFile, fragmentFile, emptyList(), emptyList())
+    constructor(format: VertexFormat, vertexFile: String, fragmentFile: String): this(format.attributeNames, vertexFile, fragmentFile, emptyList(), emptyList())
     constructor(format: VertexFormat, preprocessorArgs: Collection<PreprocessorArgument>, vertexFile: String, fragmentFile: String):
-            this(format, vertexFile, fragmentFile, emptyList(), preprocessorArgs)
+            this(format.attributeNames, vertexFile, fragmentFile, emptyList(), preprocessorArgs)
     constructor(format: VertexFormat, vertexFile: String, fragmentFile: String, vararg extraFiles: Pair<String,Int>):
-            this(format, vertexFile, fragmentFile, extraFiles.toList(), emptyList())
+            this(format.attributeNames, vertexFile, fragmentFile, extraFiles.toList(), emptyList())
     constructor(format: VertexFormat, vertexFile: String, fragmentFile: String, vararg extraFiles: String):
-            this(format, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  }, emptyList())
+            this(format.attributeNames, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  }, emptyList())
     constructor(format: VertexFormat, preprocessorArgs: Collection<PreprocessorArgument>, vertexFile: String, fragmentFile: String, vararg extraFiles: String):
-            this(format, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  }, preprocessorArgs)
+            this(format.attributeNames, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  }, preprocessorArgs)
     constructor(format: VertexFormat, name: String) : this(format, "$name.vert", "$name.frag")
+
+    constructor(attributes: List<String>, vertexFile: String, fragmentFile: String): this(attributes, vertexFile, fragmentFile, emptyList(), emptyList())
+    constructor(attributes: List<String>, preprocessorArgs: Collection<PreprocessorArgument>, vertexFile: String, fragmentFile: String): this(attributes, vertexFile, fragmentFile, emptyList(), preprocessorArgs)
+    constructor(attributes: List<String>, vertexFile: String, fragmentFile: String, vararg extraFiles: Pair<String,Int>): this(attributes, vertexFile, fragmentFile, extraFiles.toList(), emptyList())
+    constructor(attributes: List<String>, vertexFile: String, fragmentFile: String, vararg extraFiles: String): this(attributes, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  }, emptyList())
+    constructor(attributes: List<String>, preprocessorArgs: Collection<PreprocessorArgument>, vertexFile: String, fragmentFile: String, vararg extraFiles: String): this(attributes, vertexFile, fragmentFile, extraFiles.mapNotNull { getShaderType(it)?.let { type -> Pair(it, type) }  }, preprocessorArgs)
+    constructor(attributes: List<String>, name: String) : this(attributes, "$name.vert", "$name.frag")
 
     var programID: Int by Delegates.notNull()
         private set
@@ -173,7 +180,7 @@ open class Shader(
 
         programID = GL45.glCreateProgram()
         // bind Attributes
-        format.attributeNames.withIndex().forEach {
+        attributes.withIndex().forEach {
             GL45.glBindAttribLocation(programID, it.index, it.value)
         }
 
@@ -261,7 +268,7 @@ open class Shader(
         }
         val newProgramID = GL45.glCreateProgram()
         // bind Attributes
-        format.attributeNames.withIndex().forEach {
+        attributes.withIndex().forEach {
             GL45.glBindAttribLocation(newProgramID, it.index, it.value)
         }
         GL45.glAttachShader(newProgramID, newVertexShaderID)

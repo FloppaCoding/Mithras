@@ -8,8 +8,10 @@ class Uniform2f : UniformGL<Vector2f, Float, FloatBuffer> {
     constructor(programID: Int, name: String, updater: () -> Vector2f) : super(programID, name, Type.FLOAT, Shape.VEC2, updater)
     constructor(programID: Int, name: String): super(programID, name, Type.FLOAT, Shape.VEC2)
 
-    override fun writeNewValToBuffer(newValue: Vector2f) {
-        this.buffer.put(0, newValue.x)
-        this.buffer.put(1, newValue.y)
+    override fun writeNewValToBuffer(newValue: Vector2f): Boolean {
+        val comparison = Vector2f(0, buffer)
+        if(newValue == comparison) return false
+        newValue.get(0, buffer)
+        return true
     }
 }

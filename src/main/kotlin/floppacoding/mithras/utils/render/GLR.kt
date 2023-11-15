@@ -11,7 +11,8 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.RotationAxis
 import org.apache.commons.lang3.tuple.MutablePair
 import org.joml.*
-import org.lwjgl.opengl.GL46
+import org.lwjgl.opengl.GL45.*
+import org.lwjgl.system.MemoryUtil
 import kotlin.math.round
 
 // TODO consider not using the position matrix on the cpu when creating vertices and instead let the model view matrix handle that.
@@ -33,6 +34,8 @@ import kotlin.math.round
 
 object GLR: Renderer2D {
 
+    private val vaoBuilder = VAOBuilder2D()
+
     private var matrices: MatrixStack = MatrixStack()
     val projectionMatrix: Matrix4f = Matrix4f().setOrtho(0.0f, 1920f, 1080f, 0.0f, 1000.0f, 21000.0f)
 
@@ -43,11 +46,15 @@ object GLR: Renderer2D {
     override val defaultFont: Font
         get() = GLFontManager.ROBOTO
 
+    private val drawCalls: MutableList<RenderCall> = mutableListOf()
+
     override fun beginFrame() {
         RenderSystem.disableCull()
         this.matrices = MatrixStack()
-        projectionMatrix.setOrtho(0.0f, mc.window.framebufferWidth.toFloat(), mc.window.framebufferHeight.toFloat(), 0.0f, 1000.0f, 21000.0f)
-        msaaBuffer.useBuffer(mainBuffer)
+        projectionMatrix.setOrtho(0.0f, mc.window.framebufferWidth.toFloat(), mc.window.framebufferHeight.toFloat(), 0.0f, 1000.0f, -1000.0f)
+//        msaaBuffer.useBuffer(mainBuffer)
+        drawCalls.clear()
+        vaoBuilder.reset()
     }
 
     override fun beginFrame(context: DrawContext) {
@@ -63,7 +70,64 @@ object GLR: Renderer2D {
     }
 
     override fun endFrame() {
-        msaaBuffer.endUsingBuffer(mainBuffer)
+        flushDraw()
+
+//        msaaBuffer.endUsingBuffer(mainBuffer)
+    }
+
+    private fun flushDraw() {
+        if(drawCalls.isEmpty()) return
+        vaoBuilder.upload()
+        // Set states
+        NewShader.setProjectionMatrix(projectionMatrix)
+        NewShader.useShader()
+        RenderSystem.enableBlend()
+
+
+        var unit: Int; var id: Int; var firstInBatch = 0; var lastInBatch: Int = drawCalls.size - 1; var call: RenderCall
+        val textures: LinkedHashMap<Int, Int> = linkedMapOf()
+        val textureBuffer = MemoryUtil.memAllocInt(32)
+        do {
+            //Bind as many of the required textures as possible
+            unit = 0
+            for (ii in firstInBatch until drawCalls.size) {
+                call = drawCalls[ii]
+                id = call.texture ?: continue
+
+                call.textureUnit = textures.getOrPut(id) { unit++ }
+
+                if (unit > 31) {
+                    lastInBatch = ii
+                    break
+                }
+            }
+            if (textures.isNotEmpty()) {
+                textureBuffer.limit(textures.keys.size)
+                textureBuffer.put(0, textures.keys.toIntArray())
+                glBindTextures(GL_TEXTURE0, textureBuffer)
+            }
+
+            // Group consecutive render calls together when no state change is required.
+            var startCall: RenderCall = drawCalls[firstInBatch]; var count: Int
+            for (ii in firstInBatch .. lastInBatch) {
+                call = drawCalls[ii]
+                if( ii < lastInBatch && call.combinable(drawCalls[ii+1])) {
+                    continue
+                }
+                NewShader.setColorMode(call.colorMode)
+                NewShader.uploadColorMode()
+                call.textureUnit?.let { NewShader.setTextureUnit(it); NewShader.uploadTextureUnit() }
+                call.textAAWidth?.let { NewShader.setAAwidth(it); NewShader.uploadAAwidth() }
+
+                count = call.indexRange.last - startCall.indexRange.first + 1
+                glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, startCall.indexRange.first.toLong())
+                if( ii < lastInBatch) startCall = drawCalls[ii + 1]
+            }
+
+            textures.clear()
+            firstInBatch = lastInBatch + 1
+        }while (firstInBatch < drawCalls.size)
+        MemoryUtil.memFree(textureBuffer)
     }
 
     override fun reset() {
@@ -126,22 +190,16 @@ object GLR: Renderer2D {
     }
 
     override fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
-        RenderSystem.assertOnRenderThread()
-
-        RenderSystem.enableBlend()
-
         val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+        vaoBuilder.begin()
 
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
+        vaoBuilder.vertex(positionMatrix, x, y).color(color).next()
+        vaoBuilder.vertex(positionMatrix, x, y+height).color(color).next()
+        vaoBuilder.vertex(positionMatrix, x+width, y+height).color(color).next()
+        vaoBuilder.vertex(positionMatrix, x+width, y).color(color).next()
 
-        GUIShader.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        GUIShader.stopShader()
+        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUAD)
+        drawCalls.add(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
     /**
@@ -529,8 +587,8 @@ object GLR: Renderer2D {
         }
 
         RenderSystem.enableBlend()
-        GL46.glActiveTexture(GL46.GL_TEXTURE0)
-        GL46.glBindTexture(GL46.GL_TEXTURE_2D, image.id)
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, image.id)
         val positionMatrix = matrices.peek().positionMatrix
         val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
         bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE)

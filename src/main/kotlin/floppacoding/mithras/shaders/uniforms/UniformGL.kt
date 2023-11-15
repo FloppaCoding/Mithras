@@ -6,6 +6,7 @@ import java.nio.Buffer
 import java.nio.DoubleBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
+import kotlin.math.min
 
 /**
  * A class for interfacing with open gl uniforms.
@@ -60,8 +61,8 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
      * If the Uniform is initialized with an [updater] this will have no effect.
      */
     fun updateValue(newValue: T) {
-        writeNewValToBuffer(newValue)
-        dirty = true
+        if (writeNewValToBuffer(newValue))
+            dirty = true
     }
 
     /**
@@ -76,8 +77,9 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
 
     /**
      * Handles the translation of the value to the underlying buffer.
+     * @return True if the value was changed, false otherwise.
      */
-    protected abstract fun writeNewValToBuffer(newValue: T)
+    protected abstract fun writeNewValToBuffer(newValue: T): Boolean
 
     /**
      * Updates the [uniformID] of this Uniform for the specified program.
@@ -102,7 +104,8 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
     override fun update() {
         if (!dirty) return
         if (updater != null) {
-            writeNewValToBuffer(updater!!())
+            if (!writeNewValToBuffer(updater!!()))
+                return
         }
         uploadData()
         if (updater == null) dirty = false
@@ -126,8 +129,13 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
                 return MemoryUtil.memCallocFloat(count)
             }
 
-            override fun updateData(shape: Shape, buffer: FloatBuffer, newValues: Array<out Float>) {
-                buffer.put(0, newValues.toFloatArray(), 0, shape.count)
+            override fun updateData(shape: Shape, buffer: FloatBuffer, newValues: Array<out Float>): Boolean {
+                val cappedSize = min(shape.count, newValues.size)
+                val compareArray = FloatArray(cappedSize)
+                buffer.get(0, compareArray)
+                val newArray =  newValues.toFloatArray()
+                buffer.put(0, newArray, 0, cappedSize)
+                return !newArray.contentEquals(compareArray)
             }
 
             override fun uploadData(uniformID: Int, shape: Shape, buffer: FloatBuffer, transpose: Boolean) {
@@ -154,8 +162,13 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
                 return MemoryUtil.memCallocInt(count)
             }
 
-            override fun updateData(shape: Shape, buffer: IntBuffer, newValues: Array<out Int>) {
-                buffer.put(0, newValues.toIntArray(), 0, shape.count)
+            override fun updateData(shape: Shape, buffer: IntBuffer, newValues: Array<out Int>): Boolean {
+                val cappedSize = min(shape.count, newValues.size)
+                val compareArray = IntArray(cappedSize)
+                buffer.get(0, compareArray)
+                val newArray =  newValues.toIntArray()
+                buffer.put(0, newArray, 0, cappedSize)
+                return !newArray.contentEquals(compareArray)
             }
 
             override fun uploadData(uniformID: Int, shape: Shape, buffer: IntBuffer, transpose: Boolean) {
@@ -174,8 +187,13 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
                 return MemoryUtil.memCallocDouble(count)
             }
 
-            override fun updateData(shape: Shape, buffer: DoubleBuffer, newValues: Array<out Double>) {
-                buffer.put(0, newValues.toDoubleArray(), 0, shape.count)
+            override fun updateData(shape: Shape, buffer: DoubleBuffer, newValues: Array<out Double>): Boolean {
+                val cappedSize = min(shape.count, newValues.size)
+                val compareArray = DoubleArray(cappedSize)
+                buffer.get(0, compareArray)
+                val newArray =  newValues.toDoubleArray()
+                buffer.put(0, newArray, 0, cappedSize)
+                return !newArray.contentEquals(compareArray)
             }
 
             override fun uploadData(uniformID: Int, shape: Shape, buffer: DoubleBuffer, transpose: Boolean) {
@@ -199,7 +217,10 @@ abstract class UniformGL<in T : Any, N: Number, K: Buffer> (
 
         abstract fun provideBuffer(count: Int) : K
 
-        abstract fun updateData(shape: Shape, buffer: K, newValues: Array<out N>)
+        /**
+         * @return True if a change was made, false otherwise.
+         */
+        abstract fun updateData(shape: Shape, buffer: K, newValues: Array<out N>): Boolean
 
         abstract fun uploadData(uniformID: Int, shape: Shape, buffer: K, transpose: Boolean)
 

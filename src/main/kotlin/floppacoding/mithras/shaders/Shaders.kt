@@ -18,6 +18,7 @@ object Shaders {
             TextShader,
             RectBorder,
             RoundedRectBorder,
+            NewShader,
         )
 
 

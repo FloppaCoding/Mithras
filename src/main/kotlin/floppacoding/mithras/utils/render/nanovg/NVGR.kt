@@ -337,7 +337,7 @@ object NVGR : Renderer2D {
      * @param radius radius of the corner radius.
      */
     override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
-        if (image !is NVGImage) throw Error("Invalid Image")
+        if (image !is NVGImage) return
         val xScale = width / imageWidth
         val yScale = height / imageHeight
         val scaledImageWidth = image.width * xScale
