@@ -531,6 +531,26 @@ object DebugCommand : Command() {
                         ChatUtils.chatMessage("Switched to ${Mithras.renderer2D::class.simpleName}")
                     }
                 }
+                literal("msaaSamples") {
+                    integer("samples") {
+                        execute {
+                            GLR.changeMSAASamples(it.getInteger("samples"))
+                        }
+                    }
+                }
+                literal("toggleMsaa") {
+                    execute {
+                        GLR.useMSAA(!GLR.useMSAA)
+                        ChatUtils.chatMessage("MSAA ${if (GLR.useMSAA) "enabled" else "disabled"}")
+                    }
+                }
+                literal("shapes") {
+                    integer("shapes") {
+                        execute {
+                            Test2.shapes = it.getInteger("shapes")
+                        }
+                    }
+                }
                 execute {
                     val a = Font(Font.MONOSPACED, Font.PLAIN, 16)
                 }

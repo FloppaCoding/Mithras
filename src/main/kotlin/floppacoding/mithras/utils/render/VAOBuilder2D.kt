@@ -3,10 +3,7 @@ package floppacoding.mithras.utils.render
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.utils.render.VAOBuilder2D.Companion.VERTEX_SIZE
 import floppacoding.mithras.utils.render.VAOBuilder2D.Mode
-import org.joml.Matrix3f
-import org.joml.Matrix4f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import org.lwjgl.opengl.GL45.*
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
@@ -103,6 +100,9 @@ import java.nio.IntBuffer
  *      vaoBuilder.vertex(x+width, y+height).color(color).next()
  *      vaoBuilder.vertex(x+width, y).color(color).next()
  *      val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUAD)
+ *
+ * **NOTE:** When you release an instance of this buffer to the garbage collector you have to manually free the
+ * underlying memory with [delete]. The garbage collector will not do that.
  *
  *
  * @param capacity The initial capacity of the underlying vertex and index buffers in bytes.
@@ -232,9 +232,22 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
                 var pos: Int
                 for (ii in 0 until triangles) {
                     pos = ii * 3
-                    indices[pos + 0] = start + pos + 0
-                    indices[pos + 1] = start + pos + 1
-                    indices[pos + 2] = start + pos + 2
+                    indices[pos + 0] = start + ii + 0
+                    indices[pos + 1] = start + ii + 1
+                    indices[pos + 2] = start + ii + 2
+                }
+            }
+            Mode.TRIANGLE_FAN -> {
+                if (length < 3) return start until start
+                val triangles = length - 2
+                val num = triangles * 3
+                indices = IntArray(num)
+                var pos: Int
+                for (ii in 0 until triangles) {
+                    pos = ii * 3
+                    indices[pos + 0] = start
+                    indices[pos + 1] = start + ii + 1
+                    indices[pos + 2] = start + ii + 2
                 }
             }
         }
@@ -265,6 +278,20 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
         putFloat(0, x)
         putFloat(4, y)
         return this
+    }
+
+    /**
+     * Sets the position the current vertex in the coordinate space defined by [transform].
+     */
+    fun vertex(transform: Matrix3f, position: Vector2f): VAOBuilder2D {
+        return vertex(transform, position.x, position.y)
+    }
+
+    /**
+     * Sets the position the current vertex in the coordinate space defined by [transform].
+     */
+    fun vertex(transform: Matrix4f, position: Vector2f): VAOBuilder2D {
+        return vertex(transform, position.x, position.y)
     }
 
     /**
@@ -368,6 +395,18 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
 
     }
 
+    /**
+     * Frees the memory of the underlying buffers.
+     * Must be invoked before this object is released to the garbage collector.
+     */
+    fun delete() {
+        glDeleteBuffers(indexBufferObject)
+        glDeleteBuffers(vbo)
+        glDeleteVertexArrays(vao)
+        MemoryUtil.memFree(buffer)
+        MemoryUtil.memFree(indexBuffer)
+    }
+
     private fun growBuffer() {
         val currentCapacity = buffer.capacity()
         buffer = MemoryUtil.memRealloc(buffer, currentCapacity + memoryIncrease)
@@ -422,6 +461,7 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
         TRIANGLES,
         QUAD,
         TRIANGLE_STRIP,
+        TRIANGLE_FAN,
     }
 
     companion object{

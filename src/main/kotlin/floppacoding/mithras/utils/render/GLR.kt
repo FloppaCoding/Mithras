@@ -13,7 +13,7 @@ import org.apache.commons.lang3.tuple.MutablePair
 import org.joml.*
 import org.lwjgl.opengl.GL45.*
 import org.lwjgl.system.MemoryUtil
-import kotlin.math.round
+import kotlin.math.*
 
 // TODO consider not using the position matrix on the cpu when creating vertices and instead let the model view matrix handle that.
 //   so instead of using VertexConsumer.vertex(matrix4f, x, y, z) using VertexConsumer(x,y,z)
@@ -39,8 +39,8 @@ object GLR: Renderer2D {
     private var matrices: MatrixStack = MatrixStack()
     val projectionMatrix: Matrix4f = Matrix4f().setOrtho(0.0f, 1920f, 1080f, 0.0f, 1000.0f, 21000.0f)
 
-    private val msaaBuffer: MSAAFramebuffer = MSAAFramebuffer.getInstance(8)
     private val mainBuffer: Framebuffer = MinecraftClient.getInstance().framebuffer
+    private var msaaBuffer = MSAAFrameBuffer(8, mainBuffer.textureWidth, mainBuffer.textureHeight)
 
     private val mc = MinecraftClient.getInstance()
     override val defaultFont: Font
@@ -48,11 +48,28 @@ object GLR: Renderer2D {
 
     private val drawCalls: MutableList<RenderCall> = mutableListOf()
 
+    private var requiredPrecision = 2f
+    var useMSAA = true
+        private set
+
+    fun setMaxDeviation(deviation: Float) {
+        requiredPrecision = abs(1/deviation)
+    }
+
+    fun useMSAA(use: Boolean) {
+        useMSAA = use
+    }
+
+    fun changeMSAASamples(newSamples: Int) {
+        msaaBuffer.delete()
+        msaaBuffer = MSAAFrameBuffer(newSamples, mainBuffer.textureWidth, mainBuffer.textureHeight)
+    }
+
     override fun beginFrame() {
         RenderSystem.disableCull()
         this.matrices = MatrixStack()
         projectionMatrix.setOrtho(0.0f, mc.window.framebufferWidth.toFloat(), mc.window.framebufferHeight.toFloat(), 0.0f, 1000.0f, -1000.0f)
-//        msaaBuffer.useBuffer(mainBuffer)
+        if(useMSAA) msaaBuffer.useAndCopyFrom(mainBuffer)
         drawCalls.clear()
         vaoBuilder.reset()
     }
@@ -72,7 +89,7 @@ object GLR: Renderer2D {
     override fun endFrame() {
         flushDraw()
 
-//        msaaBuffer.endUsingBuffer(mainBuffer)
+        if(useMSAA) msaaBuffer.copyBackTo(mainBuffer)
     }
 
     private fun flushDraw() {
@@ -206,25 +223,55 @@ object GLR: Renderer2D {
      * Draws a rectangle with rounded corners.
      */
     override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
-        RenderSystem.assertOnRenderThread()
-
-        RenderSystem.enableBlend()
-
         val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+        vaoBuilder.begin()
 
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
+        val offsets = listOf(
+                Vector2f(1f, 1f),
+                Vector2f(1f, -1f),
+                Vector2f(-1f, -1f),
+                Vector2f(-1f, 1f)
+        )
 
-        RoundedRectangleSingleColor.setRadius(radius)
-        RoundedRectangleSingleColor.setTransform(positionMatrix)
+        val midPoints: List<Vector2f> = listOf(
+                Vector2f(x,y).add(offsets[0].mul(radius)),
+                Vector2f(x,y+height).add(offsets[1].mul(radius)),
+                Vector2f(x+width,y+height).add(offsets[2].mul(radius)),
+                Vector2f(x+width,y).add(offsets[3].mul(radius))
+        )
 
-        RoundedRectangleSingleColor.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        RoundedRectangleSingleColor.stopShader()
+        val size = getScale(positionMatrix) * radius
+        val segments = ceil(circleSegments(size) / 4f).toInt()
+
+        val directions = if (segments  == 0) listOf(
+                Vector2f( -ONE_OVER_SQRT_2, -ONE_OVER_SQRT_2).mul(radius),
+                Vector2f(-ONE_OVER_SQRT_2,  ONE_OVER_SQRT_2).mul(radius),
+                Vector2f( ONE_OVER_SQRT_2,  ONE_OVER_SQRT_2).mul(radius),
+                Vector2f( ONE_OVER_SQRT_2,  -ONE_OVER_SQRT_2).mul(radius),
+            )
+            else listOf(
+                Vector2f( 0f, -1f).mul(radius),
+                Vector2f(-1f,  0f).mul(radius),
+                Vector2f( 0f,  1f).mul(radius),
+                Vector2f( 1f,  0f).mul(radius),
+            )
+
+        // Rotation matrix
+        val segmentAngle = PI_HALF / segments
+        val c = cos(segmentAngle)
+        val s = sin(segmentAngle)
+        val rotationMatrix = Matrix2f(c, -s, s, c)
+
+
+        for (corner in 0..3) {
+            for (ii in 0 ..segments){
+                vaoBuilder.vertex(positionMatrix, Vector2f(midPoints[corner]).add(directions[corner])).color(color).next()
+                directions[corner].mul(rotationMatrix)
+            }
+        }
+
+        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
+        drawCalls.add(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
     override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int) {
@@ -753,4 +800,36 @@ object GLR: Renderer2D {
 
         return boundingBox
     }
+
+    /**
+     * for the given local transform this returns the average scale factor by which lengths will be distorted.
+     * Use this to estimate the length in pixels of an object with arbitrary rotation on the screen.
+     */
+    private fun getScale(posMat: Matrix4f) : Float {
+        return sqrt((posMat.m00()*posMat.m00() + posMat.m10()*posMat.m10() + posMat.m01()*posMat.m01() + posMat.m11()*posMat.m11())*0.5f)
+    }
+
+    /**
+     * for the given local transform this returns the average scale factor by which lengths will be distorted.
+     * Use this to estimate the length in pixels of an object with arbitrary rotation on the screen.
+     */
+    private fun getScale(posMat: Matrix3f) : Float {
+        return sqrt((posMat.m00()*posMat.m00() + posMat.m10()*posMat.m10() + posMat.m01()*posMat.m01() + posMat.m11()*posMat.m11())*0.5f)
+    }
+
+    /**
+     * Returns the number of segments to approximatea a circle so that it does not deviate more than the values set by
+     * [setMaxDeviation] from the desired radius.
+     * @param radius The expected radius of the circle in pixels.
+     */
+    private fun circleSegments(radius: Float): Int {
+        // Analytical solution for the number of segments so that a regular polygon of radius r
+        // (distance from center to the vertices) has a maximum deviation (in the middle of the segments) of h from a circle is:
+        // N = pi / acos(1-h/r). This can be approximated really well by N = 2.21*sqrt(r/h)
+        return ( round(2.21*sqrt(radius * requiredPrecision))).toInt()
+    }
+
+    const val ONE_OVER_SQRT_2 = 0.7071068f
+    const val PI_HALF = 1.5707963f
+    const val PI_QUATER = 0.7853982f
 }
