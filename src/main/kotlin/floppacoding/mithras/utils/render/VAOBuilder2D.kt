@@ -3,7 +3,10 @@ package floppacoding.mithras.utils.render
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.utils.render.VAOBuilder2D.Companion.VERTEX_SIZE
 import floppacoding.mithras.utils.render.VAOBuilder2D.Mode
-import org.joml.*
+import org.joml.Math
+import org.joml.Matrix3f
+import org.joml.Matrix4f
+import org.joml.Vector2f
 import org.lwjgl.opengl.GL45.*
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
@@ -104,19 +107,37 @@ import java.nio.IntBuffer
  * **NOTE:** When you release an instance of this buffer to the garbage collector you have to manually free the
  * underlying memory with [delete]. The garbage collector will not do that.
  *
- *
- * @param capacity The initial capacity of the underlying vertex and index buffers in bytes.
- * @param memoryIncrease The size bny which the buffers will be increased when memory runs out.
- *
  * @author Aton
  */
-class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
+class VAOBuilder2D {
     /**
      * Creates a [VAOBuilder2D] with default capacity.
+     *
+     * This is the recommended constructor to use.
+     * It only allocates fairly little memory (4 MB), which is enough for 2^17 = 131,072 Vertices
+     * and 2^19 = 524,288 Indices.
+     *
+     * The buffers automatically grows if more memory is required. That is a rather slow process.
+     * So if you notice that happening consider allocating a higher initial capacity.
+     *
      */
     constructor(): this(CAPACITY, CAPACITY_INCREASE)
-    private var buffer: ByteBuffer = MemoryUtil.memAlloc(capacity)
-    private var indexBuffer: IntBuffer = MemoryUtil.memAllocInt(capacity)
+
+    /**
+     * Creates a [VAOBuilder2D] with custom capacity.
+     *
+     * @param capacity Initial capacity of the Vertex and Index Buffer in Bytes.
+     * @param memoryIncrease Amount in bytes by which either of the buffers will be grown when the memory does not suffice.
+     */
+    constructor(capacity: Int, memoryIncrease: Int) {
+        this.memoryIncrease = memoryIncrease
+        vertexBuffer = MemoryUtil.memAlloc(capacity)
+        indexBuffer = MemoryUtil.memAllocInt(capacity shr 2)
+    }
+
+    private val memoryIncrease: Int
+    private var vertexBuffer: ByteBuffer
+    private var indexBuffer: IntBuffer
 
     /**
      * Reference to the corresponding Vertex Array Object.
@@ -181,7 +202,7 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
         for ( ii in indices.indices) {
             indices[ii] += offset
         }
-        indexBuffer.put(indexOffset, indices)
+        putIndices(indices)
         val range = indexOffset until indexOffset + indices.size
         indexOffset += indices.size
         return range
@@ -251,7 +272,7 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
                 }
             }
         }
-        indexBuffer.put(indexOffset, indices)
+        putIndices(indices)
         val range = indexOffset until indexOffset + indices.size
         indexOffset += indices.size
         return range
@@ -264,8 +285,8 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
         vertexOffset = 0
         vertexIndex = 0
         indexOffset = 0
-        buffer.limit(buffer.capacity())
-        buffer.position(0) // probably not required but better safe than sorry.
+        vertexBuffer.limit(vertexBuffer.capacity())
+        vertexBuffer.position(0) // probably not required but better safe than sorry.
         indexBuffer.position(0)
         indexBuffer.limit(indexBuffer.capacity())
     }
@@ -279,6 +300,12 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
         putFloat(4, y)
         return this
     }
+
+    /**
+     * Sets the position of the current vertex in absolute coordinates.
+     * These are not affected by any local transforms.
+     */
+    fun vertex(position: Vector2f) = vertex(position.x, position.y)
 
     /**
      * Sets the position the current vertex in the coordinate space defined by [transform].
@@ -298,8 +325,10 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
      * Sets the position the current vertex in the coordinate space defined by [transform].
      */
     fun vertex(transform: Matrix3f, x: Float, y: Float): VAOBuilder2D {
-        val transformed: Vector3f = transform.transform(Vector3f(x, y, 1.0f))
-        return vertex(transformed.x, transformed.y)
+        return vertex(
+            Math.fma(transform.m00(), x, Math.fma(transform.m10(), y, transform.m20())),
+            Math.fma(transform.m01(), x, Math.fma(transform.m11(), y, transform.m21()))
+        )
     }
 
     /**
@@ -307,8 +336,10 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
      * [transform] is interpreted as a transform for a 3-dimensional coordinates system where the z coordinate is ignored.
      */
     fun vertex(transform: Matrix4f, x: Float, y: Float): VAOBuilder2D {
-        val transformed: Vector4f = transform.transform(Vector4f(x, y, 0f, 1.0f))
-        return vertex(transformed.x, transformed.y)
+        return vertex(
+            Math.fma(transform.m00(), x, Math.fma(transform.m10(), y, transform.m30())),
+            Math.fma(transform.m01(), x, Math.fma(transform.m11(), y, transform.m31()))
+        )
     }
 
     /**
@@ -336,6 +367,25 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
         putByte(11, alpha)
         return this
     }
+
+    /**
+     * Only sets the alpha value of the current vertex color.
+     */
+    fun alpha(alpha: Int) = alpha(alpha.toByte())
+
+    /**
+     * Only sets the alpha value of the current vertex color.
+     */
+    fun alpha(alpha: Byte): VAOBuilder2D {
+        putByte(11, alpha)
+        return this
+    }
+
+    /**
+     * Sets the texture coordinates of the current vertex.
+     * The coordinates are clamped to the range [0..1].
+     */
+    fun texture(uv: Vector2f) = texture(uv.x.toNormalizedShort(), uv.y.toNormalizedShort())
 
     /**
      * Sets the texture coordinates of the current vertex.
@@ -371,15 +421,15 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
      * Uploads the data to the GPU.
      */
     fun upload() {
-        buffer.position(0)
-        buffer.limit(vertexOffset)
+        vertexBuffer.position(0)
+        vertexBuffer.limit(vertexOffset)
         indexBuffer.position(0)
         indexBuffer.limit(indexOffset)
 
         glBindVertexArray(vao)
         // Vertex Buffer
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_DYNAMIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_DYNAMIC_DRAW)
         // Position attribute
         glEnableVertexAttribArray(0)
         glVertexAttribPointer(0, 2, GL_FLOAT, false, VERTEX_SIZE, 0L)
@@ -403,55 +453,93 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
         glDeleteBuffers(indexBufferObject)
         glDeleteBuffers(vbo)
         glDeleteVertexArrays(vao)
-        MemoryUtil.memFree(buffer)
+        MemoryUtil.memFree(vertexBuffer)
         MemoryUtil.memFree(indexBuffer)
     }
 
-    private fun growBuffer() {
-        val currentCapacity = buffer.capacity()
-        buffer = MemoryUtil.memRealloc(buffer, currentCapacity + memoryIncrease)
-        Mithras.logger.warn("Needed to grow VAOBuilder2D buffer from $currentCapacity bytes to ${currentCapacity + memoryIncrease} bytes.")
+    private fun growVertexBuffer() {
+        val currentCapacity = vertexBuffer.capacity()
+        vertexBuffer = MemoryUtil.memRealloc(vertexBuffer, currentCapacity + memoryIncrease)
+        Mithras.logger.warn("Needed to grow VAOBuilder2D vertex buffer from $currentCapacity bytes to ${currentCapacity + memoryIncrease} bytes.")
     }
 
+    private fun growIndexBuffer() {
+        val currentCapacity = indexBuffer.capacity()
+        indexBuffer = MemoryUtil.memRealloc(indexBuffer, currentCapacity + (memoryIncrease shr 2))
+        Mithras.logger.warn("Needed to grow VAOBuilder2D index buffer from ${currentCapacity * 4} bytes to ${currentCapacity * 4 + memoryIncrease} bytes.")
+    }
+
+    /**
+     * Puts [indices] into the [indexBuffer] at position [indexOffset].
+     * If required the buffer is grown with [growIndexBuffer].
+     */
+    private fun putIndices(indices: IntArray) {
+        try {
+            indexBuffer.put(indexOffset, indices)
+        }catch (_: IndexOutOfBoundsException) {
+            growIndexBuffer()
+            indexBuffer.put(indexOffset, indices)
+        }
+    }
+
+    /**
+     * Puts a float [value] into [vertexBuffer] at position [vertexOffset] + [offset].
+     * If required the buffer is grown with [growVertexBuffer].
+     */
     private fun putFloat(offset: Int, value: Float) {
         try {
-            buffer.putFloat(vertexOffset + offset, value)
+            vertexBuffer.putFloat(vertexOffset + offset, value)
         }catch (_: IndexOutOfBoundsException) {
-            growBuffer()
-            buffer.putFloat(vertexOffset + offset, value)
+            growVertexBuffer()
+            vertexBuffer.putFloat(vertexOffset + offset, value)
         }
     }
 
+    /**
+     * Puts a byte [value] into [vertexBuffer] at position [vertexOffset] + [offset].
+     * If required the buffer is grown with [growVertexBuffer].
+     */
     private fun putByte(offset: Int, value: Byte) {
         try {
-            buffer.put(vertexOffset + offset, value)
+            vertexBuffer.put(vertexOffset + offset, value)
         }catch (_: IndexOutOfBoundsException){
-            growBuffer()
-            buffer.put(vertexOffset + offset, value)
+            growVertexBuffer()
+            vertexBuffer.put(vertexOffset + offset, value)
         }
     }
 
+    /**
+     * Puts a short [value] into [vertexBuffer] at position [vertexOffset] + [offset].
+     * If required the buffer is grown with [growVertexBuffer].
+     */
     private fun putShort(offset: Int, value: Short) {
         try {
-            buffer.putShort(vertexOffset + offset, value)
+            vertexBuffer.putShort(vertexOffset + offset, value)
         }catch (_: IndexOutOfBoundsException){
-            growBuffer()
-            buffer.putShort(vertexOffset + offset, value)
+            growVertexBuffer()
+            vertexBuffer.putShort(vertexOffset + offset, value)
         }
     }
 
+    /**
+     * Puts an integer [value] into [vertexBuffer] at position [vertexOffset] + [offset].
+     * If required the buffer is grown with [growVertexBuffer].
+     */
     private fun putInt(offset: Int, value: Int) {
         try {
-            buffer.putInt(vertexOffset + offset, value)
+            vertexBuffer.putInt(vertexOffset + offset, value)
         }catch (_: IndexOutOfBoundsException) {
-            growBuffer()
-            buffer.putInt(vertexOffset + offset, value)
+            growVertexBuffer()
+            vertexBuffer.putInt(vertexOffset + offset, value)
         }
 
     }
 
+    /**
+     * Clamps this float value in the range [0..1] and converts it to a short covering that range.
+     */
     private fun Float.toNormalizedShort(): Short {
-        return (this.coerceIn(0f, 1f) * 25_535f).toInt().toShort()
+        return (this.coerceIn(0f, 1f) * 65_535f).toInt().toShort()
     }
 
     /**
@@ -465,8 +553,8 @@ class VAOBuilder2D(capacity: Int, private val memoryIncrease: Int) {
     }
 
     companion object{
-        private const val CAPACITY = 2_097_152 // = 2^21 B = 2 MB. At 16 B per vertex, this is enough for 2^17 = 131_072 vertices.
-        private const val CAPACITY_INCREASE = 16_384 // = 2^14 B = 16 kB. This is enough for 1024 more vertices.
+        private const val CAPACITY = 2_097_152 // = 2^21 B = 2 MB. At 16 B per vertex, this is enough for 2^17 = 131_072 vertices or 524_288 Indices.
+        private const val CAPACITY_INCREASE = 131_072 // = 2^17 B = 131 kB. This is enough for 8192 more vertices or 32_768 indices.
         private const val VERTEX_SIZE = 16 // Each element consists of 16 bytes: 2*4 Position, 4*1 Color, 2*2 Texture.
     }
 }

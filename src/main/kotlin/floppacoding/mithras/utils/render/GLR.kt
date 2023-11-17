@@ -48,7 +48,7 @@ object GLR: Renderer2D {
 
     private val drawCalls: MutableList<RenderCall> = mutableListOf()
 
-    private var requiredPrecision = 2f
+    private var requiredPrecision = 3f
     var useMSAA = true
         private set
 
@@ -121,7 +121,7 @@ object GLR: Renderer2D {
             if (textures.isNotEmpty()) {
                 textureBuffer.limit(textures.keys.size)
                 textureBuffer.put(0, textures.keys.toIntArray())
-                glBindTextures(GL_TEXTURE0, textureBuffer)
+                glBindTextures(0, textureBuffer)
             }
 
             // Group consecutive render calls together when no state change is required.
@@ -137,7 +137,8 @@ object GLR: Renderer2D {
                 call.textAAWidth?.let { NewShader.setAAwidth(it); NewShader.uploadAAwidth() }
 
                 count = call.indexRange.last - startCall.indexRange.first + 1
-                glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, startCall.indexRange.first.toLong())
+                // indices of glDrawElements is the offset in Bytes and not in indices of size defined by type!
+                glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (startCall.indexRange.first * Int.SIZE_BYTES).toLong())
                 if( ii < lastInBatch) startCall = drawCalls[ii + 1]
             }
 
@@ -209,11 +210,12 @@ object GLR: Renderer2D {
     override fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
         val positionMatrix = matrices.peek().positionMatrix
         vaoBuilder.begin()
+        val x1 = x + width; val y1 = y+height
 
-        vaoBuilder.vertex(positionMatrix, x, y).color(color).next()
-        vaoBuilder.vertex(positionMatrix, x, y+height).color(color).next()
-        vaoBuilder.vertex(positionMatrix, x+width, y+height).color(color).next()
-        vaoBuilder.vertex(positionMatrix, x+width, y).color(color).next()
+        vaoBuilder.vertex(positionMatrix,  x,  y).color(color).next()
+        vaoBuilder.vertex(positionMatrix,  x, y1).color(color).next()
+        vaoBuilder.vertex(positionMatrix, x1, y1).color(color).next()
+        vaoBuilder.vertex(positionMatrix, x1,  y).color(color).next()
 
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUAD)
         drawCalls.add(RenderCall(range, RenderCall.ColorMode.COLOR))
@@ -224,98 +226,18 @@ object GLR: Renderer2D {
      */
     override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
         val positionMatrix = matrices.peek().positionMatrix
-        vaoBuilder.begin()
-
-        val offsets = listOf(
-                Vector2f(1f, 1f),
-                Vector2f(1f, -1f),
-                Vector2f(-1f, -1f),
-                Vector2f(-1f, 1f)
-        )
-
-        val midPoints: List<Vector2f> = listOf(
-                Vector2f(x,y).add(offsets[0].mul(radius)),
-                Vector2f(x,y+height).add(offsets[1].mul(radius)),
-                Vector2f(x+width,y+height).add(offsets[2].mul(radius)),
-                Vector2f(x+width,y).add(offsets[3].mul(radius))
-        )
-
-        val size = getScale(positionMatrix) * radius
-        val segments = ceil(circleSegments(size) / 4f).toInt()
-
-        val directions = if (segments  == 0) listOf(
-                Vector2f( -ONE_OVER_SQRT_2, -ONE_OVER_SQRT_2).mul(radius),
-                Vector2f(-ONE_OVER_SQRT_2,  ONE_OVER_SQRT_2).mul(radius),
-                Vector2f( ONE_OVER_SQRT_2,  ONE_OVER_SQRT_2).mul(radius),
-                Vector2f( ONE_OVER_SQRT_2,  -ONE_OVER_SQRT_2).mul(radius),
-            )
-            else listOf(
-                Vector2f( 0f, -1f).mul(radius),
-                Vector2f(-1f,  0f).mul(radius),
-                Vector2f( 0f,  1f).mul(radius),
-                Vector2f( 1f,  0f).mul(radius),
-            )
-
-        // Rotation matrix
-        val segmentAngle = PI_HALF / segments
-        val c = cos(segmentAngle)
-        val s = sin(segmentAngle)
-        val rotationMatrix = Matrix2f(c, -s, s, c)
-
-
-        for (corner in 0..3) {
-            for (ii in 0 ..segments){
-                vaoBuilder.vertex(positionMatrix, Vector2f(midPoints[corner]).add(directions[corner])).color(color).next()
-                directions[corner].mul(rotationMatrix)
-            }
+        val range =iterateRoundedRect(positionMatrix, x, y, x+width, y+height, radius) { position ->
+            vaoBuilder.vertex(positionMatrix, position).color(color).next()
         }
-
-        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
         drawCalls.add(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
     override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int) {
-        RenderSystem.assertOnRenderThread()
-
-        RenderSystem.enableBlend()
-
         val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
-
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(color).next()
-
-        RoundedRectangleSingleColor.setRadii(radii)
-        RoundedRectangleSingleColor.setTransform(positionMatrix)
-
-        RoundedRectangleSingleColor.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        RoundedRectangleSingleColor.stopShader()
-    }
-
-    fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, colors: Vector4i) {
-        RenderSystem.assertOnRenderThread()
-
-        RenderSystem.enableBlend()
-
-        val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
-
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).color(colors.x).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).color(colors.y).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).color(colors.z).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).color(colors.w).next()
-
-        RoundedRectangle.setRadii(radii)
-        RoundedRectangle.setTransform(positionMatrix)
-
-        RoundedRectangle.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        RoundedRectangle.stopShader()
+        val range = iterateRoundedRect(matrices.peek().positionMatrix, x, y, x+width, y+height, radii) { position ->
+            vaoBuilder.vertex(positionMatrix, position).color(color).next()
+        }
+        drawCalls.add(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
     fun fontAtlas(font: GLFontManager.GLFont, x: Float, y: Float) {
@@ -348,7 +270,7 @@ object GLR: Renderer2D {
     }
 
     override fun text(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign, splitWidth: Float?) {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
+        if (font !is GLFontManager.GLFont) throw return
         RenderSystem.assertOnRenderThread()
 
         val fontMetrics = font.fontMetrics
@@ -403,7 +325,7 @@ object GLR: Renderer2D {
     }
 
     override fun textBox(text: CharSequence, x: Float, y: Float, color: Int, width: Float, fontSize: Float, font: Font, textAlign: TextAlign, boxAlign: TextAlign) {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
+        if (font !is GLFontManager.GLFont) throw return
         RenderSystem.assertOnRenderThread()
 
         val fontMetrics = font.fontMetrics
@@ -475,7 +397,7 @@ object GLR: Renderer2D {
     }
 
     override fun textLine(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign) {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
+        if (font !is GLFontManager.GLFont) return
         RenderSystem.assertOnRenderThread()
 
         val fontMetrics = font.fontMetrics
@@ -620,44 +542,54 @@ object GLR: Renderer2D {
         return BoundingBox(0f, 0f, longestLine, height)
     }
 
-    override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
-        RenderSystem.assertOnRenderThread()
-        if (image !is GLImageManager.GLImage) return
-
-        val u1 = imageX / image.width
-        val u2 = u1 + imageWidth / image.width
-        var v1 = imageY / image.height
-        var v2 = v1 + imageHeight / image.height
+    override fun image(image: Image, x: Float, y: Float, width: Float, height: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
+        val u0 = imageX / image.width
+        val u1 = u0 + imageWidth / image.width
+        var v0 = imageY / image.height
+        var v1 = v0 + imageHeight / image.height
         if (image.flags.contains(Image.Flags.FLIPY)) {
+            v0 = 1-v0
             v1 = 1-v1
-            v2 = 1-v2
         }
-
-        RenderSystem.enableBlend()
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, image.id)
+        val x1 = x + width; val y1 = y+height; val a = (alpha * 255).toInt()
         val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE)
+        vaoBuilder.begin()
 
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).texture(u1, v1).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).texture(u1, v2).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).texture(u2, v2).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).texture(u2, v1).next()
+        vaoBuilder.vertex(positionMatrix,  x,  y).alpha(a).texture(u0, v0).next()
+        vaoBuilder.vertex(positionMatrix,  x, y1).alpha(a).texture(u0, v1).next()
+        vaoBuilder.vertex(positionMatrix, x1, y1).alpha(a).texture(u1, v1).next()
+        vaoBuilder.vertex(positionMatrix, x1,  y).alpha(a).texture(u1, v0).next()
 
-        if (radius > 0f) {
-            RoundedTexture.setRadius(radius)
-            RoundedTexture.setTransform(positionMatrix)
-            RoundedTexture.setAlpha(alpha)
-            RoundedTexture.useShader()
-            BufferRenderer.draw(bufferBuilder.end())
-            RoundedTexture.stopShader()
-        }else {
-            Texture.setAlpha(alpha)
-            Texture.useShader()
-            BufferRenderer.draw(bufferBuilder.end())
-            Texture.stopShader()
+        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUAD)
+        drawCalls.add(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.id))
+    }
+
+    override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
+        val u0 = imageX / image.width
+        val u1 = u0 + imageWidth / image.width
+        var v0 = imageY / image.height
+        var v1 = v0 + imageHeight / image.height
+        if (image.flags.contains(Image.Flags.FLIPY)) {
+            v0 = 1-v0
+            v1 = 1-v1
         }
+
+        val uv0 = Vector2f(u0, v0)
+        val uv1 = Vector2f(u1, v1)
+        val r0 = Vector2f(x,y)
+        val dimensions = Vector2f(width, height)
+        val tex = Vector2f()
+
+        val a = (alpha * 255).toInt()
+        val positionMatrix = matrices.peek().positionMatrix
+        vaoBuilder.begin()
+
+        iterateRoundedRect(positionMatrix, x, y, x + width, y+height, radius) { position ->
+            interpolateRectangeTex(r0, dimensions, position, uv0, uv1, tex)
+            vaoBuilder.vertex(positionMatrix, position).alpha(a).texture(tex).next()
+        }
+        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
+        drawCalls.add(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.id))
     }
 
     override fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
@@ -774,6 +706,109 @@ object GLR: Renderer2D {
     val POINTS = VertexFormat.DrawMode.valueOf("POINTS")
 
     /**
+     * Interpolates texture coordinates for the given [position] inside the rectangle defined by its origin [r0] with
+     * the given [dimensions]. [uv0] is assumed to be the texture coordiante at [r0] and [uv1] the texture coordinate at
+     * [r0] + [dimensions]. The result is written into [dest] and returned.
+     */
+    private fun interpolateRectangeTex(r0: Vector2f, dimensions: Vector2f, position: Vector2f, uv0: Vector2f, uv1: Vector2f, dest: Vector2f): Vector2f {
+        return lerp(uv0, uv1,
+                relativeRectangleCoordinates(r0, dimensions, position, dest),
+                dest
+            )
+    }
+
+    /**
+     * Determines relative coordinates of [position] in a rectangle with origin [r0] and the given [dimensions].
+     * The result is written into [dest] and returned.
+     * The relative coordinates will range from 0 to 1 when [position] is in the rectangle and the [dimensions] are positive.
+     */
+    private fun relativeRectangleCoordinates(r0: Vector2f, dimensions: Vector2f, position: Vector2f, dest: Vector2f): Vector2f {
+        return dest.set(position).sub(r0).div(dimensions)
+    }
+
+    /**
+     * Component wise linear interpolation between [a] and [b] with [t].
+     * The result is written into [dest] and returned.
+     * [t] and [dest] are allowed to be identical.
+     */
+    private fun lerp(a: Vector2f, b: Vector2f, t: Vector2f, dest: Vector2f ): Vector2f {
+        dest.x = Math.fma(b.x - a.x, t.x, a.x )
+        dest.y = Math.fma(b.y - a.y, t.y, a.y )
+        return dest
+    }
+
+    private fun iterateRoundedRect(positionMatrix: Matrix4f, x0: Float, y0: Float, x1: Float, y1: Float, radius: Float, vertexGenerator: (Vector2f) -> Unit): IntRange {
+        val midPoints: List<Vector2f> = listOf(
+                Vector2f(x0,y0).fma(radius, CORNER_OFFSETS[0]),
+                Vector2f(x0,y1).fma(radius, CORNER_OFFSETS[1]),
+                Vector2f(x1,y1).fma(radius, CORNER_OFFSETS[2]),
+                Vector2f(x1,y0).fma(radius, CORNER_OFFSETS[3])
+        )
+
+        val size = getScale(positionMatrix) * radius
+        val segments = ceil(circleSegments(size) / 4f).toInt()
+
+        val directions = if (segments  == 0) listOf(
+                Vector2f( -ONE_OVER_SQRT_2, -ONE_OVER_SQRT_2).mul(radius),
+                Vector2f(-ONE_OVER_SQRT_2,  ONE_OVER_SQRT_2).mul(radius),
+                Vector2f( ONE_OVER_SQRT_2,  ONE_OVER_SQRT_2).mul(radius),
+                Vector2f( ONE_OVER_SQRT_2,  -ONE_OVER_SQRT_2).mul(radius),
+        )
+        else listOf(
+                Vector2f( 0f, -1f).mul(radius),
+                Vector2f(-1f,  0f).mul(radius),
+                Vector2f( 0f,  1f).mul(radius),
+                Vector2f( 1f,  0f).mul(radius),
+        )
+
+        // Rotation matrix
+        val segmentAngle = PI_HALF / segments
+        val c = cos(segmentAngle)
+        val s = sin(segmentAngle)
+        val rotationMatrix = Matrix2f(c, -s, s, c)
+        val position = Vector2f()
+
+        vaoBuilder.begin()
+        for (corner in 0..3) {
+            for (ii in 0 ..segments){
+                vertexGenerator(position.set(midPoints[corner]).add(directions[corner]))
+                directions[corner].mul(rotationMatrix)
+            }
+        }
+        return vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
+    }
+
+    private fun iterateRoundedRect(positionMatrix: Matrix4f, x0: Float, y0: Float, x1: Float, y1: Float, radii: Vector4f, vertexGenerator: (Vector2f) -> Unit): IntRange {
+        val midPoints: List<Vector2f> = listOf(
+                Vector2f(x0,y0).fma(radii.x, CORNER_OFFSETS[0]),
+                Vector2f(x0,y1).fma(radii.y, CORNER_OFFSETS[1]),
+                Vector2f(x1,y1).fma(radii.z, CORNER_OFFSETS[2]),
+                Vector2f(x1,y0).fma(radii.w, CORNER_OFFSETS[3])
+        )
+        val scale = getScale(positionMatrix)
+        var segmentAngle: Float
+        var c: Float; var s: Float
+        var rotationMatrix: Matrix2f
+        val direction = Vector2f(); val position = Vector2f()
+        var segments: Int
+
+        vaoBuilder.begin()
+        for (corner in 0..3) {
+            segments = ceil(circleSegments(radii[corner] * scale) / 4f).toInt()
+            direction.set(if (segments == 0) DIAGONALS[corner] else ORTHOGONALS[corner] ).mul(radii[corner])
+            segmentAngle = PI_HALF / segments
+            c = cos(segmentAngle)
+            s = sin(segmentAngle)
+            rotationMatrix = Matrix2f(c, -s, s, c)
+            for (ii in 0 ..segments){
+                vertexGenerator(position.set(midPoints[corner]).add(direction))
+                direction.mul(rotationMatrix)
+            }
+        }
+        return vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
+    }
+
+    /**
      * Returns the bounding box of the given rectangle in screen coordinates to be used with the Scissor test.
      *
      * The given input coordinates are assumed to span a rectangle in the current coordinate system.
@@ -829,7 +864,32 @@ object GLR: Renderer2D {
         return ( round(2.21*sqrt(radius * requiredPrecision))).toInt()
     }
 
-    const val ONE_OVER_SQRT_2 = 0.7071068f
-    const val PI_HALF = 1.5707963f
-    const val PI_QUATER = 0.7853982f
+    private const val ONE_OVER_SQRT_2 = 0.7071068f
+    private const val PI_HALF = 1.5707963f
+    private const val PI_QUATER = 0.7853982f
+
+    /**
+     * Directions from rectangle corners to the center of the circle required for rounded corners.
+     * In the order top-left, bottom-left, bottom-right, top-right.
+     */
+    private val CORNER_OFFSETS = listOf(
+        Vector2f(1f, 1f),
+        Vector2f(1f, -1f),
+        Vector2f(-1f, -1f),
+        Vector2f(-1f, 1f)
+    )
+
+    private val DIAGONALS = listOf(
+        Vector2f(-ONE_OVER_SQRT_2, -ONE_OVER_SQRT_2),
+        Vector2f(-ONE_OVER_SQRT_2,  ONE_OVER_SQRT_2),
+        Vector2f( ONE_OVER_SQRT_2,  ONE_OVER_SQRT_2),
+        Vector2f( ONE_OVER_SQRT_2, -ONE_OVER_SQRT_2)
+    )
+
+    private val ORTHOGONALS = listOf(
+        Vector2f( 0f, -1f),
+        Vector2f(-1f,  0f),
+        Vector2f( 0f,  1f),
+        Vector2f( 1f,  0f)
+    )
 }
