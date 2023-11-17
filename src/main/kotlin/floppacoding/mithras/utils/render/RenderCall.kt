@@ -3,27 +3,34 @@ package floppacoding.mithras.utils.render
 /**
  * Contains all state information for a rendering call.
  *
+ * @param indexRange Range of positions of the indices corresponding to this call in the index buffer.
+ * This will usually be the returned range from [VAOBuilder2D.generateIndices].
+ * @param colorMode Determines how the defined geometry will be colored. See [ColorMode].
+ * @param texture When drawing a texture or text this is the reference to the corresponding Open GL texture or font-atlas.
+ * See [GLImageManager.GLImage.id] or [GLFontManager.GLFont.id]. Pass null when no texture is required.
+ * @param textScale The current absolute scale factor of the local coordinate system in use when drawing the text.
+ * See [GLR.getScale]. Pass null when not drawing text.
+ *
  * @author Aton
  */
 class RenderCall(
-    /**
+        /**
      * The position of the indices for this draw call in the index buffer.
      */
     val indexRange: IntRange,
-    /**
+        /**
      * The mode by which the fragment shader is supposed to color the fragments color.
      */
     val colorMode: ColorMode,
-    /**
+        /**
      * Optionally the id of a required texture.
      */
     val texture: Int? = null,
     /**
      * Optionally size information for text antialiasing.
      */
-    val textAAWidth: Float? = null,
+    val textAAWidth : Float? = null,
 ) {
-
     /**
      * The unit to which the texture for this call is bound.
      * This is set later when the render calls are dispatched.
@@ -90,6 +97,14 @@ class RenderCall(
     }
 
     companion object {
+        /**
+         * This value determines the width of the antialiasing.
+         * It should be proportional to the derivative dSDF / dr of the SDF with respect to the distance in texels.
+         * That makes it inversely proportional to the padding used for the SDF glyphs.
+         * So if changes are made to that this value has to be adjusted accordingly.
+         */
+        private const val SCALE_FACTOR = 0.18f
+
         private const val VERTEX_COLOR = 0 shl 8
         private const val TEXTURE_COLOR = 1 shl 8
         private const val CHROMA_COLOR = 2 shl 8

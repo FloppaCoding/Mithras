@@ -6,10 +6,12 @@ import floppacoding.mithras.shaders.impl.*
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.Framebuffer
 import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.*
+import net.minecraft.client.render.BufferRenderer
+import net.minecraft.client.render.VertexFormat
+import net.minecraft.client.render.VertexFormatElement
+import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.RotationAxis
-import org.apache.commons.lang3.tuple.MutablePair
 import org.joml.*
 import org.lwjgl.opengl.GL45.*
 import org.lwjgl.system.MemoryUtil
@@ -32,22 +34,17 @@ import kotlin.math.*
 // TODO Consider making the padding wider: 3 -5 texels maybe instead of just 2, or alternatively just less steep.
 //  This may be used for special outline effects around characters
 
-object GLR: Renderer2D {
-
-    private val vaoBuilder = VAOBuilder2D()
-
-    private var matrices: MatrixStack = MatrixStack()
+object GLR: Renderer2D, FontRender2D by FontRenderer {
+    internal var matrices: MatrixStack = MatrixStack()
+        private set
+    internal val vaoBuilder = VAOBuilder2D()
     val projectionMatrix: Matrix4f = Matrix4f().setOrtho(0.0f, 1920f, 1080f, 0.0f, 1000.0f, 21000.0f)
-
     private val mainBuffer: Framebuffer = MinecraftClient.getInstance().framebuffer
     private var msaaBuffer = MSAAFrameBuffer(8, mainBuffer.textureWidth, mainBuffer.textureHeight)
-
     private val mc = MinecraftClient.getInstance()
     override val defaultFont: Font
         get() = GLFontManager.ROBOTO
-
     private val drawCalls: MutableList<RenderCall> = mutableListOf()
-
     private var requiredPrecision = 3f
     var useMSAA = true
         private set
@@ -58,6 +55,10 @@ object GLR: Renderer2D {
 
     fun useMSAA(use: Boolean) {
         useMSAA = use
+    }
+
+    fun addDrawCall(call: RenderCall) {
+        drawCalls.add(call)
     }
 
     fun changeMSAASamples(newSamples: Int) {
@@ -217,13 +218,10 @@ object GLR: Renderer2D {
         vaoBuilder.vertex(positionMatrix, x1, y1).color(color).next()
         vaoBuilder.vertex(positionMatrix, x1,  y).color(color).next()
 
-        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUAD)
+        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
         drawCalls.add(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    /**
-     * Draws a rectangle with rounded corners.
-     */
     override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
         val positionMatrix = matrices.peek().positionMatrix
         val range =iterateRoundedRect(positionMatrix, x, y, x+width, y+height, radius) { position ->
@@ -240,317 +238,8 @@ object GLR: Renderer2D {
         drawCalls.add(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    fun fontAtlas(font: GLFontManager.GLFont, x: Float, y: Float) {
-        RenderSystem.assertOnRenderThread()
-
-        val width = 1024f
-        val height = 2048f
-
-        val u1 = 0f
-        val u2 = 1f
-        val v1 = 0f
-        val v2 = 1f
-
-        RenderSystem.enableBlend()
-        font.bindFont()
-        val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE)
-
-        bufferBuilder.vertex(positionMatrix, x,             y,        0f).texture(u1, v1).next()
-        bufferBuilder.vertex(positionMatrix, x,          y+height, 0f).texture(u1, v2).next()
-        bufferBuilder.vertex(positionMatrix, x+width, y+height, 0f).texture(u2, v2).next()
-        bufferBuilder.vertex(positionMatrix, x+width,    y,        0f).texture(u2, v1).next()
-
-        Texture.setAlpha(1f)
-        Texture.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        Texture.stopShader()
-
-    }
-
-    override fun text(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign, splitWidth: Float?) {
-        if (font !is GLFontManager.GLFont) throw return
-        RenderSystem.assertOnRenderThread()
-
-        val fontMetrics = font.fontMetrics
-
-        val scale = fontSize/(fontMetrics.normalHeight)
-
-        val lines = splitLines(text, font, splitWidth?.div(scale))
-
-        var y0: Float; var y1: Float
-        when(textAlign.vertical) {
-            TextAlign.Vertical.TOP -> { y0 = -fontMetrics.topOffset; y1 =  y0 + fontMetrics.totalHeight }
-            TextAlign.Vertical.MIDDLE -> {
-                val mid = (fontMetrics.normalAscent - fontMetrics.normalDescent)/2
-                y0 = - mid - fontMetrics.topOffset; y1 = mid - fontMetrics.bottomOffset
-            }
-            TextAlign.Vertical.BOTTOM -> {y1 = -fontMetrics.bottomOffset; y0 = y1 - fontMetrics.totalHeight}
-            TextAlign.Vertical.BASELINE -> { y0 = -fontMetrics.ascent; y1 = -fontMetrics.descent }
-        }
-        lines.map {
-            it.right = when(textAlign.horizontal) {
-                TextAlign.Horizontal.LEFT -> 0f
-                TextAlign.Horizontal.CENTER -> -it.right/2
-                TextAlign.Horizontal.RIGHT -> -it.right
-            }
-        }
-
-        y0 -= fontMetrics.padding
-        y1 += fontMetrics.padding
-
-
-        push()
-        translate(x,y)
-        scale(scale, scale)
-
-        RenderSystem.enableBlend()
-        font.bindFont()
-        val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE)
-
-        for (line in lines) {
-            translate(line.right, 0f)
-            drawLineInternal(bufferBuilder, line.left, y0, y1, font, color)
-            translate(-line.right, fontMetrics.normalHeight)
-        }
-
-        TextShader.adjustAAwidth(positionMatrix)
-        TextShader.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        TextShader.stopShader()
-        pop()
-    }
-
-    override fun textBox(text: CharSequence, x: Float, y: Float, color: Int, width: Float, fontSize: Float, font: Font, textAlign: TextAlign, boxAlign: TextAlign) {
-        if (font !is GLFontManager.GLFont) throw return
-        RenderSystem.assertOnRenderThread()
-
-        val fontMetrics = font.fontMetrics
-
-        val scale = fontSize/(fontMetrics.normalHeight)
-
-        val lines = splitLines(text, font, width.div(scale))
-
-        var y0: Float; var y1: Float
-        when(textAlign.vertical) {
-            TextAlign.Vertical.TOP -> { y0 = -fontMetrics.topOffset; y1 =  y0 + fontMetrics.totalHeight }
-            TextAlign.Vertical.MIDDLE -> {
-                val mid = (fontMetrics.normalAscent - fontMetrics.normalDescent)/2
-                y0 = - mid - fontMetrics.topOffset; y1 = mid - fontMetrics.bottomOffset
-            }
-            TextAlign.Vertical.BOTTOM -> {y1 = -fontMetrics.bottomOffset; y0 = y1 - fontMetrics.totalHeight}
-            TextAlign.Vertical.BASELINE -> { y0 = -fontMetrics.ascent; y1 = -fontMetrics.descent }
-        }
-        lines.map {
-            it.right = when(textAlign.horizontal) {
-                TextAlign.Horizontal.LEFT -> 0f
-                TextAlign.Horizontal.CENTER -> -it.right/2
-                TextAlign.Horizontal.RIGHT -> -it.right
-            }
-        }
-
-        y0 -= fontMetrics.padding
-        y1 += fontMetrics.padding
-
-
-        push()
-        translate(x,y)
-        scale(scale, scale)
-        val yShift = when(boxAlign.vertical) {
-            TextAlign.Vertical.TOP -> 0f
-            TextAlign.Vertical.MIDDLE -> -lines.size * (fontMetrics.lineHeight) / 2
-            TextAlign.Vertical.BOTTOM -> -lines.size * (fontMetrics.lineHeight)
-            TextAlign.Vertical.BASELINE -> -lines.size * (fontMetrics.lineHeight)
-        }
-        var xShift = when(boxAlign.horizontal) {
-            TextAlign.Horizontal.LEFT -> 0f
-            TextAlign.Horizontal.CENTER -> - width /2
-            TextAlign.Horizontal.RIGHT -> -width
-        }
-        xShift += when(textAlign.horizontal) {
-            TextAlign.Horizontal.LEFT -> 0f
-            TextAlign.Horizontal.CENTER ->+ width /2
-            TextAlign.Horizontal.RIGHT -> +width
-        }
-        translate(xShift/scale,yShift)
-
-        RenderSystem.enableBlend()
-        font.bindFont()
-        val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE)
-
-        for (line in lines) {
-            translate(line.right, 0f)
-            drawLineInternal(bufferBuilder, line.left, y0, y1, font, color)
-            translate(-line.right, fontMetrics.normalHeight)
-        }
-
-        TextShader.adjustAAwidth(positionMatrix)
-        TextShader.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        TextShader.stopShader()
-        pop()
-    }
-
-    override fun textLine(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign) {
-        if (font !is GLFontManager.GLFont) return
-        RenderSystem.assertOnRenderThread()
-
-        val fontMetrics = font.fontMetrics
-
-        val scale = fontSize/(fontMetrics.normalHeight)
-
-        var y0: Float; var y1: Float
-        when(textAlign.vertical) {
-            TextAlign.Vertical.TOP -> { y0 = -fontMetrics.topOffset; y1 =  y0 + fontMetrics.totalHeight }
-            TextAlign.Vertical.MIDDLE -> {
-                val mid = (fontMetrics.normalAscent - fontMetrics.normalDescent)/2
-                y0 = - mid - fontMetrics.topOffset; y1 = mid - fontMetrics.bottomOffset
-            }
-            TextAlign.Vertical.BOTTOM -> {y1 = -fontMetrics.bottomOffset; y0 = y1 - fontMetrics.totalHeight}
-            TextAlign.Vertical.BASELINE -> { y0 = -fontMetrics.ascent; y1 = -fontMetrics.descent }
-        }
-        val offset = when(textAlign.horizontal) {
-            TextAlign.Horizontal.LEFT -> 0f
-            TextAlign.Horizontal.CENTER -> -textWidthInternal(text, font) /2
-            TextAlign.Horizontal.RIGHT -> -textWidthInternal(text, font)
-        }
-        y0 -= fontMetrics.padding
-        y1 += fontMetrics.padding
-
-        push()
-        translate(x,y)
-        scale(scale, scale)
-
-        RenderSystem.enableBlend()
-        font.bindFont()
-        val positionMatrix = matrices.peek().positionMatrix
-        val bufferBuilder = RenderSystem.renderThreadTesselator().buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE)
-
-
-        translate(offset, 0f)
-        drawLineInternal(bufferBuilder, text, y0, y1, font, color)
-
-
-        TextShader.adjustAAwidth(positionMatrix)
-        TextShader.useShader()
-        BufferRenderer.draw(bufferBuilder.end())
-        TextShader.stopShader()
-        pop()
-    }
-
-    private fun splitLines(text: CharSequence, font: GLFontManager.GLFont,  splitWidth: Float?) : List<MutablePair<CharSequence, Float>> {
-        val lines = mutableListOf<MutablePair<CharSequence, Float>>()
-        if (splitWidth != null) {
-            try {
-                var width = 0f
-                var advance: Float
-                var jump = 0
-                for ((index, char) in text.withIndex()) {
-                    if (char == '\n') {
-                        lines.add(MutablePair(text.subSequence(jump, index), width))
-                        width = 0f
-                        jump = index + 1
-                        continue
-                    }
-                    advance = font.glyphMetrics[char]?.advance ?: 0f
-                    if (width > splitWidth) {
-                        lines.add(MutablePair(text.subSequence(jump, index - 1), width))
-                        width = advance
-                        jump = index
-                        continue
-                    }
-
-                    width += advance
-                }
-            }catch (_: Exception) {
-                return emptyList()
-            }
-        }else {
-            text.split('\n').mapTo(lines){ MutablePair(it, textWidthInternal(it, font)) }
-        }
-        return  lines
-    }
-
-    private fun drawLineInternal(bufferBuilder: BufferBuilder, text: CharSequence, y0: Float, y1: Float, font: GLFontManager.GLFont, color: Int) {
-        var x0: Float; var x1: Float; var pos = 0f
-        var metrics: GLFontManager.GLFont.GlyphMetrics
-        val positionMatrix = matrices.peek().positionMatrix
-        for(char in text) {
-            metrics = font.glyphMetrics[char] ?: continue
-            x0 = pos+metrics.leftSiderBearing - font.fontMetrics.padding
-            x1 = x0 + metrics.width
-            bufferBuilder.vertex(positionMatrix, x0,y0,0f).color(color).texture(metrics.u0, metrics.v0).next()
-            bufferBuilder.vertex(positionMatrix, x0,y1,0f).color(color).texture(metrics.u0, metrics.v1).next()
-            bufferBuilder.vertex(positionMatrix, x1,y1,0f).color(color).texture(metrics.u1, metrics.v1).next()
-            bufferBuilder.vertex(positionMatrix, x1,y0,0f).color(color).texture(metrics.u1, metrics.v0).next()
-            pos += metrics.advance
-        }
-
-    }
-
-    override fun textWidth(text: CharSequence, fontSize: Float, font: Font): Float {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
-        return textWidthInternal(text, font) * fontSize / font.fontMetrics.normalHeight
-    }
-
-    private fun textWidthInternal(text: CharSequence, font: GLFontManager.GLFont): Float {
-        var width = 0f
-        for(char in text) {
-            width += font.glyphMetrics[char]?.advance ?: 0f
-        }
-        return width
-    }
-
-    override fun textBounds(text: CharSequence, width: Float?, fontSize: Float, font: Font): BoundingBox {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
-        var rows = 1
-        var longestLine = 0f
-        if (width != null) {
-            var lineWidth = 0f
-            var advance: Float
-            for (char in text) {
-                if (char == '\n') {
-                    if (lineWidth > longestLine) longestLine = lineWidth
-                    lineWidth = 0f
-                    rows++
-                    continue
-                }
-                advance = font.glyphMetrics[char]?.advance ?: 0f
-                if (lineWidth > width) {
-                    if (lineWidth > longestLine) longestLine = lineWidth
-                    lineWidth = advance
-                    rows++
-                    continue
-                }
-
-                lineWidth += advance
-            }
-
-        }else {
-            val lineLenghts = text.split('\n').map{ textWidthInternal(it, font) }
-            rows = lineLenghts.size
-            longestLine= lineLenghts.max()
-        }
-        longestLine *= fontSize/font.fontMetrics.normalHeight
-        val height = rows * font.fontMetrics.normalHeight * fontSize/font.fontMetrics.normalHeight
-        return BoundingBox(0f, 0f, longestLine, height)
-    }
-
     override fun image(image: Image, x: Float, y: Float, width: Float, height: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
-        val u0 = imageX / image.width
-        val u1 = u0 + imageWidth / image.width
-        var v0 = imageY / image.height
-        var v1 = v0 + imageHeight / image.height
-        if (image.flags.contains(Image.Flags.FLIPY)) {
-            v0 = 1-v0
-            v1 = 1-v1
-        }
+        val (u0, v0, u1, v1) = getTextureUVs(image, imageX, imageY, imageWidth, imageHeight)
         val x1 = x + width; val y1 = y+height; val a = (alpha * 255).toInt()
         val positionMatrix = matrices.peek().positionMatrix
         vaoBuilder.begin()
@@ -560,22 +249,14 @@ object GLR: Renderer2D {
         vaoBuilder.vertex(positionMatrix, x1, y1).alpha(a).texture(u1, v1).next()
         vaoBuilder.vertex(positionMatrix, x1,  y).alpha(a).texture(u1, v0).next()
 
-        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUAD)
+        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
         drawCalls.add(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.id))
     }
 
     override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
-        val u0 = imageX / image.width
-        val u1 = u0 + imageWidth / image.width
-        var v0 = imageY / image.height
-        var v1 = v0 + imageHeight / image.height
-        if (image.flags.contains(Image.Flags.FLIPY)) {
-            v0 = 1-v0
-            v1 = 1-v1
-        }
-
-        val uv0 = Vector2f(u0, v0)
-        val uv1 = Vector2f(u1, v1)
+        val texCoords = getTextureUVs(image, imageX, imageY, imageWidth, imageHeight)
+        val uv0 = texCoords.uv0
+        val uv1 = texCoords.uv1
         val r0 = Vector2f(x,y)
         val dimensions = Vector2f(width, height)
         val tex = Vector2f()
@@ -837,19 +518,39 @@ object GLR: Renderer2D {
     }
 
     /**
-     * for the given local transform this returns the average scale factor by which lengths will be distorted.
+     * For the given local transform this returns the average (RMS) scale factor by which lengths will be distorted.
      * Use this to estimate the length in pixels of an object with arbitrary rotation on the screen.
      */
-    private fun getScale(posMat: Matrix4f) : Float {
+    internal fun getScale(posMat: Matrix4f) : Float {
         return sqrt((posMat.m00()*posMat.m00() + posMat.m10()*posMat.m10() + posMat.m01()*posMat.m01() + posMat.m11()*posMat.m11())*0.5f)
     }
 
     /**
-     * for the given local transform this returns the average scale factor by which lengths will be distorted.
+     * For the given local transform this returns the average (RMS) scale factor by which lengths will be distorted.
      * Use this to estimate the length in pixels of an object with arbitrary rotation on the screen.
      */
-    private fun getScale(posMat: Matrix3f) : Float {
+    internal fun getScale(posMat: Matrix3f) : Float {
         return sqrt((posMat.m00()*posMat.m00() + posMat.m10()*posMat.m10() + posMat.m01()*posMat.m01() + posMat.m11()*posMat.m11())*0.5f)
+    }
+
+    /**
+     * Converts the given dimensions in pixels to texture coordinates ranging from 0 to 1.
+     */
+    private fun getTextureUVs(image: Image, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float) : TextureCoordinates {
+        val u0 = imageX / image.width
+        val u1 = u0 + imageWidth / image.width
+        var v0 = imageY / image.height
+        var v1 = v0 + imageHeight / image.height
+        if (image.flags.contains(Image.Flags.FLIPY)) {
+            v0 = 1-v0
+            v1 = 1-v1
+        }
+        return TextureCoordinates(u0, v0, u1, v1)
+    }
+
+    private data class TextureCoordinates(val u0: Float, val v0: Float, val u1: Float, val v1: Float) {
+        val uv0: Vector2f  get() = Vector2f(u0, v0)
+        val uv1: Vector2f  get() = Vector2f(u1, v1)
     }
 
     /**

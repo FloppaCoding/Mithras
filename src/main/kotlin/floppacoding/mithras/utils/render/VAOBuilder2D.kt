@@ -230,19 +230,20 @@ class VAOBuilder2D {
                     indices[ii] = start + ii
                 }
             }
-            Mode.QUAD -> {
+            Mode.QUADS -> {
                 val quads = length / 4
                 val num = quads * 6
                 indices = IntArray(num)
-                var pos: Int
+                var quad: Int; var offset: Int
                 for (ii in 0 until quads) {
-                    pos = ii * 6
-                    indices[pos + 0] = start + pos + 0
-                    indices[pos + 1] = start + pos + 1
-                    indices[pos + 2] = start + pos + 2
-                    indices[pos + 3] = start + pos + 2
-                    indices[pos + 4] = start + pos + 3
-                    indices[pos + 5] = start + pos + 0
+                    quad = ii * 4
+                    offset = ii * 6
+                    indices[offset + 0] = start + quad + 0
+                    indices[offset + 1] = start + quad + 1
+                    indices[offset + 2] = start + quad + 2
+                    indices[offset + 3] = start + quad + 2
+                    indices[offset + 4] = start + quad + 3
+                    indices[offset + 5] = start + quad + 0
                 }
             }
             Mode.TRIANGLE_STRIP -> {
@@ -547,7 +548,7 @@ class VAOBuilder2D {
      */
     enum class Mode{
         TRIANGLES,
-        QUAD,
+        QUADS,
         TRIANGLE_STRIP,
         TRIANGLE_FAN,
     }
