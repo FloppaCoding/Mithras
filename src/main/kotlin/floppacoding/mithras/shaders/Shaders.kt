@@ -6,18 +6,7 @@ import floppacoding.mithras.shaders.impl.*
 object Shaders {
     val shaders: MutableList<Shader>
         get() = mutableListOf(
-            GUIShader,
-            Chroma2D,
             FractalShader,
-            RoundedRectangleLegacy,
-            RoundedRectangle,
-            Lines,
-            Ellipse,
-            Texture,
-            RoundedTexture,
-            TextShader,
-            RectBorder,
-            RoundedRectBorder,
             NewShader,
         )
 

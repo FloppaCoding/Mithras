@@ -10,23 +10,26 @@ package floppacoding.mithras.utils.render
  * See [GLImageManager.GLImage.id] or [GLFontManager.GLFont.id]. Pass null when no texture is required.
  * @param textScale The current absolute scale factor of the local coordinate system in use when drawing the text.
  * See [GLR.getScale]. Pass null when not drawing text.
+ * @param scissorBox The bounding box of the current scissor region in screen coordinates.
+ * Poss null when not scissoring.
  *
  * @author Aton
  */
-class RenderCall(
-        /**
+class RenderCall @JvmOverloads constructor(
+    /**
      * The position of the indices for this draw call in the index buffer.
      */
     val indexRange: IntRange,
     colorMode: ColorMode,
-        /**
+    /**
      * Optionally the id of a required texture.
      */
     val texture: Int? = null,
     /**
      * Optionally size information for text antialiasing.
      */
-    val textAAWidth : Float? = null,
+    val textScale : Float? = null,
+    var scissorBox: BoundingBox? = null,
 ) {
     /**
      * The mode by which the fragment shader is supposed to determine the fragments color.
@@ -48,7 +51,7 @@ class RenderCall(
         return colorModeId == next.colorModeId  // no color mode change
             && indexRange.last + 1 == next.indexRange.first // no gap in between index ranges.
             && (next.textureUnit == null || textureUnit == next.textureUnit) // no texture change.
-            && (next.textAAWidth == null || textAAWidth == next.textAAWidth ) // no font size change
+            && (next.textScale == null || textScale == next.textScale ) // no font size change
     }
 
     /**

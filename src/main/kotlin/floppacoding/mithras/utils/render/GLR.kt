@@ -43,10 +43,17 @@ object GLR: Renderer2D, FontRender2D by FontRenderer {
     private val mc = MinecraftClient.getInstance()
     override val defaultFont: Font
         get() = GLFontManager.ROBOTO
+
+    // States
+    /**
+     * Do not access this directly!
+     * Use [addDrawCall] or [getLastDrawCall] instead.
+     */
     private val drawCalls: MutableList<RenderCall> = mutableListOf()
     private var requiredPrecision = 3f
     var useMSAA = true
         private set
+    private var scissorBox: BoundingBox? = null
 
     fun setMaxDeviation(deviation: Float) {
         requiredPrecision = abs(1/deviation)
@@ -57,6 +64,7 @@ object GLR: Renderer2D, FontRender2D by FontRenderer {
     }
 
     fun addDrawCall(call: RenderCall) {
+        scissorBox?.let { call.scissorBox = scissorBox }
         drawCalls.add(call)
     }
 
@@ -100,6 +108,7 @@ object GLR: Renderer2D, FontRender2D by FontRenderer {
         NewShader.useShader()
         RenderSystem.disableCull()
         RenderSystem.enableBlend()
+        var scissoring = false
 
         MemoryStack.stackPush().use { stack ->
             var unit: Int; var id: Int; var firstInBatch = 0; var lastInBatch: Int = drawCalls.size - 1; var call: RenderCall
@@ -136,7 +145,21 @@ object GLR: Renderer2D, FontRender2D by FontRenderer {
                     NewShader.setColorMode(call.colorModeId)
                     NewShader.uploadColorMode()
                     call.textureUnit?.let { NewShader.setTextureUnit(it); NewShader.uploadTextureUnit() }
-                    call.textAAWidth?.let { NewShader.setAAwidth(it); NewShader.uploadAAwidth() }
+                    call.textScale?.let { NewShader.setAAwidth(it); NewShader.uploadAAwidth() }
+                    val scissorBox = call.scissorBox
+                    if (scissorBox!= null) {
+                        if (!scissoring) {
+                            scissoring = true
+                            glEnable(GL_SCISSOR_TEST)
+
+                        }
+                        glScissor(scissorBox.xmin.toInt(), scissorBox.ymin.toInt(), scissorBox.width().toInt(), scissorBox.height().toInt())
+                    } else {
+                        if (scissoring) {
+                            scissoring = false
+                            glDisable(GL_SCISSOR_TEST)
+                        }
+                    }
 
                     count = call.indexRange.last - startCall.indexRange.first + 1
                     // indices of glDrawElements is the offset in Bytes and not in indices of size defined by type!
@@ -310,7 +333,7 @@ object GLR: Renderer2D, FontRender2D by FontRenderer {
 
     override fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
         border(x, y, width, height, lineWidth, radius, color)
-        drawCalls.last().setColorMode(RenderCall.ColorMode.CHROMA_ALPHA)
+        getLastDrawCall()?.setColorMode(RenderCall.ColorMode.CHROMA_ALPHA)
     }
 
     override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, color: Int) {
@@ -476,20 +499,15 @@ object GLR: Renderer2D, FontRender2D by FontRenderer {
      *
      */
     override fun scissor(x: Float, y: Float, width: Float, height: Float) {
-        val bbox = getAbsoluteBoundingBox(x, y, width, height)
-
-        RenderSystem.enableScissor(
-            round(bbox.xmin).toInt(),
-            round(mc.window.height - bbox.ymax).toInt(),
-            round(bbox.width()).toInt(),
-            round(bbox.height()).toInt()
-        )
+        scissorBox = getAbsoluteBoundingBox(x, y, width, height)
     }
 
     /**
      * Disables scissoring.
      */
-    override fun endScissor() = RenderSystem.disableScissor()
+    override fun endScissor() {
+        scissorBox = null
+    }
 
     val POSITION_COLOR_TEX_TEX = VertexFormat(ImmutableMap.builder<String, VertexFormatElement>().put("Position", VertexFormats.POSITION_ELEMENT).put("Color", VertexFormats.COLOR_ELEMENT).put("UV0", VertexFormats.TEXTURE_ELEMENT).put("UV1", VertexFormats.TEXTURE_ELEMENT).build())
     val POINTS = VertexFormat.DrawMode.valueOf("POINTS")
