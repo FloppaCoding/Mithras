@@ -68,7 +68,6 @@ object GLFontManager {
         private fun createFont(fontBuffer: ByteBuffer): Return {
             // Allocate memory
             val fontInfo = STBTTFontinfo.create()
-            val glyphBMP = MemoryUtil.memCalloc((GLYPH_SIZE + PADDING) * (GLYPH_SIZE + PADDING))
             val bitmap = MemoryUtil.memCalloc(BMP_WIDTH*BMP_HEIGHT)
             val x0: IntBuffer = MemoryUtil.memAllocInt(1)
             val y0: IntBuffer = MemoryUtil.memAllocInt(1)
@@ -155,7 +154,6 @@ object GLFontManager {
             }
 
             // Free the memory
-            MemoryUtil.memFree(glyphBMP)
             MemoryUtil.memFree(x0)
             MemoryUtil.memFree(y0)
             MemoryUtil.memFree(width)

@@ -13,7 +13,7 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.RotationAxis
 import org.joml.*
 import org.lwjgl.opengl.GL45.*
-import org.lwjgl.system.MemoryUtil
+import org.lwjgl.system.MemoryStack
 import kotlin.math.*
 
 // TODO consider not using the position matrix on the cpu when creating vertices and instead let the model view matrix handle that.
@@ -101,52 +101,53 @@ object GLR: Renderer2D, FontRender2D by FontRenderer {
         RenderSystem.disableCull()
         RenderSystem.enableBlend()
 
+        MemoryStack.stackPush().use { stack ->
+            var unit: Int; var id: Int; var firstInBatch = 0; var lastInBatch: Int = drawCalls.size - 1; var call: RenderCall
+            val textures: LinkedHashMap<Int, Int> = linkedMapOf()
 
-        var unit: Int; var id: Int; var firstInBatch = 0; var lastInBatch: Int = drawCalls.size - 1; var call: RenderCall
-        val textures: LinkedHashMap<Int, Int> = linkedMapOf()
-        val textureBuffer = MemoryUtil.memAllocInt(32)
-        do {
-            //Bind as many of the required textures as possible
-            unit = 0
-            for (ii in firstInBatch until drawCalls.size) {
-                call = drawCalls[ii]
-                id = call.texture ?: continue
+            val textureBuffer = stack.mallocInt(32)
+            do {
+                //Bind as many of the required textures as possible
+                unit = 0
+                for (ii in firstInBatch until drawCalls.size) {
+                    call = drawCalls[ii]
+                    id = call.texture ?: continue
 
-                call.textureUnit = textures.getOrPut(id) { unit++ }
+                    call.textureUnit = textures.getOrPut(id) { unit++ }
 
-                if (unit > 31) {
-                    lastInBatch = ii
-                    break
+                    if (unit > 31) {
+                        lastInBatch = ii
+                        break
+                    }
                 }
-            }
-            if (textures.isNotEmpty()) {
-                textureBuffer.limit(textures.keys.size)
-                textureBuffer.put(0, textures.keys.toIntArray())
-                glBindTextures(0, textureBuffer)
-            }
-
-            // Group consecutive render calls together when no state change is required.
-            var startCall: RenderCall = drawCalls[firstInBatch]; var count: Int
-            for (ii in firstInBatch .. lastInBatch) {
-                call = drawCalls[ii]
-                if( ii < lastInBatch && call.combinable(drawCalls[ii+1])) {
-                    continue
+                if (textures.isNotEmpty()) {
+                    textureBuffer.limit(textures.keys.size)
+                    textureBuffer.put(0, textures.keys.toIntArray())
+                    glBindTextures(0, textureBuffer)
                 }
-                NewShader.setColorMode(call.colorModeId)
-                NewShader.uploadColorMode()
-                call.textureUnit?.let { NewShader.setTextureUnit(it); NewShader.uploadTextureUnit() }
-                call.textAAWidth?.let { NewShader.setAAwidth(it); NewShader.uploadAAwidth() }
 
-                count = call.indexRange.last - startCall.indexRange.first + 1
-                // indices of glDrawElements is the offset in Bytes and not in indices of size defined by type!
-                glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (startCall.indexRange.first * Int.SIZE_BYTES).toLong())
-                if( ii < lastInBatch) startCall = drawCalls[ii + 1]
-            }
+                // Group consecutive render calls together when no state change is required.
+                var startCall: RenderCall = drawCalls[firstInBatch]; var count: Int
+                for (ii in firstInBatch .. lastInBatch) {
+                    call = drawCalls[ii]
+                    if( ii < lastInBatch && call.combinable(drawCalls[ii+1])) {
+                        continue
+                    }
+                    NewShader.setColorMode(call.colorModeId)
+                    NewShader.uploadColorMode()
+                    call.textureUnit?.let { NewShader.setTextureUnit(it); NewShader.uploadTextureUnit() }
+                    call.textAAWidth?.let { NewShader.setAAwidth(it); NewShader.uploadAAwidth() }
 
-            textures.clear()
-            firstInBatch = lastInBatch + 1
-        }while (firstInBatch < drawCalls.size)
-        MemoryUtil.memFree(textureBuffer)
+                    count = call.indexRange.last - startCall.indexRange.first + 1
+                    // indices of glDrawElements is the offset in Bytes and not in indices of size defined by type!
+                    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (startCall.indexRange.first * Int.SIZE_BYTES).toLong())
+                    if( ii < lastInBatch) startCall = drawCalls[ii + 1]
+                }
+
+                textures.clear()
+                firstInBatch = lastInBatch + 1
+            }while (firstInBatch < drawCalls.size)
+        }
     }
 
     override fun cancelFrame() {

@@ -51,21 +51,36 @@ class RenderCall(
             && (next.textAAWidth == null || textAAWidth == next.textAAWidth ) // no font size change
     }
 
+    /**
+     * Changes the color mode for this call to the specified [mode].
+     */
     fun setColorMode(mode: ColorMode): RenderCall {
         colorModeId = mode.id
         return this
     }
 
+    /**
+     * Changes the coloring for this call to chroma.
+     * This does not affect any other attributes of the current ColorMode.
+     */
     fun enableChroma(): RenderCall {
         colorModeId = (colorModeId and REMOVE_COLOR_MASK) + CHROMA_COLOR
         return this
     }
 
+    /**
+     * Disables the alpha attribute affecting the final color.
+     * When the color attribute is used for coloring this will have no effect.
+     */
     fun disableAlpha(): RenderCall {
         colorModeId = colorModeId and COLOR_ALPHA_BIT.inv()
         return this
     }
 
+    /**
+     * Enables the alpha attribute affecting the final color.
+     * When the color attribute is used for coloring the final color will have its alpha squared.
+     */
     fun enableAlpha(): RenderCall {
         colorModeId = colorModeId or COLOR_ALPHA_BIT
         return this
