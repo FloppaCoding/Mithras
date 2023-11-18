@@ -106,6 +106,10 @@ object NVGR : Renderer2D {
 //        restoreOldState()
     }
 
+    override fun cancelFrame() {
+        nvgCancelFrame(nanoContext)
+    }
+
     override fun reset() {
         nvgReset(nanoContext)
     }
@@ -191,13 +195,13 @@ object NVGR : Renderer2D {
      * Draws a line from point 1 to point 2.
      * @param capStyle can be [NVG_ROUND] or [NVG_SQUARE]
      */
-    override fun line(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Int, capStyle: CapStyle) {
+    override fun line(x0: Float, y0: Float, x1: Float, y1: Float, width: Float, color: Int, capStyle: CapStyle) {
         nvgBeginPath(nanoContext)
         nvgStrokeWidth(nanoContext, width)
         setStrokeColor(color)
         nvgLineCap(nanoContext, capStyle.id)
-        nvgMoveTo(nanoContext, x1, y1)
-        nvgLineTo(nanoContext, x2, y2)
+        nvgMoveTo(nanoContext, x0, y0)
+        nvgLineTo(nanoContext, x1, y1)
         nvgStroke(nanoContext)
         nvgClosePath(nanoContext)
     }

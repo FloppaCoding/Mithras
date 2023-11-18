@@ -4,7 +4,6 @@ import floppacoding.mithras.shaders.Shader
 import floppacoding.mithras.shaders.uniforms.impl.Sampler
 import floppacoding.mithras.shaders.uniforms.impl.Uniform1f
 import floppacoding.mithras.shaders.uniforms.impl.Uniform1i
-import floppacoding.mithras.shaders.uniforms.impl.UniformMatrix4f
 import floppacoding.mithras.shaders.uniforms.withValue
 import floppacoding.mithras.utils.render.RenderCall
 import org.joml.Matrix4f
@@ -20,7 +19,6 @@ object NewShader : Shader(listOf("Position", "Color", "UV0"), "new/pos_col_tex_2
      */
     private const val SCALE_FACTOR = 0.18f
 
-    private val projectionMatrix = UniformMatrix4f(this.programID, "ProjMat").withValue(Matrix4f())
     private val sampler = Sampler(this.programID, "Sampler0").withValue(0)
     private val aaUniform = Uniform1f(this.programID, "AAWidth").withValue(0.05f)
     private val modeUniform = Uniform1i(this.programID, "Mode").withValue(0)
@@ -38,13 +36,14 @@ object NewShader : Shader(listOf("Position", "Color", "UV0"), "new/pos_col_tex_2
         modeUniform.updateValue(mode.id)
     }
 
+    fun setColorMode(id: Int) {
+        modeUniform.updateValue(id)
+    }
+
     fun setTextureUnit(unit: Int) {
         sampler.updateValue(unit)
     }
 
-    fun setProjectionMatrix(matrix4f: Matrix4f) {
-        projectionMatrix.updateValue(matrix4f)
-    }
 
     fun uploadColorMode() {
         modeUniform.update()
@@ -62,7 +61,11 @@ object NewShader : Shader(listOf("Position", "Color", "UV0"), "new/pos_col_tex_2
 
     init {
         this.registerUniforms(
-            projectionMatrix,
+            this.projectionMat,
+            this.windowSize,
+            this.chromaTime,
+            this.chromaAngle,
+            this.chromaSize,
             sampler,
             aaUniform,
             modeUniform

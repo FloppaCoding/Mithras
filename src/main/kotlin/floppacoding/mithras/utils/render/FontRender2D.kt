@@ -28,7 +28,7 @@ interface FontRender2D {
             x: Float,
             y: Float,
             color: Int,
-            fontSize: Float = DEFAULT_FONT_HEIGHT,
+            fontSize: Float = defaultFontHeight,
             font: Font = defaultFont,
             textAlign: TextAlign = TextAlign.LEFT_TOP,
             splitWidth: Float? = null
@@ -50,7 +50,7 @@ interface FontRender2D {
             x: Float,
             y: Float,
             color: Int,
-            fontSize: Float = DEFAULT_FONT_HEIGHT,
+            fontSize: Float = defaultFontHeight,
             font: Font = defaultFont,
             textAlign: TextAlign = TextAlign.LEFT_TOP,
     )
@@ -76,7 +76,7 @@ interface FontRender2D {
             y: Float,
             color: Int,
             width: Float,
-            fontSize: Float = DEFAULT_FONT_HEIGHT,
+            fontSize: Float = defaultFontHeight,
             font: Font = defaultFont,
             textAlign: TextAlign = TextAlign.LEFT_TOP,
             boxAlign: TextAlign = TextAlign.LEFT_TOP,
@@ -85,20 +85,20 @@ interface FontRender2D {
     /**
      * Returns the width of the given single line of [text]. Line-breaks '\n' are not accounted for.
      */
-    fun textWidth(text: CharSequence, fontSize: Float = DEFAULT_FONT_HEIGHT, font: Font = defaultFont): Float
+    fun textWidth(text: CharSequence, fontSize: Float = defaultFontHeight, font: Font = defaultFont): Float
 
     /**
      * Returns the bounding box of the given [text] if it were drawn at 0,0 in the current coordinate system.
      * @param width If width is null then the text will be considered as one line. Otherwise
      */
-    fun textBounds(text: CharSequence, width: Float? = null, fontSize: Float = DEFAULT_FONT_HEIGHT, font: Font = defaultFont) : BoundingBox
+    fun textBounds(text: CharSequence, width: Float? = null, fontSize: Float = defaultFontHeight, font: Font = defaultFont) : BoundingBox
 
     fun textField(text: String,
                   x: Float,
                   y: Float,
                   width: Float,
                   color: Int,
-                  fontSize: Float = DEFAULT_FONT_HEIGHT,
+                  fontSize: Float = defaultFontHeight,
                   radius: Float = 3f,
                   font: Font = defaultFont
     )

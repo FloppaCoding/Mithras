@@ -18,10 +18,7 @@ class RenderCall(
      * The position of the indices for this draw call in the index buffer.
      */
     val indexRange: IntRange,
-        /**
-     * The mode by which the fragment shader is supposed to color the fragments color.
-     */
-    val colorMode: ColorMode,
+    colorMode: ColorMode,
         /**
      * Optionally the id of a required texture.
      */
@@ -31,6 +28,12 @@ class RenderCall(
      */
     val textAAWidth : Float? = null,
 ) {
+    /**
+     * The mode by which the fragment shader is supposed to determine the fragments color.
+     */
+    var colorModeId = colorMode.id
+        private set
+
     /**
      * The unit to which the texture for this call is bound.
      * This is set later when the render calls are dispatched.
@@ -42,10 +45,30 @@ class RenderCall(
      * This is the case when the index ranges are back to back and no state/uniform changes have to be made
      */
     fun combinable(next: RenderCall) : Boolean{
-        return colorMode == next.colorMode  // no color mode change
+        return colorModeId == next.colorModeId  // no color mode change
             && indexRange.last + 1 == next.indexRange.first // no gap in between index ranges.
             && (next.textureUnit == null || textureUnit == next.textureUnit) // no texture change.
             && (next.textAAWidth == null || textAAWidth == next.textAAWidth ) // no font size change
+    }
+
+    fun setColorMode(mode: ColorMode): RenderCall {
+        colorModeId = mode.id
+        return this
+    }
+
+    fun enableChroma(): RenderCall {
+        colorModeId = (colorModeId and REMOVE_COLOR_MASK) + CHROMA_COLOR
+        return this
+    }
+
+    fun disableAlpha(): RenderCall {
+        colorModeId = colorModeId and COLOR_ALPHA_BIT.inv()
+        return this
+    }
+
+    fun enableAlpha(): RenderCall {
+        colorModeId = colorModeId or COLOR_ALPHA_BIT
+        return this
     }
 
     /**
@@ -97,19 +120,14 @@ class RenderCall(
     }
 
     companion object {
-        /**
-         * This value determines the width of the antialiasing.
-         * It should be proportional to the derivative dSDF / dr of the SDF with respect to the distance in texels.
-         * That makes it inversely proportional to the padding used for the SDF glyphs.
-         * So if changes are made to that this value has to be adjusted accordingly.
-         */
-        private const val SCALE_FACTOR = 0.18f
-
         private const val VERTEX_COLOR = 0 shl 8
         private const val TEXTURE_COLOR = 1 shl 8
         private const val CHROMA_COLOR = 2 shl 8
 
         private const val TEXT_BIT = 0b10_0000
         private const val COLOR_ALPHA_BIT = 0b1_0000
+
+        private val REMOVE_COLOR_MASK: Int = 0xff_ff_f0_ffu.toInt()
+
     }
 }

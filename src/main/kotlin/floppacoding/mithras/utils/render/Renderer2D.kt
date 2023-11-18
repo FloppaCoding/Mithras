@@ -70,6 +70,11 @@ interface Renderer2D : FontRender2D {
     fun endFrame()
 
     /**
+     * Cancels the frame currently in construction.
+     */
+    fun cancelFrame()
+
+    /**
      * Resets current render state to default values.
      */
     fun reset()
@@ -106,9 +111,9 @@ interface Renderer2D : FontRender2D {
     fun pop()
 
     /**
-     * Draws a line from point 1 to point 2.
+     * Draws a line from point 0 to point 1.
      */
-    fun line(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Int, capStyle: CapStyle = CapStyle.ROUND)
+    fun line(x0: Float, y0: Float, x1: Float, y1: Float, width: Float, color: Int, capStyle: CapStyle = CapStyle.ROUND)
 
     /**
      * Draws a rectangle with the given dimensions and color.
@@ -194,6 +199,11 @@ interface Renderer2D : FontRender2D {
 
     /**
      * Draws a chroma border with rounded corner and the given dimensions.
+     *
+     * [width] and [height] are expected to be >= 0.
+     * @param lineWidth The border extends half of this in both directions from the specified rectangle. This width is
+     * affected by the coordinate transform and not a fixed pixel width on the screen.
+     * The lineWidth is expected not to exceed the width or height of the rectangle.
      * @param color does nothing but gives this method the same signature as [border], so that both can be used with the
      * same syntax through a KFunction.
      */
@@ -205,6 +215,7 @@ interface Renderer2D : FontRender2D {
      * [width] and [height] are expected to be >= 0.
      * @param lineWidth The border extends half of this in both directions from the specified rectangle. This width is
      * affected by the coordinate transform and not a fixed pixel width on the screen.
+     * The lineWidth is expected not to exceed the width or height of the rectangle.
      */
     fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
         border(x, y, width, height, lineWidth, Vector4f(radius), color)
@@ -216,6 +227,7 @@ interface Renderer2D : FontRender2D {
      * [width] and [height] are expected to be >= 0.
      * @param lineWidth The border extends half of this in both directions from the specified rectangle. This width is
      * affected by the coordinate transform and not a fixed pixel width on the screen.
+     * The lineWidth is expected not to exceed the width or height of the rectangle.
      * @param radii 4 individual corner radii in the order top-left, bottom-left, bottom-right, top-right.
      */
     fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radii: Vector4f?, color: Int)
@@ -226,6 +238,7 @@ interface Renderer2D : FontRender2D {
      * [width] and [height] are expected to be >= 0.
      * @param lineWidth The border extends half of this in both directions from the specified rectangle. This width is
      * affected by the coordinate transform and not a fixed pixel width on the screen.
+     * The lineWidth is expected not to exceed the width or height of the rectangle.
      */
     fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, color: Int) {
         border(x, y, width, height, lineWidth, null, color)
