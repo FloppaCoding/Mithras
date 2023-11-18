@@ -1,24 +1,10 @@
-package floppacoding.mithras.commands.reflectcommands
+package floppacoding.mithras.commands
 
+import floppacoding.mithras.commands.CommandFunction.Companion.createParsers
+import floppacoding.mithras.commands.parsers.Parser
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Parameter
 
-fun main() {
-
-    test { x: Float, str: GreedyString ->
-        println("$x ${str.string}")
-    }.invoke("3 a a a") // prints: 3.0 a a a
-
-    test { x: Float, str: String ->
-        println("$x $str")
-    }.invoke("3 a a a") // fails to print because arg size exceeds parameter size
-}
-
-fun test(function: Function<*>): CommandFunction {
-    return CommandFunction(function)
-}
-
-// redo this to make it clear that the string/argument inputted is used as a list
 /**
  * A class for invoking [functions][Function] with custom arguments using a string,
  * which help provide a sleek way to create commands.
@@ -52,7 +38,7 @@ fun test(function: Function<*>): CommandFunction {
  */
 class CommandFunction(function: Function<*>) { // maybe rename
 
-    /** Function used to invoke the method, this has to be used otherwise compiler will error. */
+    /** Function used to invoke the method, this has to a [Java Function][JavaFunction] otherwise compiler will error. */
     internal val function: JavaFunction
 
     /** Functions parameters to create the parsers */
@@ -81,6 +67,8 @@ class CommandFunction(function: Function<*>) { // maybe rename
      * @return Array of values or null if it failed to.
      */
     private fun parseArgs(args: MutableList<String>): Array<Any>? {
+        if (parsers.size == 0) return emptyArray()
+
         val mutableList = mutableListOf<Any>()
 
         for (i in parsers) {
@@ -99,7 +87,7 @@ class CommandFunction(function: Function<*>) { // maybe rename
      * Takes a string, splits it up into a list to parse at [parseArgs] and invokes it.
      */
     fun invoke(string: String) {
-        val args = string.split(" ").toMutableList()
+        val args = if (string.isBlank()) mutableListOf() else string.split(" ").toMutableList()
 
         if (args.size == parsers.size || parsers.any { it.consumesAll() }) {
             val value = parseArgs(args) ?: return println("Args don't match")
@@ -108,30 +96,24 @@ class CommandFunction(function: Function<*>) { // maybe rename
             println("Arg size don't match")
         }
     }
-}
 
-/**
- * Uses a function's parameters to create a list of parsers
- * that handle converting a string into argument's for the function
- *
- * @param parameters List of parameters from a function
- */
-fun createParsers(parameters: Array<Parameter>): ArrayList<Parser<*>> {
-    val arrayList = arrayListOf<Parser<*>>()
-
-    for (i in parameters) {
-        val parser = when (i.type) {
-            // add an error if you use greedy as not last since it crashes and also is unintended
-            GreedyString::class.java -> GreedyStringParser
-            String::class.java -> StringParser
-            Float::class.java -> FloatParser
-            Int::class.java -> IntParser
-            else -> throw Throwable("No parser found") // make proper throwables
+    companion object {
+        /**
+         * Uses a function's parameters to create a list of parsers
+         * that handle converting a string into argument's for the function
+         *
+         * @param parameters List of parameters from a function
+         */
+        fun createParsers(parameters: Array<Parameter>): ArrayList<Parser<*>> {
+            val arrayList = arrayListOf<Parser<*>>()
+            for (i in parameters) {
+                val parser = Parser.parserMap[i.type] ?: throw Throwable("No parser found") // make proper thing
+                arrayList.add(parser)
+            }
+            return arrayList
         }
-        arrayList.add(parser)
     }
-
-    return arrayList
 }
 
+/** Type-alias for java.util.function.Function<Array<*>, *> because [Function] is also used. */
 private typealias JavaFunction = java.util.function.Function<Array<*>, *>
