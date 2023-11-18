@@ -13,7 +13,7 @@ interface FloppaCommand : CommandBuilder {
  * Provides [command] for [Subcommand] and [FloppaCommand].
  */
 interface CommandBuilder {
-    fun command(name: String, block: Subcommand.() -> Unit): Subcommand {
+    fun command(name: String, block: Subcommand.() -> Unit = {}): Subcommand {
         return Subcommand(LiteralBuilder.literal(name)).also(block)
     }
 

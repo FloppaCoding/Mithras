@@ -15,10 +15,8 @@ object ExampleCommand : FloppaCommand {
                 execute {
                     modMessage("literal 1")
                 }
-                "literaltwo" {
-                    execute {
-                        modMessage("literal 2")
-                    }
+                command("literaltwo").execute {
+                    modMessage("literal 2")
                 }
             }
         }
