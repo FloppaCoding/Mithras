@@ -12,6 +12,7 @@ import floppacoding.mithras.commands.parsers.impl.*
  * @param E the class the parser parses to
  */
 interface Parser<E> {
+
     /**
      * Function on how to take a string and convert it into corresponding class
      */
@@ -42,9 +43,9 @@ interface Parser<E> {
         /**
          * So you can register your own parsers if there isn't anything you need
          */
-        inline fun <reified T> registerParser(vararg parsers: Parser<T>) {
+        fun registerParsers(vararg parsers: Pair<Class<*>, Parser<*>>) {
             for (parser in parsers) {
-                parserMap[T::class.java] = parser
+                parserMap[parser.first] = parser.second
             }
         }
     }
