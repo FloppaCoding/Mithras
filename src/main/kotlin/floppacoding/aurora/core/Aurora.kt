@@ -8,7 +8,7 @@ import floppacoding.aurora.core.Aurora.setMainBuffer
 import floppacoding.aurora.core.Aurora.setMainBufferId
 import floppacoding.aurora.core.Aurora.setMainBufferReference
 import floppacoding.aurora.core.Aurora.useMSAA
-import floppacoding.aurora.core.font.AuroraFont
+import floppacoding.aurora.core.font.AuroraFontRenderer
 import floppacoding.aurora.core.font.Font
 import floppacoding.aurora.core.font.FontRender2D
 import floppacoding.aurora.core.font.GLFontManager
@@ -64,7 +64,7 @@ import kotlin.math.*
  *
  * @author Aton
  */
-object Aurora: Renderer2D, FontRender2D by AuroraFont {
+object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
     internal var matrices: MatrixStack2D = MatrixStack2D()
         private set
     internal val vaoBuilder = VAOBuilder2D()
@@ -378,7 +378,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFont {
         vaoBuilder.vertex(positionMatrix, x1,  y).alpha(a).texture(u1, v0).next()
 
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.id))
+        addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.glID))
     }
 
     override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
@@ -398,7 +398,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFont {
             vaoBuilder.vertex(positionMatrix, position).alpha(a).texture(tex).next()
         }
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.id))
+        addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.glID))
     }
 
     override fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
@@ -762,7 +762,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFont {
         val u1 = u0 + imageWidth / image.width
         var v0 = imageY / image.height
         var v1 = v0 + imageHeight / image.height
-        if (image.flags.contains(Image.Flags.FLIPY)) {
+        if (image.flags.contains(Image.Flags.FLIP_Y)) {
             v0 = 1-v0
             v1 = 1-v1
         }

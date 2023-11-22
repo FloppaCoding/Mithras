@@ -9,7 +9,7 @@ import org.joml.Matrix3x2f
  *
  * @author Aton
  */
-object AuroraFont: FontRender2D {
+object AuroraFontRenderer: FontRender2D {
     private val vaoBuilder by Aurora::vaoBuilder
     private val matrices by Aurora::matrices
 

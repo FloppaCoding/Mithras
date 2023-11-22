@@ -1,8 +1,6 @@
 package floppacoding.aurora.mc_modern
 
 import floppacoding.aurora.core.Renderer2D
-import floppacoding.mithras.utils.render.nanovg.NVGR.beginFrame
-import floppacoding.mithras.utils.render.nanovg.NVGR.endFrame
 import net.minecraft.client.gui.DrawContext
 
 interface Renderer2DMC : Renderer2D {

@@ -2,6 +2,7 @@ package floppacoding.mithras.commands.impl
 
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
+import floppacoding.aurora.core.Aurora
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.commands.CmdSource
@@ -25,9 +26,7 @@ import floppacoding.mithras.utils.inventory.ItemValueCalculator
 import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
-import floppacoding.aurora.core.Aurora
-import floppacoding.mithras.utils.render.nanovg.NVGImageManager
-import floppacoding.mithras.utils.render.nanovg.NVGR
+import floppacoding.mithras.utils.render.ImageManager
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.client.texture.PlayerSkinTexture
@@ -283,8 +282,8 @@ object DebugCommand : Command() {
                     execute {
                         val skin = mc.networkHandler?.getPlayerListEntry(mc.player?.uuid)?.skinTexture ?: return@execute
                         try {
-                            val skinImage =  NVGImageManager.createImage(skin)
-                            ChatUtils.chatMessage(skinImage.id.toString())
+                            val skinImage =  ImageManager.createImage(skin)
+                            ChatUtils.chatMessage(skinImage.glID.toString())
                         }catch (e: IOException) {
                             ChatUtils.chatMessage("failed creating image")
                         }
@@ -514,15 +513,6 @@ object DebugCommand : Command() {
                             Mithras.logger.debug("Reloading shader failed.", e)
                         }
                     }}
-                }
-                literal("switchrenderer") {
-                    execute {
-                        when(Mithras.renderer2D){
-                            NVGR -> Mithras.renderer2D = Aurora
-                            Aurora -> Mithras.renderer2D = NVGR
-                        }
-                        ChatUtils.chatMessage("Switched to ${Mithras.renderer2D::class.simpleName}")
-                    }
                 }
                 literal("msaaSamples") {
                     integer("samples") {

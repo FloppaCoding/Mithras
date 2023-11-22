@@ -14,7 +14,7 @@ import floppacoding.mithras.utils.LocationManager.inDungeons
 import floppacoding.mithras.utils.inventory.InventoryUtils.isHoldingInMainHand
 import floppacoding.mithras.utils.inventory.SkyblockItem
 import floppacoding.aurora.core.images.Image
-import floppacoding.aurora.core.images.ImageManager
+import floppacoding.mithras.utils.render.ImageManager
 import floppacoding.aurora.core.TextAlign
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.entity.PlayerModelPart
