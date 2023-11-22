@@ -6,8 +6,8 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.mapX
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.mapZ
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.yaw
-import floppacoding.mithras.utils.render.Image
-import floppacoding.mithras.utils.render.ImageManager
+import floppacoding.aurora.core.images.Image
+import floppacoding.aurora.core.images.ImageManager
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.item.map.MapIcon
 import java.io.IOException

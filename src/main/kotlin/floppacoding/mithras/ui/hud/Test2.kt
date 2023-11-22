@@ -1,8 +1,9 @@
 package floppacoding.mithras.ui.hud
 
-import floppacoding.mithras.utils.render.CapStyle
-import floppacoding.mithras.utils.render.GLR
-import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.aurora.core.Aurora
+import floppacoding.aurora.core.CapStyle
+import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.mc_modern.AuroraMC
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent
@@ -19,7 +20,7 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
 
         val  col1 = Color(0, 140, 100, 100).rgb
-        val renderer: Renderer2D = GLR
+        val renderer: Renderer2D = AuroraMC
 
         renderer.beginFrame()
         for (ii in 0 until shapes) {
@@ -36,10 +37,10 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
             renderer.line(-50f, -50f, 50f, 50f, 20f, col1, CapStyle.ROUND)
             renderer.pop()
 
-            GLR.ellipse(200f, 500f, Vector2f(200f, 70f), 50f, -1)
+            Aurora.ellipse(200f, 500f, Vector2f(200f, 70f), 50f, -1)
 
-            GLR.text("Floppa", 100f, 600f, 0x7f_80_00_90u.toInt(), 40f)
-            GLR.getLastDrawCall()?.enableChroma()?.enableAlpha()
+            Aurora.text("Floppa", 100f, 600f, 0x7f_80_00_90u.toInt(), 40f)
+            Aurora.getLastDrawCall()?.enableChroma()?.enableAlpha()
 
 
             renderer.border(600f, 200f, 200f, 200f, 30f, -col1)

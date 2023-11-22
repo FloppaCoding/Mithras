@@ -25,7 +25,7 @@ import floppacoding.mithras.utils.inventory.ItemValueCalculator
 import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
-import floppacoding.mithras.utils.render.GLR
+import floppacoding.aurora.core.Aurora
 import floppacoding.mithras.utils.render.nanovg.NVGImageManager
 import floppacoding.mithras.utils.render.nanovg.NVGR
 import kotlinx.coroutines.launch
@@ -484,13 +484,6 @@ object DebugCommand : Command() {
                 }
             }
             literal("test") {
-                integer("size") {
-                    execute {
-                        val size = it.getInteger("size")
-                        val center = GLR.POINTS.getIndexCount(size)
-                        ChatUtils.chatMessage("$center")
-                    }
-                }
                 literal("screen2") {
                     execute {
                         Extensions.setScreen(Test2)
@@ -525,8 +518,8 @@ object DebugCommand : Command() {
                 literal("switchrenderer") {
                     execute {
                         when(Mithras.renderer2D){
-                            NVGR -> Mithras.renderer2D = GLR
-                            GLR -> Mithras.renderer2D = NVGR
+                            NVGR -> Mithras.renderer2D = Aurora
+                            Aurora -> Mithras.renderer2D = NVGR
                         }
                         ChatUtils.chatMessage("Switched to ${Mithras.renderer2D::class.simpleName}")
                     }
@@ -534,14 +527,14 @@ object DebugCommand : Command() {
                 literal("msaaSamples") {
                     integer("samples") {
                         execute {
-                            GLR.changeMSAASamples(it.getInteger("samples"))
+                            Aurora.setMSAASamples(it.getInteger("samples"))
                         }
                     }
                 }
                 literal("toggleMsaa") {
                     execute {
-                        GLR.useMSAA(!GLR.useMSAA)
-                        ChatUtils.chatMessage("MSAA ${if (GLR.useMSAA) "enabled" else "disabled"}")
+                        Aurora.useMSAA(!Aurora.useMSAA)
+                        ChatUtils.chatMessage("MSAA ${if (Aurora.useMSAA) "enabled" else "disabled"}")
                     }
                 }
                 literal("shapes") {

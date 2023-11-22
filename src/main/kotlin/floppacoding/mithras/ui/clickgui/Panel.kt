@@ -8,8 +8,8 @@ import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementKeyBind
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil.capitalizeOnlyFirst
-import floppacoding.mithras.utils.render.Renderer2D
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.core.TextAlign
 
 /**
  * Provides a category panel for the click gui.

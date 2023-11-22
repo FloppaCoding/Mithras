@@ -3,7 +3,7 @@ package floppacoding.mithras.utils.render.nanovg
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.mixin.PlayerSkinAccessor
-import floppacoding.mithras.utils.render.Image
+import floppacoding.aurora.core.images.Image
 import net.minecraft.client.texture.PlayerSkinTexture
 import net.minecraft.util.Identifier
 import org.apache.commons.io.IOUtils

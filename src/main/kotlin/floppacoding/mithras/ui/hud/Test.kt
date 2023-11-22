@@ -1,7 +1,7 @@
 package floppacoding.mithras.ui.hud
 
-import floppacoding.mithras.utils.render.Font
-import floppacoding.mithras.utils.render.GuiScreen
+import floppacoding.aurora.core.font.Font
+import floppacoding.mithras.ui.GuiScreen
 import floppacoding.mithras.utils.render.nanovg.NVGFontManager
 import floppacoding.mithras.utils.render.nanovg.NVGImageManager
 import floppacoding.mithras.utils.render.nanovg.NVGR

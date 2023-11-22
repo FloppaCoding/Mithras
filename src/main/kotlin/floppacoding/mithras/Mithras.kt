@@ -13,8 +13,8 @@ import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.HypixelAPIHttpClient
 import floppacoding.mithras.utils.network.LowestBinAPI
-import floppacoding.mithras.utils.render.GLFontManager
-import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.aurora.core.font.GLFontManager
+import floppacoding.aurora.core.Renderer2D
 import floppacoding.mithras.utils.render.nanovg.NVGR
 import kotlinx.coroutines.*
 import meteordevelopment.orbit.EventBus

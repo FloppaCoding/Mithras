@@ -9,8 +9,8 @@ import floppacoding.mithras.ui.clickgui.Panel
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.*
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.Renderer2D
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.core.TextAlign
 
 /**
  * Provides the toggle button for modules in the click gui.

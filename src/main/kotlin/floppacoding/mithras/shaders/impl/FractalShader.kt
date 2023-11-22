@@ -1,12 +1,18 @@
 package floppacoding.mithras.shaders.impl
 
-import floppacoding.mithras.shaders.Shader
-import floppacoding.mithras.shaders.uniforms.impl.Uniform1f
-import floppacoding.mithras.shaders.uniforms.impl.Uniform2f
+import floppacoding.aurora.core.shader.Shader
+import floppacoding.aurora.core.shader.uniforms.impl.Uniform1f
+import floppacoding.aurora.core.shader.uniforms.impl.Uniform2f
+import floppacoding.mithras.Mithras
 import net.minecraft.client.render.VertexFormats
 import org.joml.Vector2f
 
-object FractalShader : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "fractal/fractal") {
+object FractalShader : Shader(
+    VertexFormats.POSITION_COLOR_TEXTURE.attributeNames,
+    "/assets/${Mithras.RESOURCE_DOMAIN}/",
+    "fractal/fractal.vert",
+    "fractal/fractal.frag"
+) {
     private val width = Uniform1f(this.programID, "width")
     private val corner = Uniform2f(this.programID, "corner")
 
@@ -19,7 +25,6 @@ object FractalShader : Shader(VertexFormats.POSITION_COLOR_TEXTURE, "fractal/fra
 
     init {
         this.registerUniforms(
-            this.modelViewMat,
             this.projectionMat,
             this.windowSize,
             width,

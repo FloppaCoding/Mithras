@@ -1,12 +1,18 @@
 package floppacoding.mithras.utils.render.nanovg
 
 import com.mojang.blaze3d.systems.RenderSystem
+import floppacoding.aurora.core.BoundingBox
+import floppacoding.aurora.core.CapStyle
+import floppacoding.aurora.core.TextAlign
+import floppacoding.aurora.core.font.Font
+import floppacoding.aurora.core.images.Image
+import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.module.impl.render.MainSettings
-import floppacoding.mithras.utils.render.*
 import floppacoding.mithras.utils.render.nanovg.NVGR.beginFrame
 import floppacoding.mithras.utils.render.nanovg.NVGR.endFrame
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
+import org.joml.Vector2f
 import org.joml.Vector4f
 import org.lwjgl.nanovg.NVGColor
 import org.lwjgl.nanovg.NVGPaint
@@ -17,6 +23,7 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import kotlin.math.atan2
 
 
 /**
@@ -45,7 +52,7 @@ import java.nio.FloatBuffer
  * @author Aton
  */
 @Suppress("unused")
-object NVGR : Renderer2D {
+object NVGR : Renderer2DMC {
     val nanoContext: Long = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS)
     private val mc = MinecraftClient.getInstance()
 
@@ -166,11 +173,6 @@ object NVGR : Renderer2D {
     override fun translate(x: Float, y: Float) = nvgTranslate(nanoContext, x, y)
 
     /**
-     * Translates the origin of the current coordinate system.
-     */
-    override fun translate(x: Double, y: Double) = nvgTranslate(nanoContext, x.toFloat(), y.toFloat())
-
-    /**
      * Scales the current coordinate system.
      */
     override fun scale(x: Float, y: Float) = nvgScale(nanoContext, x, y)
@@ -179,6 +181,8 @@ object NVGR : Renderer2D {
      * Rotates by the given [angle] in degrees.
      */
     override fun rotate(angle: Float) = nvgRotate(nanoContext, nvgDegToRad( angle ))
+
+    override fun rotateRadians(angle: Float) = nvgRotate(nanoContext, angle)
 
     /**
      * Pushes the current rendering state to a stack.
@@ -423,6 +427,24 @@ object NVGR : Renderer2D {
         nvgTextAlign(nanoContext, NVG_ALIGN_LEFT or NVG_ALIGN_MIDDLE)
         setFillColor(color)
         nvgText(nanoContext, x + height * 0.3f, y + height*0.5f, text)
+    }
+
+    override fun circle(x: Float, y: Float, radius: Float, color: Int) {
+        nvgBeginPath(nanoContext)
+        nvgCircle(nanoContext, x, y, radius)
+        setFillColor(color)
+        nvgFill(nanoContext)
+    }
+
+    override fun ellipse(x: Float, y: Float, a: Vector2f, b: Float, color: Int) {
+        nvgBeginPath(nanoContext)
+        push()
+        translate(x, y)
+        rotateRadians(atan2(a.y, a.x))
+        nvgEllipse(nanoContext, 0f, 0f, a.length(), b)
+        setFillColor(color)
+        nvgFill(nanoContext)
+        pop()
     }
 
     /**

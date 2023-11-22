@@ -1,7 +1,7 @@
 package floppacoding.mithras.utils.render.nanovg
 
 import floppacoding.mithras.Mithras
-import floppacoding.mithras.utils.render.Font
+import floppacoding.aurora.core.font.Font
 import org.apache.commons.io.IOUtils
 import org.lwjgl.nanovg.NanoVG
 import org.lwjgl.system.MemoryUtil

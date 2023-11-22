@@ -28,7 +28,6 @@
     "gui.InGameHudMixin",
     "gui.ScreenMixin",
     "network.ClientPlayNetworkHandlerMixin",
-    "render.DrawModeMixin",
     "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",
     "render.HeldItemRendererMixin",

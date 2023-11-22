@@ -7,9 +7,9 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementColor
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementSlider
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.GuiScreen
-import floppacoding.mithras.utils.render.ImageManager
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.mithras.ui.GuiScreen
+import floppacoding.aurora.core.images.ImageManager
+import floppacoding.aurora.core.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import java.io.IOException

@@ -9,7 +9,7 @@ import floppacoding.mithras.module.settings.Setting.Companion.onSet
 import floppacoding.mithras.module.settings.Setting.Companion.withInputTransform
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.*
-import floppacoding.mithras.shaders.Shader
+import floppacoding.aurora.core.shader.Shader
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 

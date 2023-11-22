@@ -1,5 +1,7 @@
 package floppacoding.mithras.shaders
 
+import floppacoding.aurora.core.shader.Shader
+import floppacoding.aurora.core.shader.impl.MainShader
 import floppacoding.mithras.shaders.impl.*
 
 
@@ -7,7 +9,7 @@ object Shaders {
     val shaders: MutableList<Shader>
         get() = mutableListOf(
             FractalShader,
-            NewShader,
+            MainShader,
         )
 
 

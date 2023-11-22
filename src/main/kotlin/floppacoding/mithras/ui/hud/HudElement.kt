@@ -6,7 +6,7 @@ import floppacoding.mithras.events.HudRenderEvent
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.NumberSetting
-import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.aurora.core.Renderer2D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.gui.DrawContext
 
