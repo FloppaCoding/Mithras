@@ -7,11 +7,11 @@ import floppacoding.mithras.utils.ChatUtils.modMessage
 // remove this this is just temporary for test
 object ExampleCommand : FloppaCommand {
     override val command: Subcommand =
-        "mtest" {
-            execute("x, y, z") { x: Float, y: Float, z: Float ->
+        command("literaltwo") {
+            execute("x", "y", "z") { x: Int, y: Int, z: Int ->
                 modMessage("x: $x, y: $y, z: $z")
             }
-            "literal" {
+            command("literaltwo") {
                 execute {
                     modMessage("literal 1")
                 }

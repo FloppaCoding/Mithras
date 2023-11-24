@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher
 import floppacoding.mithras.commands.MithrasCommandManager.commands
 import floppacoding.mithras.commands.impl.MainCommand
 import floppacoding.mithras.commands.impl.DebugCommand
+import floppacoding.mithras.commands.impl.ExampleCommand
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.command.CommandRegistryAccess
@@ -24,7 +25,7 @@ object MithrasCommandManager {
      */
     private val commands: ArrayList<Command> = arrayListOf(
         MainCommand,
-        DebugCommand
+        DebugCommand,
     )
 
     /**
@@ -39,6 +40,7 @@ object MithrasCommandManager {
                 commands.forEach {
                     dispatcher.register(it.builder)
                 }
+                dispatcher.register(ExampleCommand.command.builder)
             }
         )
     }
