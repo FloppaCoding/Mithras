@@ -11,7 +11,17 @@ import floppacoding.aurora.core.TextAlign
 interface FontRender2D {
     val defaultFontHeight: Float
         get() = DEFAULT_FONT_HEIGHT
-    val defaultFont: Font
+    //TODO add jvm overloads to the default values for java compatibility
+
+    /**
+     * The default font used when none is explicitly specified.
+     *
+     * **In general this will have to be set before it can be used!**
+     * Assume it to behave like the following:
+     *
+     *      override var defaultFont: Font by Delegates.notNull()
+     */
+    var defaultFont: Font
 
     /**
      * Renders text. This supports both line-breaks '\n' and a maximum line width.
@@ -95,16 +105,6 @@ interface FontRender2D {
      * @param width If width is null then the text will be considered as one line. Otherwise
      */
     fun textBounds(text: CharSequence, width: Float? = null, fontSize: Float = defaultFontHeight, font: Font = defaultFont) : BoundingBox
-
-    fun textField(text: String,
-                  x: Float,
-                  y: Float,
-                  width: Float,
-                  color: Int,
-                  fontSize: Float = defaultFontHeight,
-                  radius: Float = 3f,
-                  font: Font = defaultFont
-    )
 
     companion object {
         /**

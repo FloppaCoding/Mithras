@@ -11,6 +11,17 @@ import java.nio.ByteBuffer
 /**
  * Creates Open GL textures from image files.
  *
+ * @param imageBuffer The image data in a byte buffer. This should be the entire content of the image file. It will be
+ * read by [STBImage.stbi_load_from_memory] and freed afterward through [MemoryUtil.memFree].
+ * @param imageFlags the image flags. Any of:
+ *
+ * [GENERATE_MIPMAPS][Image.Flags.GENERATE_MIPMAPS],
+ * [REPEAT_XX][Image.Flags.REPEAT_X],
+ * [IMAGE_REPEAT_Y][Image.Flags.REPEAT_Y]
+ * [FLIP_Y][Image.Flags.FLIP_Y],
+ * [NEAREST][Image.Flags.NEAREST]
+ *
+ *
  * @author Aton
  */
 open class AuroraImage
@@ -95,13 +106,17 @@ open class AuroraImage
      * @param imageFlags the image flags. Any of:
      *
      * [GENERATE_MIPMAPS][Image.Flags.GENERATE_MIPMAPS],
-     * [REPEATX][Image.Flags.REPEAT_X],
-     * [IMAGE_REPEATY][Image.Flags.REPEAT_Y]
-     * [FLIPY][Image.Flags.FLIP_Y],
+     * [REPEAT_XX][Image.Flags.REPEAT_X],
+     * [IMAGE_REPEAT_Y][Image.Flags.REPEAT_Y]
+     * [FLIP_Y][Image.Flags.FLIP_Y],
      * [NEAREST][Image.Flags.NEAREST]
      */
     @Throws(IOException::class)
     constructor(path: String, vararg imageFlags: Image.Flags) : this(resourceToByteBuffer(path), *imageFlags)
+
+    fun delete() {
+        // TODO: Implement this, ideally in a way that will be executed by teh GC.
+    }
 
     companion object {
         /**

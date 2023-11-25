@@ -9,9 +9,7 @@ import floppacoding.aurora.core.Aurora.setMainBufferId
 import floppacoding.aurora.core.Aurora.setMainBufferReference
 import floppacoding.aurora.core.Aurora.useMSAA
 import floppacoding.aurora.core.font.AuroraFontRenderer
-import floppacoding.aurora.core.font.Font
 import floppacoding.aurora.core.font.FontRender2D
-import floppacoding.aurora.core.font.GLFontManager
 import floppacoding.aurora.core.images.Image
 import floppacoding.aurora.core.shader.impl.MainShader
 import org.joml.*
@@ -71,8 +69,6 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
     val projectionMatrix: Matrix4f = Matrix4f()
     internal var mainBuffer: FrameBuffer = ResizableFrameBufferReference(0, 640, 480)
     private var msaaBuffer = MSAAFrameBuffer(8, mainBuffer.width, mainBuffer.height)
-    override val defaultFont: Font
-        get() = GLFontManager.ROBOTO
 
     // States
     /**
@@ -506,10 +502,6 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         vaoBuilder.vertex(positionMatrix, firstPos).color(color).next()
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_STRIP)
         addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
-    }
-
-    override fun textField(text: String, x: Float, y: Float, width: Float, color: Int, fontSize: Float, radius: Float, font: Font) {
-        TODO("Not yet implemented")
     }
 
     override fun circle(x: Float, y: Float, radius: Float, color: Int) {

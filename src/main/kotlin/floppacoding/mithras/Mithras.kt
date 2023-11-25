@@ -1,7 +1,6 @@
 package floppacoding.mithras
 
 import floppacoding.aurora.core.Renderer2D
-import floppacoding.aurora.core.font.GLFontManager
 import floppacoding.aurora.mc_modern.AuroraMC
 import floppacoding.mithras.commands.MithrasCommandManager
 import floppacoding.mithras.config.ModuleConfig
@@ -16,6 +15,7 @@ import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.HypixelAPIHttpClient
 import floppacoding.mithras.utils.network.LowestBinAPI
+import floppacoding.mithras.utils.render.FontManager
 import kotlinx.coroutines.*
 import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
@@ -105,7 +105,7 @@ object Mithras : ModInitializer {
 		renderer2D = AuroraMC
 
 		// Load and generate fonts.
-		GLFontManager
+		FontManager
 
 		// Moved here from onInitialize because at that time some minecraft classes are not yet loaded in.
 		// Loads in all modules and sets up automatically generated functionality

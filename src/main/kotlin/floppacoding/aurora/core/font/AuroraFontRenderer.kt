@@ -13,10 +13,12 @@ object AuroraFontRenderer: FontRender2D {
     private val vaoBuilder by Aurora::vaoBuilder
     private val matrices by Aurora::matrices
 
-    override val defaultFont: Font
-        get() = GLFontManager.ROBOTO
+    private var _defaultFont: Font? = null
+    override var defaultFont: Font
+        set(value) { _defaultFont = value }
+        get() = _defaultFont ?: throw IllegalStateException("No default font defined.")
 
-    fun fontAtlas(font: GLFontManager.GLFont, x: Float, y: Float) {
+    fun fontAtlas(font: Font, x: Float, y: Float) {
 
         val width = 1024f
         val height = 2048f
@@ -35,12 +37,10 @@ object AuroraFontRenderer: FontRender2D {
         vaoBuilder.vertex(positionMatrix, x+width, y).texture(u2, v1).next()
 
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
-        Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE, font.id))
+        Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE, font.glID))
     }
 
     override fun text(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign, splitWidth: Float?) {
-        if (font !is GLFontManager.GLFont) return
-
         Aurora.push()
         val (y0, y1, scale) = setupFontTransform(x,y, fontSize, font, textAlign)
 
@@ -60,12 +60,11 @@ object AuroraFontRenderer: FontRender2D {
             Aurora.translate(0f, font.fontMetrics.normalHeight)
         }
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
-        Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXT, font.id, Aurora.getScale(positionMatrix)))
+        Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXT, font.glID, Aurora.getScale(positionMatrix)))
         Aurora.pop()
     }
 
     override fun textBox(text: CharSequence, x: Float, y: Float, color: Int, width: Float, fontSize: Float, font: Font, textAlign: TextAlign, boxAlign: TextAlign) {
-        if (font !is GLFontManager.GLFont) return
         Aurora.push()
         val (y0, y1, scale) = setupFontTransform(x, y, fontSize, font, textAlign)
 
@@ -103,12 +102,11 @@ object AuroraFontRenderer: FontRender2D {
             Aurora.translate(0f, font.fontMetrics.normalHeight)
         }
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
-        Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXT, font.id, Aurora.getScale(positionMatrix)))
+        Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXT, font.glID, Aurora.getScale(positionMatrix)))
         Aurora.pop()
     }
 
     override fun textLine(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign) {
-        if (font !is GLFontManager.GLFont) return
         Aurora.push()
         val (y0, y1, _) = setupFontTransform(x, y,fontSize, font, textAlign)
 
@@ -124,11 +122,11 @@ object AuroraFontRenderer: FontRender2D {
         drawLineInternal(positionMatrix, text, offset, y0, y1, font, color)
 
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
-        Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXT, font.id, Aurora.getScale(positionMatrix)))
+        Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXT, font.glID, Aurora.getScale(positionMatrix)))
         Aurora.pop()
     }
 
-    private fun setupFontTransform(x: Float, y:Float, fontSize: Float, font: GLFontManager.GLFont, textAlign: TextAlign): FontPosition {
+    private fun setupFontTransform(x: Float, y:Float, fontSize: Float, font: Font, textAlign: TextAlign): FontPosition {
         val fontMetrics = font.fontMetrics
         val scale = fontSize/(fontMetrics.normalHeight)
 
@@ -151,7 +149,7 @@ object AuroraFontRenderer: FontRender2D {
         return FontPosition(y0, y1, scale)
     }
 
-    private fun splitLines(text: CharSequence, font: GLFontManager.GLFont, splitWidth: Float?) : List<MutablePair<CharSequence, Float>> {
+    private fun splitLines(text: CharSequence, font: Font, splitWidth: Float?) : List<MutablePair<CharSequence, Float>> {
         val lines = mutableListOf<MutablePair<CharSequence, Float>>()
         if (splitWidth != null) {
             try {
@@ -184,9 +182,9 @@ object AuroraFontRenderer: FontRender2D {
         return lines
     }
 
-    private fun drawLineInternal(positionMatrix: Matrix3x2f, text: CharSequence, xOffs: Float, y0: Float, y1: Float, font: GLFontManager.GLFont, color: Int) {
+    private fun drawLineInternal(positionMatrix: Matrix3x2f, text: CharSequence, xOffs: Float, y0: Float, y1: Float, font: Font, color: Int) {
         var x0: Float; var x1: Float; var pos = xOffs
-        var metrics: GLFontManager.GLFont.GlyphMetrics
+        var metrics: GlyphMetrics
         for(char in text) {
             metrics = font.glyphMetrics[char] ?: continue
             x0 = pos+metrics.leftSiderBearing - font.fontMetrics.padding
@@ -200,11 +198,10 @@ object AuroraFontRenderer: FontRender2D {
     }
 
     override fun textWidth(text: CharSequence, fontSize: Float, font: Font): Float {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
         return textWidthInternal(text, font) * fontSize / font.fontMetrics.normalHeight
     }
 
-    private fun textWidthInternal(text: CharSequence, font: GLFontManager.GLFont): Float {
+    private fun textWidthInternal(text: CharSequence, font: Font): Float {
         var width = 0f
         for(char in text) {
             width += font.glyphMetrics[char]?.advance ?: 0f
@@ -213,7 +210,6 @@ object AuroraFontRenderer: FontRender2D {
     }
 
     override fun textBounds(text: CharSequence, width: Float?, fontSize: Float, font: Font): BoundingBox {
-        if (font !is GLFontManager.GLFont) throw Error("Invalid Font")
         var rows = 1
         var longestLine = 0f
         if (width != null) {
@@ -245,10 +241,6 @@ object AuroraFontRenderer: FontRender2D {
         longestLine *= fontSize/font.fontMetrics.normalHeight
         val height = rows * font.fontMetrics.normalHeight * fontSize/font.fontMetrics.normalHeight
         return BoundingBox(0f, 0f, longestLine, height)
-    }
-
-    override fun textField(text: String, x: Float, y: Float, width: Float, color: Int, fontSize: Float, radius: Float, font: Font) {
-        TODO("Not yet implemented")
     }
 
     private data class FontPosition(val y0: Float, val y1: Float, val scale: Float)
