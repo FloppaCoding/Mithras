@@ -22,7 +22,18 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
         val  col1 = Color(0, 140, 100, 100).rgb
         val renderer: Renderer2D = AuroraMC
 
+
+
+
+        AuroraMC.beginFrame()
+        AuroraMC.rect(0f, 0f, 100f, 100f, -1)
+        AuroraMC.endFrame()
+
+
         renderer.beginFrame()
+        renderer.rect(0f, 0f, 100f, 110f, -1)
+
+
         for (ii in 0 until shapes) {
 
             renderer.push()
@@ -37,9 +48,9 @@ object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
             renderer.line(-50f, -50f, 50f, 50f, 20f, col1, CapStyle.ROUND)
             renderer.pop()
 
-            Aurora.ellipse(200f, 500f, Vector2f(200f, 70f), 50f, -1)
+            renderer.ellipse(200f, 500f, Vector2f(200f, 70f), 50f, -1)
 
-            Aurora.text("Floppa", 100f, 600f, 0x7f_80_00_90u.toInt(), 40f)
+            renderer.text("Floppa", 100f, 600f, 0x7f_80_00_90u.toInt(), 40f)
             Aurora.getLastDrawCall()?.enableChroma()?.enableAlpha()
 
 

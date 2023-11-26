@@ -1,12 +1,11 @@
 package floppacoding.aurora.core.font
 
-import org.apache.commons.io.IOUtils
+import floppacoding.aurora.core.data.OffHeapMemoryConsumer
+import floppacoding.aurora.core.data.ResourceLoader
 import org.lwjgl.opengl.GL46
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTruetype
 import org.lwjgl.system.MemoryUtil
-import java.io.FileNotFoundException
-import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
@@ -23,17 +22,18 @@ import java.nio.IntBuffer
  * atlas. The limit depends on the characters and the font but should be upwards of 3000 characters.
  * @author Aton
  */
-class AuroraFont(val name: String, val path: String, symbols: CharSequence) : Font {
+class AuroraFont(val name: String, val path: String, symbols: CharSequence) : Font, OffHeapMemoryConsumer() {
     override val glID: Int
     override val fontMetrics: FontMetrics
     override val glyphMetrics: Map<Char, GlyphMetrics>
 
     init {
-        val fontBuffer : ByteBuffer = resourceToByteBuffer(path)
+        val fontBuffer : ByteBuffer = ResourceLoader.resourceToByteBuffer(path)
         val fontData = createFont(fontBuffer, symbols)
         glyphMetrics = fontData.glyphMetrics
         fontMetrics = fontData.metrics
         glID = fontData.id
+        this.addCleanables(registerTextureCleaner(glID))
         MemoryUtil.memFree(fontBuffer)
     }
 
@@ -208,23 +208,6 @@ class AuroraFont(val name: String, val path: String, symbols: CharSequence) : Fo
             }
         }
         return true
-    }
-
-    /**
-     * Loads the resource as a byte buffer for use with NanoVG.
-     * For mod assets the path has to look like:
-     *
-     *      "/assets/mithras/gui/fonts/roboto-regular.ttf"
-     *
-     * @throws FileNotFoundException when the file does not exist.
-     */
-    @Throws(IOException::class)
-    private fun resourceToByteBuffer(path: String): ByteBuffer {
-        val stream = this.javaClass.getResourceAsStream(path) ?: throw FileNotFoundException(path)
-        val bytes = IOUtils.toByteArray(stream)
-        val data = MemoryUtil.memAlloc(bytes.size).put(0, bytes)
-        stream.close()
-        return data
     }
 
     private data class Return(val id: Int, val metrics: FontMetrics, val glyphMetrics: Map<Char, GlyphMetrics>)

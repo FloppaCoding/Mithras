@@ -1,5 +1,6 @@
 package floppacoding.aurora.core
 
+import floppacoding.aurora.core.data.OffHeapMemoryConsumer
 import floppacoding.aurora.core.font.FontRender2D
 import floppacoding.aurora.core.images.Image
 import org.joml.Vector2f
@@ -53,8 +54,14 @@ interface Renderer2D : FontRender2D {
      * Ends drawing the frame.
      *
      * All rendering instructions have to be wrapped in [beginFrame] amd [endFrame].
+     *
+     * Implementation hint: The implementation should always include a call to super.endFrame().
+     * This is required to run queued tasks on the render thread. In particular this is used for automatically freeing
+     * GPU memory by the garbage collector.
      */
-    fun endFrame()
+    fun endFrame() {
+        OffHeapMemoryConsumer.replayCleanupQueue()
+    }
 
     /**
      * Cancels the frame currently in construction.

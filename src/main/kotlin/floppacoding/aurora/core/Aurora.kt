@@ -181,6 +181,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
     }
 
     override fun endFrame() {
+        super.endFrame()
         if(drawCalls.isEmpty()) return
 
         if(useMSAA) msaaBuffer.useAndCopyFrom(mainBuffer)

@@ -8,6 +8,10 @@ import net.minecraft.client.gui.DrawContext
 object AuroraMC : Renderer2DMC, Renderer2D by Aurora {
     private val mc = MinecraftClient.getInstance()
 
+    init {
+        Aurora.setMainBuffer(FrameBufferMC(mc.framebuffer))
+    }
+
     override fun beginFrame(context: DrawContext) {
         Aurora.beginFrame()
         setTransform(context)
