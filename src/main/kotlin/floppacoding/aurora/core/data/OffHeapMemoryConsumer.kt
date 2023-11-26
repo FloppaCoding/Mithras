@@ -1,6 +1,5 @@
 package floppacoding.aurora.core.data
 
-import com.google.common.collect.Queues
 import org.lwjgl.opengl.GL45.glDeleteTextures
 import org.lwjgl.system.MemoryUtil
 import java.lang.ref.Cleaner
@@ -57,7 +56,7 @@ abstract class OffHeapMemoryConsumer: AutoCloseable {
 
     companion object {
         private val cleaner: Cleaner = Cleaner.create()
-        private val cleanupQueue: ConcurrentLinkedQueue<() -> Unit> = Queues.newConcurrentLinkedQueue()
+        private val cleanupQueue: ConcurrentLinkedQueue<() -> Unit> = ConcurrentLinkedQueue()
 
         /**
          * Replays all buffered cleanup actions which must be run on the main thread.

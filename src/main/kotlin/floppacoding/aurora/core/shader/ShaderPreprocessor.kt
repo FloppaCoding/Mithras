@@ -1,6 +1,6 @@
 package floppacoding.aurora.core.shader
 
-import floppacoding.mithras.Mithras
+import floppacoding.aurora.core.Aurora
 import java.io.InputStream
 
 /**
@@ -55,13 +55,13 @@ class ShaderPreprocessor(private val resourcePath: String) {
             val path = includeMatch.groups["path"]?.value ?: "include/"
             val filename = includeMatch.groups["filename"]?.value ?: run {
                 // This should be impossible to reach.
-                Mithras.logger.error("Failed parsing filename for shader include statement for: $line")
+                Aurora.logger.error("Failed parsing filename for shader include statement for: $line")
                 return ""
             }
             val fullPath = "$resourcePath${path}$filename"
             val source = includeBuffer.getOrPut(fullPath) {
                 val stream = this.javaClass.getResourceAsStream(fullPath) ?: run{
-                    Mithras.logger.error("Failed resolving file for shader include statement. File not found: '$fullPath' for include statement '$line'")
+                    Aurora.logger.error("Failed resolving file for shader include statement. File not found: '$fullPath' for include statement '$line'")
                     return ""
                 }
                 val builder = StringBuilder()

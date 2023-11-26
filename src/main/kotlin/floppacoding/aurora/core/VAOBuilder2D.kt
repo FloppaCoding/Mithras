@@ -2,7 +2,6 @@ package floppacoding.aurora.core
 
 import floppacoding.aurora.core.VAOBuilder2D.Companion.VERTEX_SIZE
 import floppacoding.aurora.core.VAOBuilder2D.Mode
-import floppacoding.mithras.Mithras
 import org.joml.Math
 import org.joml.Matrix3x2f
 import org.joml.Matrix4f
@@ -461,13 +460,13 @@ class VAOBuilder2D {
     private fun growVertexBuffer() {
         val currentCapacity = vertexBuffer.capacity()
         vertexBuffer = MemoryUtil.memRealloc(vertexBuffer, currentCapacity + memoryIncrease)
-        Mithras.logger.warn("Needed to grow VAOBuilder2D vertex buffer from $currentCapacity bytes to ${currentCapacity + memoryIncrease} bytes.")
+        Aurora.logger.warn("Needed to grow VAOBuilder2D vertex buffer from $currentCapacity bytes to ${currentCapacity + memoryIncrease} bytes.")
     }
 
     private fun growIndexBuffer() {
         val currentCapacity = indexBuffer.capacity()
         indexBuffer = MemoryUtil.memRealloc(indexBuffer, currentCapacity + (memoryIncrease shr 2))
-        Mithras.logger.warn("Needed to grow VAOBuilder2D index buffer from ${currentCapacity * 4} bytes to ${currentCapacity * 4 + memoryIncrease} bytes.")
+        Aurora.logger.warn("Needed to grow VAOBuilder2D index buffer from ${currentCapacity * 4} bytes to ${currentCapacity * 4 + memoryIncrease} bytes.")
     }
 
     /**

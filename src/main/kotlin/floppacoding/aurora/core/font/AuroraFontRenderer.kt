@@ -1,7 +1,6 @@
 package floppacoding.aurora.core.font
 
 import floppacoding.aurora.core.*
-import org.apache.commons.lang3.tuple.MutablePair
 import org.joml.Matrix3x2f
 
 /**
@@ -46,17 +45,17 @@ object AuroraFontRenderer: FontRender2D {
 
         val lines = splitLines(text, font, splitWidth?.div(scale))
         lines.forEach {
-            it.right = when(textAlign.horizontal) {
+            it.offset = when(textAlign.horizontal) {
                 TextAlign.Horizontal.LEFT -> 0f
-                TextAlign.Horizontal.CENTER -> -it.right/2
-                TextAlign.Horizontal.RIGHT -> -it.right
+                TextAlign.Horizontal.CENTER -> -it.length/2
+                TextAlign.Horizontal.RIGHT -> -it.length
             }
         }
 
         val positionMatrix = matrices.peek()
         vaoBuilder.begin()
         for (line in lines) {
-            drawLineInternal(positionMatrix, line.left, line.right, y0, y1, font, color)
+            drawLineInternal(positionMatrix, line.text, line.offset, y0, y1, font, color)
             Aurora.translate(0f, font.fontMetrics.normalHeight)
         }
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
@@ -71,10 +70,10 @@ object AuroraFontRenderer: FontRender2D {
 
         val lines = splitLines(text, font, width.div(scale))
         lines.forEach {
-            it.right = when(textAlign.horizontal) {
+            it.offset = when(textAlign.horizontal) {
                 TextAlign.Horizontal.LEFT -> 0f
-                TextAlign.Horizontal.CENTER -> -it.right/2
-                TextAlign.Horizontal.RIGHT -> -it.right
+                TextAlign.Horizontal.CENTER -> -it.length/2
+                TextAlign.Horizontal.RIGHT -> -it.length
             }
         }
         val yShift = when(boxAlign.vertical) {
@@ -98,7 +97,7 @@ object AuroraFontRenderer: FontRender2D {
         val positionMatrix = matrices.peek()
         vaoBuilder.begin()
         for (line in lines) {
-            drawLineInternal(positionMatrix, line.left, line.right, y0, y1, font, color)
+            drawLineInternal(positionMatrix, line.text, line.offset, y0, y1, font, color)
             Aurora.translate(0f, font.fontMetrics.normalHeight)
         }
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
@@ -149,8 +148,13 @@ object AuroraFontRenderer: FontRender2D {
         return FontPosition(y0, y1, scale)
     }
 
-    private fun splitLines(text: CharSequence, font: Font, splitWidth: Float?) : List<MutablePair<CharSequence, Float>> {
-        val lines = mutableListOf<MutablePair<CharSequence, Float>>()
+    /**
+     * Splits the given [text] into a list of lines containing their text and length.
+     * Each line is no longer than [splitWidth].
+     * Line termination characters '\n' will also result in a split.
+     */
+    private fun splitLines(text: CharSequence, font: Font, splitWidth: Float?) : List<Line> {
+        val lines = mutableListOf<Line>()
         if (splitWidth != null) {
             try {
                 var width = 0f
@@ -158,14 +162,14 @@ object AuroraFontRenderer: FontRender2D {
                 var jump = 0
                 for ((index, char) in text.withIndex()) {
                     if (char == '\n') {
-                        lines.add(MutablePair(text.subSequence(jump, index), width))
+                        lines.add(Line(text.subSequence(jump, index), width))
                         width = 0f
                         jump = index + 1
                         continue
                     }
                     advance = font.glyphMetrics[char]?.advance ?: 0f
                     if (width > splitWidth) {
-                        lines.add(MutablePair(text.subSequence(jump, index - 1), width))
+                        lines.add(Line(text.subSequence(jump, index - 1), width))
                         width = advance
                         jump = index
                         continue
@@ -177,7 +181,7 @@ object AuroraFontRenderer: FontRender2D {
                 return emptyList()
             }
         }else {
-            text.split('\n').mapTo(lines){ MutablePair(it, textWidthInternal(it, font)) }
+            text.split('\n').mapTo(lines){ Line(it, textWidthInternal(it, font)) }
         }
         return lines
     }
@@ -244,4 +248,8 @@ object AuroraFontRenderer: FontRender2D {
     }
 
     private data class FontPosition(val y0: Float, val y1: Float, val scale: Float)
+
+    private class Line(val text: CharSequence, val length: Float) {
+        var offset: Float = 0f
+    }
 }
