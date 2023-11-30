@@ -24,5 +24,5 @@ object Test : GuiScreen("Hello") {
         NVGR.text("✔✖?", 450f, 150f, -1, fontSize = 40f)
     }
 
-    override val displayFPS: Boolean = true
+    override val displayPerformance: Boolean = true
 }

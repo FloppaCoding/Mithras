@@ -105,7 +105,10 @@ object Extensions {
     val HORIZONTALS: List<Direction> = listOf(Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST)
 
 
-    /** So you don't have to multiply by a billion for nanoseconds. */
+    // TODO rename this
+    /**
+     * Used for executors
+     */
     inline val Int.seconds: Long
         get() = (this * 1_000_000_000).toLong()
 
@@ -116,8 +119,4 @@ object Extensions {
         }
     }
 
-    /**
-     * Cleaner way to check if time has passed.
-     */
-    fun Long.hasTimePassed(delay: Long): Boolean = System.nanoTime() - this >= delay
 }
