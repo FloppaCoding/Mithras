@@ -5,7 +5,7 @@ import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.aurora.core.Renderer2D
 import java.awt.Color
 
 /**

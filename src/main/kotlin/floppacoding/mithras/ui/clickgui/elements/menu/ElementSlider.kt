@@ -5,7 +5,7 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.aurora.core.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
@@ -26,7 +26,7 @@ class ElementSlider(parent: ModuleButton, setting: NumberSetting<*>) :
 
         /** Render the text */
         renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-        renderer.text(displayVal, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+        renderer.text(displayVal, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
 
         /** Render the slider */
         renderer.rect(0f, 12f, width, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)

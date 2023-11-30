@@ -7,7 +7,7 @@ import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.module.settings.impl.SelectorSetting
 import floppacoding.mithras.ui.clickgui.ClickGUI
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.aurora.core.Renderer2D
 
 /**
  * Parent class to the settings elements in the click gui.
@@ -21,7 +21,7 @@ abstract class Element<S: Setting<*>>(
     val type: ElementType
 ) {
     val clickgui: ClickGUI = parent.panel.clickgui
-    protected val renderer: Renderer2D = parent.renderer
+    protected val renderer: Renderer2D by parent::renderer
     /** Relative position of this element in respect to [parent]. */
     var x = 2f
     /** Relative position of this element in respect to [parent]. */

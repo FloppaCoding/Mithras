@@ -53,6 +53,9 @@ enum class SkyblockItem(
     SILK_EDGE_SWORD("Silk-Edge Sword", "SILK_EDGE_SWORD"),
     AOTS("Axe of the Shredded", "AXE_OF_THE_SHREDDED"),
 
+    // TOOLS
+    STONK("Stonk", "STONK_PICKAXE"),
+
     //ARMOR
     SPRING_BOOTS("Spring Boots", "SPRING_BOOTS", Attribute.ARMOR),
 

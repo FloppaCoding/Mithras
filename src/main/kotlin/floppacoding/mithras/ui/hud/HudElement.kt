@@ -6,9 +6,9 @@ import floppacoding.mithras.events.HudRenderEvent
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.NumberSetting
-import floppacoding.mithras.ui.nanovg.NVGR
-import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.aurora.core.Renderer2D
 import meteordevelopment.orbit.EventHandler
+import net.minecraft.client.gui.DrawContext
 
 /**
  * Provides functionality for game overlay elements.
@@ -22,6 +22,9 @@ abstract class HudElement  {
 
     var width: Float
     var height: Float
+
+    open val renderer: Renderer2D
+        get() = Mithras.renderer2D
 
     private val zoomIncrement = 0.05f
 
@@ -99,7 +102,7 @@ abstract class HudElement  {
         renderer.translate(x, y)
         renderer.scale(scale.value, scale.value)
 
-        renderHud()
+        renderHud(event.context)
 
         renderer.pop()
         renderer.endFrame()
@@ -110,10 +113,20 @@ abstract class HudElement  {
      *
      * This method is responsible for rendering the HUD element.
      * Within this method coordinates are already transformed in regard to the HUD position [x],[y] and [scale].
-     * You can use [NVGR] for nice rendering, but the vanilla [context] is also available and properly transformed.
-     * So the vanilla rendering can be used as well.
+     * You can use [renderer] for nice rendering, the vanilla context is also available.
+     * So the vanilla rendering can be used as well. Note that the vanilla context is **NOT** properly transformed.
+     * You can transform the vanilla context to the same coordinates by surrounding your rendering in:
+     *
+     *      context.matrices.push()
+     *      context.matrices.translate(x,y,0f)
+     *      context.matrices.scale(scale.value, scale.value, 1f)
+     *
+     *      // Your rendering
+     *
+     *      context.matrices.pop()
+     * You might also need to adjust for the GUI scale before the translation.
      */
-    abstract fun renderHud()
+    protected abstract fun renderHud(context: DrawContext)
 
     /**
      * Used for moving the hud element.
@@ -124,12 +137,22 @@ abstract class HudElement  {
         renderer.translate(x, y)
         renderer.scale(scale.value, scale.value)
 
-        renderer.rect(0f, 0f, width, height, -0x44eaeaeb)
+        drawPreview()
 
         renderer.pop()
     }
 
+    /**
+     * Draws a box with the dimensions of the hud element as a preview.
+     *
+     * If a custom preview is desired this can be overridden.
+     */
+    protected open fun drawPreview() {
+        renderer.rect(0f, 0f, width, height, -0x44eaeaeb)
+    }
+
     companion object {
-        val renderer: Renderer2D = Mithras.renderer2D
+        val DEFAULT_RENDERER: Renderer2D
+            get() = Mithras.renderer2D
     }
 }

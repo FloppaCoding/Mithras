@@ -5,8 +5,11 @@ import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.AlwaysActive
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.settings.Setting.Companion.onSet
+import floppacoding.mithras.module.settings.Setting.Companion.withInputTransform
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.*
+import floppacoding.aurora.core.shader.Shader
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
@@ -37,10 +40,16 @@ object MainSettings: Module(
     val prefixStyle = +SelectorSetting("Prefix Style", PrefixStyle.LONG, description = "Chat prefix selection for mod messages.")
     val customPrefix = +StringSetting("Custom Prefix", "§0§l[§4§Project Mithras§0§l]§r", 40, description = "You can set a custom chat prefix that will be used when Custom is selected in the Prefix Style dropdown.")
     val chromaSize  by NumberSetting("Chroma Size",   0.5f, 0.0f,   1.0f, 0.01f, description = "Determines how rapidly the chroma pattern changes spatially.")
+        .onSet { size -> Shader.setChromaSize(size) }
     val chromaSpeed by NumberSetting("Chroma Speed",  0.5f, 0.0f,   1.0f, 0.01f, description = "Determines how fast the chroma changes with time.")
+        .onSet { speed -> Shader.setChromaSpeed(speed) }
     val chromaAngle by NumberSetting("Chroma Angle", 45.0f, 0.0f, 360.0f,  1.0f, description = "Determines the direction in which the chroma changes on your screen.")
+        .onSet { angle -> Shader.setChromaAngle(angle) }
     val showUsageInfo = +BooleanSetting("Usage Info", true, visibility = Visibility.ADVANCED_ONLY, description = "Show info on how to use the GUI.")
-    val apiKey = +StringSetting("API Key", "", length = 100, visibility = Visibility.HIDDEN)
+    val apiKey = +StringSetting("API Key", "", length = 100, visibility = Visibility.HIDDEN).withInputTransform { apiKey: String ->
+        Mithras.apiHttpClient.updateAPIKey(apiKey)
+        return@withInputTransform apiKey
+    }
 
     const val ADVANCED_GUI_RELATIVE_WIDTH = 0.5
     const val ADVANCED_GUI_RELATIVE_HEIGHT = 0.5

@@ -5,8 +5,8 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.NVGImageManager
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.mithras.utils.render.ImageManager
+import floppacoding.aurora.core.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
@@ -43,12 +43,12 @@ class ElementColor(parent: ModuleButton, setting: ColorSetting) :
                 val isColorDragged = dragging == currentColor.ordinal
                 /** For hue render the hue bar. */
                 if (currentColor == ColorSetting.ColorComponent.HUE) {
-                    renderer.image(NVGImageManager.HUE_SCALE, 0f, currentDrawY, width, 11f)
+                    renderer.image(ImageManager.HUE_SCALE, 0f, currentDrawY, width, 11f)
                 }
 
                 val dispVal = "" + (setting.getNumber(currentColor) * 100.0).roundToInt() / 100.0
                 renderer.text(currentColor.getName(), 1f, currentDrawY +2f, ColorUtil.TEXT_COLOR)
-                renderer.text(dispVal, width - 1f, currentDrawY +2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+                renderer.text(dispVal, width - 1f, currentDrawY +2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
 
                 val maxVal = currentColor.maxValue()
                 val percentage = (setting.getNumber(currentColor)  / maxVal).toFloat()

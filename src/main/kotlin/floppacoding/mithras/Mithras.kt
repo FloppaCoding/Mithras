@@ -1,5 +1,7 @@
 package floppacoding.mithras
 
+import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.mc_modern.AuroraMC
 import floppacoding.mithras.commands.MithrasCommandManager
 import floppacoding.mithras.config.ModuleConfig
 import floppacoding.mithras.events.ClientTickEvent
@@ -7,44 +9,45 @@ import floppacoding.mithras.events.FabricEventMapper
 import floppacoding.mithras.events.GameStartEvent
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
+import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.ui.clickgui.ClickGUI
-import floppacoding.mithras.ui.nanovg.NVGR
 import floppacoding.mithras.utils.LocationManager
-import floppacoding.mithras.utils.render.Renderer2D
+import floppacoding.mithras.utils.network.BazaarAPI
+import floppacoding.mithras.utils.network.HypixelAPIHttpClient
+import floppacoding.mithras.utils.network.LowestBinAPI
+import floppacoding.mithras.utils.render.FontManager
 import kotlinx.coroutines.*
 import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
 import meteordevelopment.orbit.EventPriority
 import net.fabricmc.api.ModInitializer
+import net.hypixel.api.HypixelAPI
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.invoke.MethodHandles
+import kotlin.concurrent.timer
+
 
 object Mithras : ModInitializer {
 
     val logger: Logger = LoggerFactory.getLogger("mithras")
-
 	const val MOD_ID = "mithras"
 	const val MOD_NAME = "Project Mithras"
 	const val MOD_VERSION = "0.0.1"
-
 	const val CHAT_PREFIX = "§6§lProject §r§eMithras §6§l»§r"
 	const val SHORT_PREFIX = "§6§lF§r§eC §6§l»§r"
-
 	const val RESOURCE_DOMAIN = "mithras"
 	const val CONFIG_DOMAIN = "mithras"
 
-	lateinit var renderer2D: Renderer2D
-		private set
-
 	@JvmField
 	val mc: MinecraftClient = MinecraftClient.getInstance()
-
 	@JvmField
 	val EVENT_BUS = EventBus()
-
+	/**
+	 * This should ensure that an unchecked exception thrown in a coroutine will crash the game.
+	 */
 	private val handler = CoroutineExceptionHandler { _, exception ->
 		logger.error("Mithras coroutine caught exception: $exception")
 		exception.printStackTrace()
@@ -55,14 +58,21 @@ object Mithras : ModInitializer {
 	val scope = CoroutineScope(Dispatchers.Default + handler + CoroutineName("mithras"))
 
 	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
+	lateinit var renderer2D: Renderer2D
+	lateinit var clickGUI: ClickGUI
+		private set
+	/**
+	 * Holds the reference to the httpclient used for api requests by [HYPIXEL_API].
+	 * This is needed to set the api key later on and update it when needed.
+	 * @see MainSettings.apiKey
+	 */
+	val apiHttpClient: HypixelAPIHttpClient = HypixelAPIHttpClient("")
+	val HYPIXEL_API: HypixelAPI = HypixelAPI(apiHttpClient)
 
 	var tickRamp = 0
 		private set
 	var totalTicks: Long = 0
 		private set
-
-	lateinit var clickGUI: ClickGUI
-
 
 	override fun onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -92,8 +102,10 @@ object Mithras : ModInitializer {
 
 	@EventHandler
 	fun onGameStart(event: GameStartEvent) {
+		renderer2D = AuroraMC
 
-		renderer2D = NVGR
+		// Load and generate fonts.
+		FontManager
 
 		// Moved here from onInitialize because at that time some minecraft classes are not yet loaded in.
 		// Loads in all modules and sets up automatically generated functionality
@@ -111,6 +123,17 @@ object Mithras : ModInitializer {
 		ModuleManager.initializeModules()
 
 		clickGUI = ClickGUI()
+
+		timer(period = 60*60*1000L) {
+			scope.launch (Dispatchers.IO){
+				launch {
+					try {
+						BazaarAPI.loadData()
+					}catch (_: Exception) {}
+				}
+				launch { LowestBinAPI.loadData() }
+			}
+		}
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

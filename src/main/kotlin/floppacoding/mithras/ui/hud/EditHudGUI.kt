@@ -4,7 +4,7 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.MapRender
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.GuiScreen
+import floppacoding.mithras.ui.GuiScreen
 import net.minecraft.util.math.MathHelper
 import java.awt.Color
 

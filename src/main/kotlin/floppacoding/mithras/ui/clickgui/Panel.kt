@@ -8,8 +8,8 @@ import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementKeyBind
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil.capitalizeOnlyFirst
-import floppacoding.mithras.utils.render.Renderer2D
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.core.TextAlign
 
 /**
  * Provides a category panel for the click gui.
@@ -22,7 +22,7 @@ class Panel(
 ) {
     private val title: String = category.name.capitalizeOnlyFirst()
 
-    val renderer: Renderer2D = clickgui.renderer
+    val renderer: Renderer2D by clickgui::renderer
 
     var dragging = false
     val visible = true // Currently unused, but can be used in future for hiding categories

@@ -7,9 +7,9 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementColor
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementSlider
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.nanovg.GuiScreen
-import floppacoding.mithras.ui.nanovg.NVGImageManager
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.mithras.ui.GuiScreen
+import floppacoding.mithras.utils.render.ImageManager
+import floppacoding.aurora.core.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import java.io.IOException
@@ -83,7 +83,7 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
 
         renderer.scale(2f, 2f)
 
-        renderer.image(NVGImageManager.ICON, -5f- logoSize, -5f - logoSize, logoSize, logoSize)
+        renderer.image(ImageManager.ICON, -5f- logoSize, -5f - logoSize, logoSize, logoSize)
         renderer.text(
             MainSettings.clientName.text,
              - 10f - logoSize,

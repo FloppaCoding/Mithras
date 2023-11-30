@@ -5,6 +5,7 @@
   "mixins": [
     "MapStateAccessor",
     "PlayerInventoryMixin",
+    "WorldChunkMixin",
     "network.ClientConnectionMixin"
   ],
   "injectors": {
@@ -26,7 +27,7 @@
     "gui.HandledScreenMixin",
     "gui.InGameHudMixin",
     "gui.ScreenMixin",
-    "network.ClientPlayNetwarkHandlerMixin",
+    "network.ClientPlayNetworkHandlerMixin",
     "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",
     "render.HeldItemRendererMixin",

@@ -9,8 +9,8 @@ import floppacoding.mithras.ui.clickgui.Panel
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.*
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.Renderer2D
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.core.TextAlign
 
 /**
  * Provides the toggle button for modules in the click gui.
@@ -19,7 +19,7 @@ import floppacoding.mithras.utils.render.TextAlign
  */
 class ModuleButton(val module: Module, val panel: Panel) {
     val menuElements: ArrayList<Element<*>> = ArrayList()
-    val renderer: Renderer2D = panel.renderer
+    val renderer: Renderer2D by panel::renderer
     /** Relative position of this button in respect to [panel]. */
     var x = 0f
     /** Relative position of this button in respect to [panel]. */

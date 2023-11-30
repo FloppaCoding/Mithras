@@ -6,7 +6,7 @@ import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.aurora.core.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
@@ -31,7 +31,7 @@ class AdvancedElementSlider(
 
         /** Render the text */
         renderer.text(setting.name, 1f, 2f, ColorUtil.TEXT_COLOR)
-        renderer.text(displayVal, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+        renderer.text(displayVal, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
 
         /** Render the slider */
         renderer.rect(0f, 12f, settingWidth, 1f, ColorUtil.SLIDER_BACKGROUND_COLOR)

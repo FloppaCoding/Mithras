@@ -5,7 +5,7 @@ import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.aurora.core.TextAlign
 import net.minecraft.SharedConstants
 import org.lwjgl.glfw.GLFW
 
@@ -25,7 +25,7 @@ class ElementTextField(parent: ModuleButton, setting: StringSetting) :
         /** Rendering the text */
         if (totalWidth <= width) {
             renderer.text(displayName, 1f, 2f, ColorUtil.TEXT_COLOR)
-            renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.TOP_RIGHT)
+            renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
         }else {
             if (isTextHovered(mouseX, mouseY) || listening) {
                 renderer.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)

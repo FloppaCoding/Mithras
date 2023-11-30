@@ -8,13 +8,15 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.roomSize
 import floppacoding.mithras.ui.hud.EditHudGUI
 import floppacoding.mithras.ui.hud.HudElement
-import floppacoding.mithras.ui.nanovg.NVGImageManager
 import floppacoding.mithras.utils.Extensions.equalsOneOf
 import floppacoding.mithras.utils.Extensions.withAlpha
 import floppacoding.mithras.utils.LocationManager.inDungeons
 import floppacoding.mithras.utils.inventory.InventoryUtils.isHoldingInMainHand
 import floppacoding.mithras.utils.inventory.SkyblockItem
-import floppacoding.mithras.utils.render.TextAlign
+import floppacoding.aurora.core.images.Image
+import floppacoding.mithras.utils.render.ImageManager
+import floppacoding.aurora.core.TextAlign
+import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.entity.PlayerModelPart
 import java.awt.Color
 
@@ -26,7 +28,7 @@ object MapRender: HudElement(
     DungeonMap.mapScale
 ){
 
-    override fun renderHud() {
+    override fun renderHud(context: DrawContext) {
 
         if (!inDungeons) return
         if (DungeonMap.hideInBoss.enabled && Dungeon.inBoss) return
@@ -230,26 +232,26 @@ object MapRender: HudElement(
      * This is for white and green checkmarks, the red cross that is shown for failed puzzles and the question mark
      * for unexplored rooms.
      */
-    private fun getCheckmark(room: Room): NVGImageManager.NVGImage? {
+    private fun getCheckmark(room: Room): Image? {
         return when (MapRooms.mapCheckmark.value) {
             MapRooms.CheckmarkMode.DEFAULT -> when (room.state) {
-                RoomState.CLEARED -> NVGImageManager.DEFAULT_WHITE
-                RoomState.GREEN   -> NVGImageManager.DEFAULT_GREEN
-                RoomState.FAILED  -> NVGImageManager.DEFAULT_CROSS
+                RoomState.CLEARED -> ImageManager.DEFAULT_WHITE
+                RoomState.GREEN   -> ImageManager.DEFAULT_GREEN
+                RoomState.FAILED  -> ImageManager.DEFAULT_CROSS
                 RoomState.QUESTION_MARK -> {
                     if (!room.visited)
-                        NVGImageManager.DEFAULT_QUESTION
+                        ImageManager.DEFAULT_QUESTION
                     else null
                 }
                 else -> null
             }
             MapRooms.CheckmarkMode.NEU -> when (room.state) {
-                RoomState.CLEARED -> NVGImageManager.NEU_WHITE
-                RoomState.GREEN   -> NVGImageManager.NEU_GREEN
-                RoomState.FAILED  -> NVGImageManager.NEU_CROSS
+                RoomState.CLEARED -> ImageManager.NEU_WHITE
+                RoomState.GREEN   -> ImageManager.NEU_GREEN
+                RoomState.FAILED  -> ImageManager.NEU_CROSS
                 RoomState.QUESTION_MARK -> {
                     if (!room.visited)
-                        NVGImageManager.NEU_QUESTION
+                        ImageManager.NEU_QUESTION
                     else null
                 }
                 else -> null
@@ -365,9 +367,9 @@ object MapRender: HudElement(
             renderer.scale(DungeonMap.playerHeadScale.value, DungeonMap.playerHeadScale.value)
             renderer.border(-6.0f, -6.0f, 12.0f, 12.0f, 2.0f, 1f, Color(0, 0, 0, 255).rgb)
             val skinImage  = player.skinImage ?: return
-            renderer.image(skinImage,-6f, -6f, 12f, 12f, 1f, 8f, 8f, 8f, 8f)
+            renderer.roundedImage(skinImage,-6f, -6f, 12f, 12f, 1f, 8f, 8f, 8f, 8f)
             if (player.player.isPartVisible(PlayerModelPart.HAT)) {
-                renderer.image(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 8f, 8f)
+                renderer.roundedImage(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 8f, 8f)
             }
         } catch (_: Exception) {
         }

@@ -1,16 +1,21 @@
 package floppacoding.mithras.mixin.gui;
 
 import floppacoding.mithras.Mithras;
+import floppacoding.mithras.commands.impl.MainCommand;
 import floppacoding.mithras.events.DrawItemTooltopEvent;
 import floppacoding.mithras.events.DrawSlotEvent;
 import floppacoding.mithras.events.GuiSlotClickEvent;
+import floppacoding.mithras.utils.ChatUtils;
+import floppacoding.mithras.utils.inventory.NBTStringWriter;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,6 +23,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import static floppacoding.mithras.Mithras.mc;
 
 /**
  * Mixin to the {@link HandledScreen} class.
@@ -60,6 +68,20 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         ItemStack itemStack = this.focusedSlot.getStack();
         if (Mithras.EVENT_BUS.post(new DrawItemTooltopEvent(handledScreen, itemStack)).isCancelled()) {
             ci.cancel();
+        }
+    }
+
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+    private void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        if (!MainCommand.INSTANCE.getDevMode()) return;
+        if (keyCode == GLFW.GLFW_KEY_RIGHT_CONTROL && this.focusedSlot != null) {
+            ItemStack stack = this.focusedSlot.getStack();
+            if (stack == null) return;
+            String nbtString = NBTStringWriter.creatNbtString(stack);
+            mc.keyboard.setClipboard(nbtString);
+            Text stackName = stack.getName();
+            ChatUtils.modMessage(ChatUtils.literalText("Copied ").append(stackName).append(" item nbt data to clipboard."));
+            cir.setReturnValue(true);
         }
     }
 }

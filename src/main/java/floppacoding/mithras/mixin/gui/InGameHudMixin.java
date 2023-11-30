@@ -17,7 +17,7 @@ public abstract class InGameHudMixin {
         // This point should not be reached when the hud is hidden, if it does uncomment this.
         //        if (this.client.options.hudHidden) return;
 
-        Mithras.EVENT_BUS.post(new HudRenderEvent( tickDelta));
+        Mithras.EVENT_BUS.post(new HudRenderEvent(context, tickDelta));
     }
 
     /**
