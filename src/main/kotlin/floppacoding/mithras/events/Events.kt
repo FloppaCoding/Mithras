@@ -24,7 +24,7 @@ import net.minecraft.util.math.BlockPos
 
 /**
  * Posted when the game starts, after most initialization steps are done.
- * @see floppacoding.mithras.mixin.MainMixin.onGameStart
+ * @see floppacoding.mithras.mixin.MinecraftClientMixin.onGameStart
  */
 class GameStartEvent
 

@@ -1,7 +1,7 @@
 package floppacoding.mithras
 
-import floppacoding.aurora.core.Renderer2D
 import floppacoding.aurora.mc_modern.AuroraMC
+import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.commands.MithrasCommandManager
 import floppacoding.mithras.config.ModuleConfig
 import floppacoding.mithras.events.ClientTickEvent
@@ -32,6 +32,7 @@ import kotlin.concurrent.timer
 
 object Mithras : ModInitializer {
 
+	@JvmStatic
     val logger: Logger = LoggerFactory.getLogger("mithras")
 	const val MOD_ID = "mithras"
 	const val MOD_NAME = "Project Mithras"
@@ -58,7 +59,9 @@ object Mithras : ModInitializer {
 	val scope = CoroutineScope(Dispatchers.Default + handler + CoroutineName("mithras"))
 
 	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
-	lateinit var renderer2D: Renderer2D
+	@JvmStatic
+	lateinit var renderer2D: Renderer2DMC
+		private set
 	lateinit var clickGUI: ClickGUI
 		private set
 	/**

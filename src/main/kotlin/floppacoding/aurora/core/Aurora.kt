@@ -76,7 +76,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
      * Use [addDrawCall] or [getLastDrawCall] instead.
      */
     private val drawCalls: MutableList<RenderCall> = mutableListOf()
-    private var requiredPrecision = 3f
+    private var requiredPrecision = 4f
     var useMSAA = true
         private set
     private var scissorBox: BoundingBox? = null

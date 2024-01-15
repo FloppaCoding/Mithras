@@ -1,10 +1,11 @@
 package floppacoding.mithras.ui
 
-import floppacoding.aurora.core.Renderer2D
 import floppacoding.aurora.core.TextAlign
+import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.utils.Extensions.seconds
+import floppacoding.mithras.utils.ScreenMixinDuck
 import floppacoding.mithras.utils.clock.Clock
 import floppacoding.mithras.utils.clock.Executor
 import net.minecraft.client.gui.DrawContext
@@ -26,12 +27,20 @@ import net.minecraft.text.Text
  */
 abstract class GuiScreen(
     title: Text,
+    // TODO link this to the element scale
     var scale: Float = 1f
 ) : Screen(title) {
 
+    init {
+        @Suppress("LeakingThis")
+        (this as ScreenMixinDuck).mithras_setIsVanillaGui(false)
+        @Suppress("LeakingThis")
+        (this as ScreenMixinDuck).mithras_setElementScale(scale)
+    }
+
     constructor(title: String, scale: Float = 1f) : this(MutableText.of(LiteralTextContent(title)), scale)
 
-    open val renderer: Renderer2D
+    open val renderer: Renderer2DMC
         get() = Mithras.renderer2D
 
     private val clock = Clock()
@@ -72,8 +81,8 @@ abstract class GuiScreen(
         if (displayPerformance) {
             displayPerformance()
         }
-        renderer.endFrame()
         super.render(context, mouseX, mouseY, partialTicks)
+        renderer.endFrame()
     }
 
     /**
