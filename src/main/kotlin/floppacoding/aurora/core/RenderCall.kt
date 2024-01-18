@@ -47,7 +47,7 @@ class RenderCall @JvmOverloads constructor(
      * Returns whether the next render call can be combined with the current one.
      * This is the case when the index ranges are back to back and no state/uniform changes have to be made
      */
-    fun combinable(next: RenderCall) : Boolean{
+    internal fun isCombinable(next: RenderCall) : Boolean{
         return colorModeId == next.colorModeId  // no color mode change
             && indexRange.last + 1 == next.indexRange.first // no gap in between index ranges.
             && (next.textureUnit == null || textureUnit == next.textureUnit) // no texture change.

@@ -14,18 +14,18 @@ class Slider : GuiElement() {
         set(newValue) {
             field = newValue
             height = if (field || label != null) {
-                FULL_HEIGHT
+                NORMAL_HEIGHT
             }else {
-                SMALL_HEIGHT
+                SLIDER_HEIGHT
             }
         }
     var label: CharSequence? = null
         set(newValue) {
             field = newValue
             height = if (showValue || field != null) {
-                FULL_HEIGHT
+                NORMAL_HEIGHT
             }else {
-                SMALL_HEIGHT
+                SLIDER_HEIGHT
             }
         }
     var min: Float = 0f
@@ -42,7 +42,15 @@ class Slider : GuiElement() {
     var dragging = false
 
     init {
-        height = FULL_HEIGHT
+        height = NORMAL_HEIGHT
+    }
+
+    override fun close() {
+        if (dragging) {
+            dragging = false
+            onFinishedCallback?.invoke(value,progress)
+        }
+        super.close()
     }
 
     override fun render(mouseX: Float, mouseY: Float, delta: Float) {
@@ -64,10 +72,10 @@ class Slider : GuiElement() {
         if (showValue || label != null)
             renderer.translate(0f, OFFSET)
         // The slider progress
-        Test.renderer.roundedRect(0f, (SMALL_HEIGHT - SLIDER_BAR_HEIGHT) /2, width*progress, SLIDER_BAR_HEIGHT, SLIDER_CORNER_RADIUS, backgroundColor)
-        Test.renderer.roundedRect(0f, (SMALL_HEIGHT - SLIDER_BAR_HEIGHT) /2, width*progress, SLIDER_BAR_HEIGHT, SLIDER_CORNER_RADIUS, color)
+        Test.renderer.roundedRect(0f, (SLIDER_HEIGHT - SLIDER_BAR_HEIGHT) /2, width, SLIDER_BAR_HEIGHT, SLIDER_CORNER_RADIUS, backgroundColor)
+        Test.renderer.roundedRect(0f, (SLIDER_HEIGHT - SLIDER_BAR_HEIGHT) /2, width*progress, SLIDER_BAR_HEIGHT, SLIDER_CORNER_RADIUS, color)
         // The knob indicating the progress
-        Test.renderer.circle(bobberX, SMALL_HEIGHT /2, KNOB_RADIUS, color)
+        Test.renderer.circle(bobberX, SLIDER_HEIGHT /2, KNOB_RADIUS, color)
 
         renderer.pop()
 
@@ -78,7 +86,7 @@ class Slider : GuiElement() {
     }
 
     override fun mouseClicked(mouseX: Float, mouseY: Float, button: Int): Boolean {
-        if(button == GLFW.GLFW_MOUSE_BUTTON_1 && isMouseOverKnob(mouseX, mouseY)) {
+        if(button == GLFW.GLFW_MOUSE_BUTTON_1 && isMouseOverSlider(mouseX, mouseY)) {
             dragging = true
             return true
         }
@@ -94,9 +102,8 @@ class Slider : GuiElement() {
         return super.mouseReleased(mouseX, mouseY, button)
     }
 
-    fun isMouseOverKnob(mouseX: Float, mouseY: Float): Boolean {
-        // TODO fix this
-        return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height
+    private fun isMouseOverSlider(mouseX: Float, mouseY: Float): Boolean {
+        return mouseX >= x && mouseX < x + width && mouseY >= y + OFFSET && mouseY < y + height
     }
 
     companion object {
@@ -104,8 +111,8 @@ class Slider : GuiElement() {
         private const val SLIDER_CORNER_RADIUS = SLIDER_BAR_HEIGHT / 2
         private const val KNOB_RADIUS = 2f
 
-        private const val SMALL_HEIGHT = 5f
-        private const val FULL_HEIGHT = 15f
-        private const val OFFSET = FULL_HEIGHT - SMALL_HEIGHT
+        private const val SLIDER_HEIGHT = 5f
+        private const val NORMAL_HEIGHT = 15f
+        private const val OFFSET = NORMAL_HEIGHT - SLIDER_HEIGHT
     }
 }

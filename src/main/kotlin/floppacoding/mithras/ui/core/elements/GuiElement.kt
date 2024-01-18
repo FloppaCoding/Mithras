@@ -8,10 +8,10 @@ abstract class GuiElement {
     protected val renderer: Renderer2D
         get() = Mithras.renderer2D
 
-    protected var _x = 0f
-    protected var _y = 0f
-    protected var _width = 0f
-    protected var _height = 0f
+    private var _x = 0f
+    private var _y = 0f
+    private var _width = 0f
+    private var _height = 0f
 
     open var x: Float
         get() = _x
@@ -25,6 +25,14 @@ abstract class GuiElement {
     open var height: Float
         get() = _height
         set(value) { _height = value }
+
+    /**
+     * If the element has some extended form, e.g. a drop-down menu, or similar this should collapse it.
+     *
+     * This should also end any ongoing interactions like dragging a slider.
+     */
+    open fun close() {}
+
     // TODO: Decide where to handle translation and optionally scissoring
     abstract fun render(mouseX: Float, mouseY: Float, delta: Float)
 

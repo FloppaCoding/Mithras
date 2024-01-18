@@ -226,7 +226,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
                 var startCall: RenderCall = drawCalls[firstInBatch]; var count: Int
                 for (ii in firstInBatch .. lastInBatch) {
                     call = drawCalls[ii]
-                    if( ii < lastInBatch && call.combinable(drawCalls[ii+1])) {
+                    if( ii < lastInBatch && call.isCombinable(drawCalls[ii+1])) {
                         continue
                     }
                     MainShader.setColorMode(call.colorModeId)
