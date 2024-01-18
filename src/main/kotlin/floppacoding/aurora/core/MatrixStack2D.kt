@@ -40,4 +40,9 @@ class MatrixStack2D {
     fun loadIdentity() {
         last.identity()
     }
+
+    fun clear() {
+        stack.clear()
+        stack.addLast(Matrix3x2f())
+    }
 }

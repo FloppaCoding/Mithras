@@ -175,7 +175,7 @@ class VAOBuilder2D {
     private var firstVertex: Int = 0
 
     /**
-     * Returns the absolute index of the current index.
+     * Returns the absolute index of the current vertex.
      */
     fun getVertexIndex() : Int { return vertexIndex }
 
@@ -352,6 +352,8 @@ class VAOBuilder2D {
 
     /**
      * Sets the color of the current vertex.
+     *
+     * The values are expected to be in the range [0..255].
      */
     fun color(red: Int, green: Int, blue: Int, alpha: Int): VAOBuilder2D {
         return color(red.toByte(), green.toByte(), blue.toByte(), alpha.toByte())

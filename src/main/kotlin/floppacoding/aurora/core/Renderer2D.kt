@@ -12,8 +12,8 @@ import org.joml.Vector4f
  * This library is meant for nice GUI and HUD rendering.
  *
  * ## Usage
- * Before any rendering can be done the window size / coordinate system have be set up first.
- * By default, the method [setDimensions] is meant to take care of that.
+ * Before any rendering can be done the window size / coordinate system have to be set up first.
+ * The method [setDimensions] is meant to take care of that.
  *
  * **NOTE**: Implementations may require a different setup, or additional steps.
  *
