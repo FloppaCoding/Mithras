@@ -392,6 +392,8 @@ interface Renderer2D : FontRender2D {
     /**
      * Draws an ellipse centered at [[x],[y]] with semi-axes [a] and [b] and the given [color].
      *
+     * *Parametrization*: The ellipse is parametrized so that u is parallel to [a].
+     *
      * @param a Is one of the semi-axes of the ellipse and determines the orientation of the ellipse.
      * @param b Is the length of the other semi-axis of the ellipse. It is oriented internally.
      */

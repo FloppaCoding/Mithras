@@ -1,5 +1,8 @@
 package floppacoding.aurora.core
 
+import floppacoding.aurora.core.RenderCall.ColorMode
+import floppacoding.aurora.core.shader.impl.MainShader
+
 /**
  * Contains all state information for a rendering call.
  *
@@ -43,6 +46,11 @@ class RenderCall @JvmOverloads constructor(
      */
     var textureUnit: Int? = null
 
+    private var topLeftColor    : Int? = null
+    private var topRightColor   : Int? = null
+    private var bottomLeftColor : Int? = null
+    private var bottomRightColor: Int? = null
+
     /**
      * Returns whether the next render call can be combined with the current one.
      * This is the case when the index ranges are back to back and no state/uniform changes have to be made
@@ -52,6 +60,8 @@ class RenderCall @JvmOverloads constructor(
             && indexRange.last + 1 == next.indexRange.first // no gap in between index ranges.
             && (next.textureUnit == null || textureUnit == next.textureUnit) // no texture change.
             && (next.textScale == null || textScale == next.textScale ) // no font size change
+            && next.bottomLeftColor == bottomLeftColor && next.bottomRightColor == bottomRightColor
+            && next.topLeftColor == topLeftColor && next.topRightColor == topRightColor // no color change
     }
 
     /**
@@ -67,7 +77,30 @@ class RenderCall @JvmOverloads constructor(
      * This does not affect any other attributes of the current ColorMode.
      */
     fun enableChroma(): RenderCall {
-        colorModeId = (colorModeId and REMOVE_COLOR_MASK) + CHROMA_COLOR
+        colorModeId = (colorModeId and REMOVE_COLOR_MODE_MASK) + CHROMA_COLOR
+        return this
+    }
+
+    fun setHorizontalFade(leftColor: Int, rightColor: Int): RenderCall {
+        colorModeId = (colorModeId and REMOVE_COLOR_MODE_MASK) + HORIZONTAL_COLOR_FADE
+        topLeftColor = leftColor
+        topRightColor = rightColor
+        return this
+    }
+
+    fun setVerticalFade(topColor: Int, bottomColor: Int): RenderCall {
+        colorModeId = (colorModeId and REMOVE_COLOR_MODE_MASK) + VERTICAL_COLOR_FADE
+        topLeftColor = topColor
+        bottomLeftColor = bottomColor
+        return this
+    }
+
+    fun setFourColorFade(topLeftColor: Int, bottomLeftColor: Int, bottomRightColor: Int, topRightColor: Int): RenderCall {
+        colorModeId = (colorModeId and REMOVE_COLOR_MODE_MASK) + FOUR_COLOR_FADE
+        this.topLeftColor = topLeftColor
+        this.bottomLeftColor = bottomLeftColor
+        this.bottomRightColor = bottomRightColor
+        this.topRightColor = topRightColor
         return this
     }
 
@@ -87,6 +120,18 @@ class RenderCall @JvmOverloads constructor(
     fun enableAlpha(): RenderCall {
         colorModeId = colorModeId or COLOR_ALPHA_BIT
         return this
+    }
+
+    internal fun uploadUniforms() {
+        MainShader.setColorMode(colorModeId)
+        MainShader.uploadColorMode()
+
+        textureUnit?.let { MainShader.setTextureUnit(it); MainShader.uploadTextureUnit() }
+        textScale?.let { MainShader.setAAwidth(it); MainShader.uploadAAwidth() }
+        topLeftColor?.let { MainShader.setColor(MainShader.ColorPosition.TOP_LEFT, it); MainShader.uploadColor(MainShader.ColorPosition.TOP_LEFT)}
+        topRightColor?.let { MainShader.setColor(MainShader.ColorPosition.TOP_RIGHT, it); MainShader.uploadColor(MainShader.ColorPosition.TOP_RIGHT)}
+        bottomLeftColor?.let { MainShader.setColor(MainShader.ColorPosition.BOTTOM_LEFT, it); MainShader.uploadColor(MainShader.ColorPosition.BOTTOM_LEFT)}
+        bottomRightColor?.let { MainShader.setColor(MainShader.ColorPosition.BOTTOM_RIGHT, it); MainShader.uploadColor(MainShader.ColorPosition.BOTTOM_RIGHT)}
     }
 
     /**
@@ -134,18 +179,24 @@ class RenderCall @JvmOverloads constructor(
          * Like [TEXT] but uses the chroma effect to determine the color.
          * Uses the alpha value of the vertex color.
          */
-        CHROMA_TEXT_ALPHA(CHROMA_COLOR or TEXT_BIT or COLOR_ALPHA_BIT);
+        CHROMA_TEXT_ALPHA(CHROMA_COLOR or TEXT_BIT or COLOR_ALPHA_BIT),
+        HORIZONTAL_FADE(HORIZONTAL_COLOR_FADE),
+        VERTICAL_FADE(VERTICAL_COLOR_FADE),
+        FOUR_COLOR_FADE(RenderCall.FOUR_COLOR_FADE);
     }
 
     companion object {
-        private const val VERTEX_COLOR = 0 shl 8
-        private const val TEXTURE_COLOR = 1 shl 8
-        private const val CHROMA_COLOR = 2 shl 8
+        private const val VERTEX_COLOR          = 0 shl 8
+        private const val TEXTURE_COLOR         = 1 shl 8
+        private const val CHROMA_COLOR          = 2 shl 8
+        private const val HORIZONTAL_COLOR_FADE = 3 shl 8
+        private const val VERTICAL_COLOR_FADE   = 4 shl 8
+        private const val FOUR_COLOR_FADE       = 5 shl 8
 
         private const val TEXT_BIT = 0b10_0000
         private const val COLOR_ALPHA_BIT = 0b1_0000
 
-        private val REMOVE_COLOR_MASK: Int = 0xff_ff_f0_ffu.toInt()
+        private val REMOVE_COLOR_MODE_MASK: Int = 0xff_ff_00_ffu.toInt()
 
     }
 }

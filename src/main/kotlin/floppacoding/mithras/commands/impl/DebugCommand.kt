@@ -16,8 +16,8 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformatio
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.shaders.Shaders
-import floppacoding.mithras.ui.hud.Test
-import floppacoding.mithras.ui.hud.Test2
+import floppacoding.mithras.ui.other.Test
+import floppacoding.mithras.ui.other.Test2
 import floppacoding.mithras.utils.*
 import floppacoding.mithras.utils.inventory.ItemUtils.formattedLore
 import floppacoding.mithras.utils.inventory.ItemUtils.lore

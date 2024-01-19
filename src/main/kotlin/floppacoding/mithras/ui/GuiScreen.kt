@@ -77,11 +77,11 @@ abstract class GuiScreen(
         renderer.scale(scale, scale)
         renderer.push()
         render(getMouseX(), getMouseY(), partialTicks)
+        super.render(context, mouseX, mouseY, partialTicks)
         renderer.pop()
         if (displayPerformance) {
             displayPerformance()
         }
-        super.render(context, mouseX, mouseY, partialTicks)
         renderer.endFrame()
     }
 

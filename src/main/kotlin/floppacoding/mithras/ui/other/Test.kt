@@ -1,10 +1,11 @@
-package floppacoding.mithras.ui.hud
+package floppacoding.mithras.ui.other
 
 import floppacoding.mithras.ui.GuiScreen
 import floppacoding.mithras.ui.core.GuiTools.addElements
 import floppacoding.mithras.ui.core.elements.Slider
 import floppacoding.mithras.ui.core.elements.ToggleButton
 import floppacoding.mithras.utils.ChatUtils
+import org.joml.Vector2f
 import java.awt.Color
 
 object Test : GuiScreen("Hello", 2f) {
@@ -33,7 +34,15 @@ object Test : GuiScreen("Hello", 2f) {
 
 
     override fun render(mouseX: Float, mouseY: Float, delta: Float) {
+        renderer.push()
 
+        renderer.circle(100f, 100f, 50f, -1).setVerticalFade(Color(255,0,0).rgb, Color(0,255, 0, 50).rgb)
+
+        renderer.ellipse(100f, 400f, Vector2f(50f, 50f),20f, -1).setHorizontalFade(Color(255,0,0).rgb, Color(0,255, 0, 50).rgb)
+
+        renderer.roundedRect(400f, 100f, 100f, 200f, 20f, -1).setFourColorFade(Color(255,0,0).rgb, Color(0,255, 0, 50).rgb, Color(0,0, 255, 170).rgb, Color(255, 255, 0, 200).rgb)
+
+        renderer.pop()
 
     }
 

@@ -1,7 +1,7 @@
 package floppacoding.mithras.ui.core.elements
 
 import floppacoding.aurora.core.TextAlign
-import floppacoding.mithras.ui.hud.Test
+import floppacoding.mithras.ui.other.Test
 import org.joml.Math
 import org.lwjgl.glfw.GLFW
 import java.awt.Color

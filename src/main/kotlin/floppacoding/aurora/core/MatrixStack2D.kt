@@ -44,5 +44,6 @@ class MatrixStack2D {
     fun clear() {
         stack.clear()
         stack.addLast(Matrix3x2f())
+        last = stack.last()
     }
 }

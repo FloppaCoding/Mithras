@@ -1,4 +1,4 @@
-package floppacoding.mithras.ui.hud
+package floppacoding.mithras.ui.other
 
 import floppacoding.aurora.core.Aurora
 import floppacoding.aurora.core.CapStyle

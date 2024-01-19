@@ -137,10 +137,8 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
                     if( ii < lastInBatch && call.isCombinable(drawCalls[ii+1])) {
                         continue
                     }
-                    MainShader.setColorMode(call.colorModeId)
-                    MainShader.uploadColorMode()
-                    call.textureUnit?.let { MainShader.setTextureUnit(it); MainShader.uploadTextureUnit() }
-                    call.textScale?.let { MainShader.setAAwidth(it); MainShader.uploadAAwidth() }
+
+                    call.uploadUniforms()
                     val scissorBox = call.scissorBox
                     if (scissorBox!= null) {
                         if (!scissoring) {
