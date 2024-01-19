@@ -67,16 +67,16 @@ class ColorPicker : GuiElement() {
         val color = Color.getHSBColor(hue, saturation, brightness)
         renderer.circle(bobberX, SLIDER_HEIGHT /2, KNOB_RADIUS, color.rgb)
 
-        renderer.translate(0f, SLIDER_HEIGHT)
-
-        val topY = (SB_FIELD_OFFSET - SB_FIELD_HEIGHT) * 0.5f
-        renderer.roundedRect(0f, topY, width, SB_FIELD_HEIGHT, SB_FIELD_CORNER_RADIUS, -1)
-
         if (extended) {
 
+            renderer.translate(0f, SLIDER_HEIGHT)
+
+            val topY = (SB_FIELD_OFFSET - SB_FIELD_HEIGHT) * 0.5f
+            renderer.roundedRect(0f, topY, width, SB_FIELD_HEIGHT, SB_FIELD_CORNER_RADIUS, -1)
+
+
+
         }
-
-
 
         renderer.pop()
 

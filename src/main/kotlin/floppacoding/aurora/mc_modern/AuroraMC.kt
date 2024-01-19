@@ -1,11 +1,11 @@
 package floppacoding.aurora.mc_modern
 
 import floppacoding.aurora.core.Aurora
-import floppacoding.aurora.core.AuroraRenderer
+import floppacoding.aurora.core.Renderer2D
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 
-object AuroraMC : Renderer2DMC, AuroraRenderer by Aurora {
+object AuroraMC : Renderer2DMC, Renderer2D by Aurora {
     private val mc = MinecraftClient.getInstance()
 
     init {

@@ -1,9 +1,9 @@
 package floppacoding.aurora.mc_modern
 
-import floppacoding.aurora.core.AuroraRenderer
+import floppacoding.aurora.core.Renderer2D
 import net.minecraft.client.gui.DrawContext
 
-interface Renderer2DMC : AuroraRenderer {
+interface Renderer2DMC : Renderer2D {
 
     /**
      * This method in not required in this library, as dimensions are handled internally.
