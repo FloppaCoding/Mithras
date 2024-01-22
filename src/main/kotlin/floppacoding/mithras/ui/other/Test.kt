@@ -2,6 +2,7 @@ package floppacoding.mithras.ui.other
 
 import floppacoding.mithras.ui.GuiScreen
 import floppacoding.mithras.ui.core.GuiTools.addElements
+import floppacoding.mithras.ui.core.elements.ColorPicker
 import floppacoding.mithras.ui.core.elements.Slider
 import floppacoding.mithras.ui.core.elements.ToggleButton
 import floppacoding.mithras.utils.ChatUtils
@@ -29,14 +30,20 @@ object Test : GuiScreen("Hello", 2f) {
                 ChatUtils.chatMessage("Toggled: $value")
             }
         }
-        addElements(slider, toggleButton)
+        val colorPicker = ColorPicker().apply {
+            x = 100f
+            y = 60f
+            width = 100f
+            label = "Color Picker"
+        }
+        addElements(slider, toggleButton, colorPicker)
     }
 
 
     override fun render(mouseX: Float, mouseY: Float, delta: Float) {
         renderer.push()
 
-        renderer.circle(100f, 100f, 50f, -1).setVerticalFade(Color(255,0,0).rgb, Color(0,255, 0, 50).rgb)
+        renderer.circle(100f, 250f, 50f, -1).setVerticalFade(Color(255,0,0).rgb, Color(0,255, 0, 50).rgb)
 
         renderer.ellipse(100f, 400f, Vector2f(50f, 50f),20f, -1).setHorizontalFade(Color(255,0,0).rgb, Color(0,255, 0, 50).rgb)
 
