@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import floppacoding.aurora.core.Aurora
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
+import floppacoding.mithras.Mithras.renderer2D
 import floppacoding.mithras.commands.CmdSource
 import floppacoding.mithras.commands.Command
 import floppacoding.mithras.mixin.PlayerSkinAccessor
@@ -27,6 +28,8 @@ import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
 import floppacoding.mithras.utils.render.ImageManager
+import floppacoding.renameui.UIScreen
+import floppacoding.renameui.create
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.client.texture.PlayerSkinTexture
@@ -47,6 +50,11 @@ import kotlin.experimental.and
 object DebugCommand : Command() {
     override val builder: LiteralArgumentBuilder<CmdSource> =
         command("mdebug") {
+            literal("ui") {
+                execute {
+                    Extensions.setScreen(UIScreen(create(renderer2D)))
+                }
+            }
             literal("data") {
                 literal("scoreboard") {
                     execute {
