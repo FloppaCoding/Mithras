@@ -1,16 +1,17 @@
-package floppacoding.renameui
+package floppacoding.oldui
 
 import floppacoding.aurora.core.Renderer2D
-import floppacoding.renameui.constraint.Constraints
-import floppacoding.renameui.constraint.px
-import floppacoding.renameui.elements.Element
-import floppacoding.renameui.elements.impl.Group
-import floppacoding.renameui.events.Event
-import floppacoding.renameui.events.Mouse
+import floppacoding.oldui.constraint.Constraints
+import floppacoding.oldui.constraint.px
+import floppacoding.oldui.elements.Element
+import floppacoding.oldui.elements.impl.Group
+import floppacoding.oldui.events.Event
+import floppacoding.oldui.events.Mouse
 import java.awt.Color
 
 // rename the stuff later
 // TODO: CLEANUP CODE
+// TODO: Add good documentation, that is clear
 class UI(val renderer: Renderer2D) {
 
     val main: Group = Group(Constraints(0.px, 0.px, 1920.px, 1080.px))
@@ -33,9 +34,10 @@ class UI(val renderer: Renderer2D) {
 
     var needsUpdate = true
 
-    fun render() {
+    fun render(scale: Float) {
         renderer.beginFrame()
-        renderer.scale(2f, 2f)
+        renderer.scale(scale, scale) // temporary
+        main.update()
         main.render()
         elementHovered?.let { renderer.border(it.x, it.y, it.width, it.height, 1f, Color.WHITE.rgb) }
        // if (needsUpdate) needsUpdate = false
@@ -46,32 +48,28 @@ class UI(val renderer: Renderer2D) {
         dispatchEvent(Mouse.Clicked(button))
     }
 
+    fun onRelease(button: Int) {
+        dispatchEventGlobal(Mouse.Released(button), main)
+    }
+
+    // scale is a temporary fix
     fun onMouseMoved(x: Float, y: Float) {
         mouseX = x / 2f
         mouseY = y / 2f
-        elementHovered = getHovered(main, x / 2f, y / 2f)
+        elementHovered = getHovered(x / 2f, y / 2f)
     }
 
-    private fun getHovered(element: Element, x: Float, y: Float): Element? {
+    private fun getHovered(x: Float, y: Float, element: Element = main): Element? {
         var result: Element? = null
         if (element.enabled && element.isInside(x, y)) {
-            // checks if even accepts any input
+            // checks if even accepts any input/events
             if (element.events != null) result = element
             for (child in element.elements) {
-                getHovered(child, x, y)?.let { result = it }
+                getHovered(x, y, child)?.let { result = it }
             }
         }
         return result
     }
-
-/*        if (element.enabled && element.isInside(x, y)) {
-            if (element.events != null) c = element
-            for (i in element.elements) {
-                if (c != null) {
-                    c = rayCheck(c, x, y)
-                }
-            }
-        }*/
 
     private fun dispatchEvent(event: Event, element: Element? = elementHovered): Boolean {
         var current = element
@@ -80,5 +78,12 @@ class UI(val renderer: Renderer2D) {
             current = current.parent
         }
         return false
+    }
+
+    private fun dispatchEventGlobal(event: Event, element: Element) {
+        element.accept(event)
+        for (child in element.elements) {
+            dispatchEventGlobal(event, child)
+        }
     }
 }

@@ -1,7 +1,7 @@
-package floppacoding.renameui.elements.impl
+package floppacoding.oldui.elements.impl
 
-import floppacoding.renameui.constraint.*
-import floppacoding.renameui.elements.Element
+import floppacoding.oldui.constraint.*
+import floppacoding.oldui.elements.Element
 
 class Column(
     constraints: Constraints?,
@@ -14,7 +14,7 @@ class Column(
     override fun addElement(element: Element) {
         if (element.constraints.y is Placeholder) {
             val last = elements.lastOrNull { it.constraints.y is Linked }
-            element.constraints.y = Linked(last, padding, true)
+            element.constraints.y = Linked(last, padding)
         }
         super.addElement(element)
     }

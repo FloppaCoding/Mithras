@@ -1,14 +1,14 @@
-package floppacoding.renameui
+package floppacoding.oldui
 
 import floppacoding.aurora.core.TextAlign
-import floppacoding.renameui.constraint.*
-import floppacoding.renameui.elements.Element
-import floppacoding.renameui.elements.impl.Column
-import floppacoding.renameui.elements.impl.Group
-import floppacoding.renameui.elements.impl.Rect
-import floppacoding.renameui.elements.impl.Text
-import java.awt.Color
-
+import floppacoding.oldui.color.Color
+import floppacoding.oldui.color.IColor
+import floppacoding.oldui.constraint.*
+import floppacoding.oldui.elements.Element
+import floppacoding.oldui.elements.impl.Column
+import floppacoding.oldui.elements.impl.Group
+import floppacoding.oldui.elements.impl.Rect
+import floppacoding.oldui.elements.impl.Text
 /*
 *
 * Ideal syntax goal
@@ -46,20 +46,20 @@ import java.awt.Color
 *
 */
 
-fun constraint(x: Number, y: Number, w: Number, h: Number) = Constraints(x.px, y.px, w.px, h.px)
+fun constraint(x: Constraint, y: Constraint, w: Constraint, h: Constraint) = Constraints(x, y, w, h)
 
-fun at(x: Number, y: Number) = Constraints(x.px, y.px, Placeholder, Placeholder)
+fun at(x: Constraint, y: Constraint) = Constraints(x, y, Placeholder, Placeholder)
 
-fun size(w: Number, h: Number) = Constraints(Placeholder, Placeholder, w.px, h.px)
+fun size(w: Constraint, h: Constraint) = Constraints(Placeholder, Placeholder, w, h)
 
 fun <E : Element> E.center(): E {
     if (parent == null) {
         println("Parent isn't initialized")
         return this
     }
-    if (this is Text) align = TextAlign.CENTER_MIDDLE // so text renders in center
-    if (constraints.x is Placeholder) constraints.x = Pixel((parent!!.width / 2f) - width / 2f)
-    if (constraints.y is Placeholder) constraints.y = Pixel((parent!!.height / 2f) - height / 2f)
+    //if (this is Text) align = TextAlign.CENTER_MIDDLE // so text renders in center
+    if (constraints.x is Placeholder) constraints.x = Aligning(Align.MIDDLE)
+    if (constraints.y is Placeholder) constraints.y = Aligning(Align.MIDDLE)
     return this
 }
 
@@ -69,7 +69,7 @@ fun <E : Element> E.bound(): E {
     return this
 }
 
-fun Element.rect(constraints: Constraints, color: Color, block: Rect.() -> Unit = {}): Rect {
+fun Element.rect(constraints: Constraints? = null, color: IColor, block: Rect.() -> Unit = {}): Rect {
     val rect = Rect(constraints, color)
     rect.block()
     addElement(rect)
@@ -79,7 +79,7 @@ fun Element.rect(constraints: Constraints, color: Color, block: Rect.() -> Unit 
 fun Element.text(
     text: String,
     constraints: Constraints? = null,
-    color: Color = Color.WHITE,
+    color: IColor = Color(255, 255, 255),
     size: Float = 9f,
     align: TextAlign = TextAlign.LEFT_TOP
 ): Text {
@@ -106,9 +106,22 @@ fun Element.group(constraints: Constraints? = null, block: Group.() -> Unit): Gr
     }
 }
 
-fun <E : Element> E.indent(amount: Number): E {
+infix fun <E : Element> E.indentWidth(amount: Number): E {
     constraints.x = Pixel(amount.toFloat())
     constraints.width = Pixel(width - amount.toFloat() * 2f)
+    return this
+}
+
+fun <E : Element> E.toggle(value: Boolean = !enabled): E {
+    enabled = value
+    return this
+}
+
+fun <E : Element> E.copySize(): E {
+    constraints.apply {
+        if (width is Placeholder) width = Copy()
+        if (height is Placeholder) height = Copy()
+    }
     return this
 }
 

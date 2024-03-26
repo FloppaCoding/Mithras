@@ -1,20 +1,24 @@
-package floppacoding.renameui.elements.impl
+package floppacoding.oldui.elements.impl
 
 import floppacoding.aurora.core.TextAlign
-import floppacoding.renameui.UI
-import floppacoding.renameui.constraint.Constraints
-import floppacoding.renameui.constraint.Pixel
-import floppacoding.renameui.constraint.placeholderConstraints
-import floppacoding.renameui.elements.Element
-import java.awt.Color
+import floppacoding.oldui.UI
+import floppacoding.oldui.color.IColor
+import floppacoding.oldui.constraint.Constraints
+import floppacoding.oldui.constraint.Pixel
+import floppacoding.oldui.constraint.placeholderConstraints
+import floppacoding.oldui.elements.Element
 
 class Text(
     var text: String,
     constraints: Constraints? = null,
-    var color: Color,
+    color: IColor,
     var size: Float,
     var align: TextAlign = TextAlign.LEFT_TOP
 ) : Element(constraints ?: placeholderConstraints()) {
+
+    init {
+        this.color = color
+    }
 
     override fun initialize(ui: UI) {
         super.initialize(ui)
@@ -24,6 +28,6 @@ class Text(
     }
 
     override fun draw() {
-        renderer.text(text, x, y, color.rgb, size, textAlign = align)
+        renderer.text(text, x, y, color!!.rgba, size, textAlign = align)
     }
 }

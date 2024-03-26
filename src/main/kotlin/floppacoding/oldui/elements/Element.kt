@@ -1,9 +1,12 @@
-package floppacoding.renameui.elements
+package floppacoding.oldui.elements
 
 import floppacoding.aurora.core.Renderer2D
-import floppacoding.renameui.UI
-import floppacoding.renameui.constraint.Constraints
-import floppacoding.renameui.events.Event
+import floppacoding.oldui.UI
+import floppacoding.oldui.color.IColor
+import floppacoding.oldui.constraint.Constraints
+import floppacoding.oldui.constraint.Type
+import floppacoding.oldui.events.Event
+import floppacoding.oldui.events.Mouse
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 
 abstract class Element(val constraints: Constraints) {
@@ -17,19 +20,39 @@ abstract class Element(val constraints: Constraints) {
 
     val elements: ArrayList<Element> = arrayListOf()
 
-    var x: Float = constraints.x.value
+    var internalX = constraints.x.update(this, Type.X)
+        set(value) {
+            x = value + (parent?.x ?: 0f)
+            field = value
+        }
 
-    var y: Float = constraints.y.value
+    var internalY = constraints.y.update(this, Type.Y)
+        set(value) {
+            y = value + (parent?.y ?: 0f)
+            field = value
+        }
 
-    val width: Float
-        get() = constraints.width.value
+    var x: Float = internalX
 
-    val height: Float
-        get() = constraints.height.value
+    var y: Float = internalY
+
+    var width: Float = constraints.width.update(this, Type.WIDTH)
+
+    var height: Float = constraints.height.update(this, Type.HEIGHT)
+
+    var color: IColor? = null
 
     var events: HashMap<Event, ArrayList<Event.() -> Boolean>>? = null
 
     var isHovered = false
+        set(value) {
+            if (value) {
+                accept(Mouse.Entered)
+            } else {
+                accept(Mouse.Exited)
+            }
+            field = value
+        }
 
     var enabled: Boolean = true
 
@@ -50,16 +73,22 @@ abstract class Element(val constraints: Constraints) {
 
     abstract fun draw()
 
+    fun update() {
+        if (!enabled) return
+        constraints.updatePosition(this)
+        for (element in elements) {
+            element.update()
+        }
+        constraints.updateSize(this)
+    }
 
     fun render() {
         if (!enabled) return
-        if (ui.needsUpdate) {
-            constraints.update(this)
-            x = constraints.x.value + (parent?.x ?: 0f)
-            y = constraints.y.value + (parent?.y ?: 0f)
-        }
         draw()
         renderChildren()
+//        if (ui.needsUpdate) {
+//            constraints.updateSize(this)
+//        }
     }
 
     open fun renderChildren() {

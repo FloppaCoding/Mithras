@@ -28,8 +28,9 @@ import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
 import floppacoding.mithras.utils.render.ImageManager
-import floppacoding.renameui.UIScreen
-import floppacoding.renameui.create
+import floppacoding.oldui.UIScreen
+import floppacoding.oldui.create
+import floppacoding.ui.UIV2Screen
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.client.texture.PlayerSkinTexture
@@ -46,13 +47,19 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import kotlin.experimental.and
+import floppacoding.ui.create as createOdin
 
 object DebugCommand : Command() {
     override val builder: LiteralArgumentBuilder<CmdSource> =
         command("mdebug") {
             literal("ui") {
                 execute {
-                    Extensions.setScreen(UIScreen(create(renderer2D)))
+                    Extensions.setScreen(UIScreen(create(renderer2D), 2f))
+                }
+            }
+            literal("ui2") {
+                execute {
+                    Extensions.setScreen(UIV2Screen(createOdin(renderer2D)))
                 }
             }
             literal("data") {
