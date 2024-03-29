@@ -25,15 +25,17 @@ import floppacoding.ui.UIV2
 //
 // Goal: to avoid assigning positions and sizes as much as possible/mainly avoid magic numbers
 
-abstract class ElementV2(val constraints: Constraints) {
+abstract class Element(constraints: Constraints?) {
+
+    val constraints: Constraints = constraints ?: Constraints(Undefined, Undefined, Undefined, Undefined)
 
     lateinit var ui: UIV2
 
     val renderer get() = ui.renderer2D
 
-    var parent: ElementV2? = null
+    var parent: Element? = null
 
-    var elements: ArrayList<ElementV2>? = null
+    var elements: ArrayList<Element>? = null
 
 
     var x: Float = 0f
@@ -56,10 +58,10 @@ abstract class ElementV2(val constraints: Constraints) {
     abstract fun draw()
 
     fun render() {
-        internalX = constraints.x.get(this)
-        internalY = constraints.y.get(this)
-        width = constraints.width.get(this)
-        height = constraints.height.get(this)
+        internalX = constraints.x.get(this, Axis.HORIZONTAL)
+        internalY = constraints.y.get(this, Axis.VERTICAL)
+        width = constraints.width.get(this, Axis.HORIZONTAL)
+        height = constraints.height.get(this, Axis.VERTICAL)
         draw()
         if (elements != null) {
             for (element in elements!!) {
@@ -68,12 +70,12 @@ abstract class ElementV2(val constraints: Constraints) {
         }
     }
 
-    fun addElement(elementV2: ElementV2) {
+    fun addElement(element: Element) {
         if (elements == null) elements = arrayListOf()
-        elements!!.add(elementV2)
-        elementV2.parent = this
-        elementV2.initialize(ui)
-        setupPosition(elementV2)
+        elements!!.add(element)
+        element.parent = this
+        element.initialize(ui)
+        setupPosition(element)
     }
 
     fun initialize(ui: UIV2) {
@@ -82,16 +84,16 @@ abstract class ElementV2(val constraints: Constraints) {
     }
 
     // sets up position if element being added has an undefined position
-    open fun setupPosition(elementV2: ElementV2) {
-        elementV2.apply {
+    open fun setupPosition(element: Element) {
+        element.apply {
             if (constraints.x is Undefined) constraints.x = Aligning(Align.MIDDLE)
             if (constraints.y is Undefined) constraints.y = Aligning(Align.MIDDLE)
         }
     }
 
     open fun setupSize() {
-        if (constraints.width is Undefined) constraints.x = Copying()
-        if (constraints.height is Undefined) constraints.y = Copying()
+        if (constraints.width is Undefined) constraints.width = Copying()
+        if (constraints.height is Undefined) constraints.height = Copying()
     }
 }
 
@@ -102,86 +104,52 @@ abstract class ElementV2(val constraints: Constraints) {
 //
 //}
 
-class Constraints(x: Measurement, y: Measurement, width: Measurement, height: Measurement) {
+class Constraints(var x: Position, var y: Position, var width: Size, var height: Size)
 
-    var x = x
-        set(value) {
-            value.axis = Axis.HORIZONTAL
-            field = value
-        }
-
-    var y = y
-        set(value) {
-            value.axis = Axis.VERTICAL
-            field = value
-        }
-
-    var width = width
-        set(value) {
-            value.axis = Axis.HORIZONTAL
-            field = value
-        }
-
-    var height = height
-        set(value) {
-            value.axis = Axis.VERTICAL
-            field = value
-        }
-
-    init {
-        x.axis = Axis.HORIZONTAL
-        y.axis = Axis.VERTICAL
-        width.axis = Axis.HORIZONTAL
-        height.axis = Axis.VERTICAL
-    }
+interface Position {
+    fun get(element: Element, axis: Axis): Float
+}
+interface Size {
+    fun get(element: Element, axis: Axis): Float
 }
 
-abstract class Measurement {
+interface Measurement : Position, Size
 
-    var axis: Axis = Axis.VERTICAL
-
-    abstract fun get(elementV2: ElementV2): Float
-}
-
-object Undefined : Measurement() {
-    override fun get(elementV2: ElementV2): Float {
+data object Undefined : Measurement {
+    override fun get(element: Element, axis: Axis): Float {
         return 0f
     }
 }
 
-abstract class Position : Measurement()
-
-abstract class Size : Measurement()
-
-class Pixel(private val value: Float) : Measurement() {
-    override fun get(elementV2: ElementV2): Float = value
+class Pixel(private val value: Float) : Measurement {
+    override fun get(element: Element, axis: Axis): Float = value
 }
 
-class Linked(private val link: ElementV2?) : Position() {
-    override fun get(elementV2: ElementV2): Float {
+class Linked(private val link: Element?) : Position {
+    override fun get(element: Element, axis: Axis): Float {
         if (link == null) return 0f
         return when (axis) {
-            Axis.HORIZONTAL -> link.internalX + link.width + 5f
-            Axis.VERTICAL ->link.internalY + link.height + 5f
+            Axis.HORIZONTAL -> link.internalX + link.width
+            Axis.VERTICAL ->link.internalY + link.height
         }
     }
 }
 
-class Aligning(private val align: Align, val padding: Float = 0f) : Position() {
-    override fun get(elementV2: ElementV2): Float {
+class Aligning(private val align: Align, val padding: Float = 0f) : Position {
+    override fun get(element: Element, axis: Axis): Float {
         if (align == Align.START) return padding
 
-        val value = if (axis == Axis.HORIZONTAL) elementV2.width else elementV2.height
-        val parentValue = (if (axis == Axis.HORIZONTAL) elementV2.parent?.width else elementV2.parent?.height) ?: 0f
+        val value = if (axis == Axis.HORIZONTAL) element.width else element.height
+        val parentValue = (if (axis == Axis.HORIZONTAL) element.parent?.width else element.parent?.height) ?: 0f
         return if (align == Align.MIDDLE) parentValue / 2f - value / 2f else parentValue - value - padding
     }
 }
 
 
-class Bounds : Size() {
-    override fun get(elementV2: ElementV2): Float {
+class Bounds : Size {
+    override fun get(element: Element, axis: Axis): Float {
         var value = 0f
-        for (child in elementV2.elements ?: return value) {
+        for (child in element.elements ?: return value) {
             //if (!child.enabled) continue
             when (axis) {
                 Axis.HORIZONTAL -> (child.internalX + child.width).also { if (it > value) value = it }
@@ -192,11 +160,11 @@ class Bounds : Size() {
     }
 }
 
-class Copying : Size() {
-    override fun get(elementV2: ElementV2): Float {
+class Copying : Size {
+    override fun get(element: Element, axis: Axis): Float {
         return when (axis) {
-            Axis.HORIZONTAL -> elementV2.parent!!.width
-            Axis.VERTICAL -> elementV2.parent!!.height
+            Axis.HORIZONTAL -> element.parent!!.width
+            Axis.VERTICAL -> element.parent!!.height
         }
     }
 }

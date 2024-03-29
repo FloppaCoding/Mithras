@@ -4,7 +4,7 @@ import floppacoding.aurora.core.TextAlign
 import floppacoding.oldui.color.Color
 import floppacoding.oldui.color.IColor
 import floppacoding.oldui.constraint.*
-import floppacoding.oldui.elements.Element
+import floppacoding.oldui.elements.ElementOLD
 import floppacoding.oldui.elements.impl.Column
 import floppacoding.oldui.elements.impl.Group
 import floppacoding.oldui.elements.impl.Rect
@@ -52,7 +52,7 @@ fun at(x: Constraint, y: Constraint) = Constraints(x, y, Placeholder, Placeholde
 
 fun size(w: Constraint, h: Constraint) = Constraints(Placeholder, Placeholder, w, h)
 
-fun <E : Element> E.center(): E {
+fun <E : ElementOLD> E.center(): E {
     if (parent == null) {
         println("Parent isn't initialized")
         return this
@@ -63,20 +63,20 @@ fun <E : Element> E.center(): E {
     return this
 }
 
-fun <E : Element> E.bound(): E {
+fun <E : ElementOLD> E.bound(): E {
     if (constraints.width is Placeholder) constraints.width = Bounding()
     if (constraints.height is Placeholder) constraints.height = Bounding()
     return this
 }
 
-fun Element.rect(constraints: Constraints? = null, color: IColor, block: Rect.() -> Unit = {}): Rect {
+fun ElementOLD.rect(constraints: Constraints? = null, color: IColor, block: Rect.() -> Unit = {}): Rect {
     val rect = Rect(constraints, color)
     rect.block()
     addElement(rect)
     return rect
 }
 
-fun Element.text(
+fun ElementOLD.text(
     text: String,
     constraints: Constraints? = null,
     color: IColor = Color(255, 255, 255),
@@ -88,7 +88,7 @@ fun Element.text(
     return text
 }
 
-fun Element.column(
+fun ElementOLD.column(
     constraints: Constraints? = null,
     padding: Float = 0f,
     block: Column.() -> Unit = {}
@@ -99,25 +99,25 @@ fun Element.column(
     }
 }
 
-fun Element.group(constraints: Constraints? = null, block: Group.() -> Unit): Group {
+fun ElementOLD.group(constraints: Constraints? = null, block: Group.() -> Unit): Group {
     return Group(constraints).also {
         addElement(it)
         it.block()
     }
 }
 
-infix fun <E : Element> E.indentWidth(amount: Number): E {
+infix fun <E : ElementOLD> E.indentWidth(amount: Number): E {
     constraints.x = Pixel(amount.toFloat())
     constraints.width = Pixel(width - amount.toFloat() * 2f)
     return this
 }
 
-fun <E : Element> E.toggle(value: Boolean = !enabled): E {
+fun <E : ElementOLD> E.toggle(value: Boolean = !enabled): E {
     enabled = value
     return this
 }
 
-fun <E : Element> E.copySize(): E {
+fun <E : ElementOLD> E.copySize(): E {
     constraints.apply {
         if (width is Placeholder) width = Copy()
         if (height is Placeholder) height = Copy()

@@ -1,12 +1,14 @@
 package floppacoding.ui
 
 import floppacoding.aurora.core.Renderer2D
-import floppacoding.ui.elements.Constraints
-import floppacoding.ui.elements.ElementV2
-import floppacoding.ui.elements.Pixel
+import floppacoding.mithras.module.Category
+import floppacoding.mithras.module.ModuleManager.modules
+import floppacoding.ui.elements.*
 import floppacoding.ui.elements.impl.Column
 import floppacoding.ui.elements.impl.Rect
 import floppacoding.ui.elements.impl.Text
+import floppacoding.ui.utils.radii
+import org.joml.Vector4f
 
 
 /*
@@ -51,6 +53,25 @@ import floppacoding.ui.elements.impl.Text
 fun create(renderer2D: Renderer2D): UIV2 {
     return UIV2(renderer2D).apply {
         main.apply {
+            for (category in Category.entries) {
+                val panelX = category.ordinal * 260 + 20
+
+                column(at(panelX.px, 20.px)) {
+                    rect(size(240.px, 40.px), radii(tr = 5f,  tl = 5f)) {
+                        text(category.name)
+                    }       
+                    column {
+                        for (module in modules.filter { category == it.category }) {
+                            rect(size(240.px, 32.px)) {
+                                text(module.name)
+                            }
+                        }
+                    }
+                    rect(size(240.px, 10.px), radii(br = 5f,  bl = 5f))
+                }
+            }
+
+
 
 //            column(Constraints(10.px, 10.px, Undefined, Undefined)) {
 //                repeat(10) {
@@ -63,25 +84,32 @@ fun create(renderer2D: Renderer2D): UIV2 {
     }
 }
 
+fun at(x: Position, y: Position) = Constraints(x, y, Undefined, Undefined)
+
+fun size(width: Size, height: Size) = Constraints(Undefined, Undefined, width, height)
 
 val Number.px
     get() = Pixel(this.toFloat())
 
-fun ElementV2.column(constraints: Constraints, block: Column.() -> Unit = {}): Column {
+fun Element.column(constraints: Constraints? = null, block: Column.() -> Unit = {}): Column {
     val column = Column(constraints)
     addElement(column)
     column.block()
     return column
 }
 
-fun ElementV2.rect(constraints: Constraints, block: Rect.() -> Unit = {}): Rect {
-    val rect = Rect(constraints)
+fun Element.rect(
+    constraints: Constraints? = null,
+    radii: Vector4f? = null,
+    block: Rect.() -> Unit = {}
+): Rect {
+    val rect = Rect(constraints, radii)
     addElement(rect)
     rect.block()
     return rect
 }
 
-fun ElementV2.text(text: String, constraints: Constraints, block: Text.() -> Unit = {}): Text {
+fun Element.text(text: String, constraints: Constraints? = null, block: Text.() -> Unit = {}): Text {
     val rect = Text(text, constraints)
     addElement(rect)
     rect.block()

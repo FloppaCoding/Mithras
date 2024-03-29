@@ -13,7 +13,7 @@ import floppacoding.oldui.constraint.Align
 import floppacoding.oldui.constraint.Aligning
 import floppacoding.oldui.constraint.Constraints
 import floppacoding.oldui.constraint.px
-import floppacoding.oldui.elements.Element
+import floppacoding.oldui.elements.ElementOLD
 import floppacoding.oldui.elements.impl.Rect
 import floppacoding.oldui.events.onClick
 import floppacoding.oldui.events.onMouseEnter
@@ -104,7 +104,7 @@ fun create(renderer2D: Renderer2D): UI {
     }
 }
 
-fun Element.BooleanSetting(setting: BooleanSetting) =
+fun ElementOLD.BooleanSetting(setting: BooleanSetting) =
     rect(size(120.px, 15.px), Color(-0x55ededee)) {
         text(setting.name, at(1.px, 3.px))
         button(constraint(Aligning(Align.END, 2f), 2.px, 11.px, 11.px), Color(-0xe5e5e6), ClickGUIColor, setting.value) {
@@ -115,7 +115,7 @@ fun Element.BooleanSetting(setting: BooleanSetting) =
         }
     }
 
-fun Element.button(
+fun ElementOLD.button(
     constraints:Constraints,
     offColor: IColor,
     onColor: IColor,

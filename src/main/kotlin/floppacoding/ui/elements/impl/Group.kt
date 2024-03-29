@@ -1,21 +1,22 @@
 package floppacoding.ui.elements.impl
 
 import floppacoding.ui.elements.*
+import org.joml.Vector4f
 import java.awt.Color
 
-class Group(constraints: Constraints) : ElementV2(constraints) {
+class Group(constraints: Constraints?) : Element(constraints) {
     override fun draw() {
-        renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
+//        renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
     }
 }
 
-class Column(constraints: Constraints) : ElementV2(constraints) {
+class Column(constraints: Constraints?) : Element(constraints) {
     override fun draw() {
-        renderer.border(x, y, width, height, 2f, Color.BLACK.rgb)
+        // nothing
     }
 
-    override fun setupPosition(elementV2: ElementV2) {
-        elementV2.also { it ->
+    override fun setupPosition(element: Element) {
+        element.also { it ->
             if (it.constraints.x is Undefined) it.constraints.x = Pixel(0f)
             if (it.constraints.y is Undefined) {
                 val last = elements?.lastOrNull { it.constraints.y is Linked }
@@ -30,17 +31,21 @@ class Column(constraints: Constraints) : ElementV2(constraints) {
     }
 }
 
-class Rect(constraints: Constraints) : ElementV2(constraints) {
+class Rect(constraints: Constraints?, private val radii: Vector4f?) : Element(constraints) {
 
     override fun draw() {
-        renderer.rect(x, y, width, height, Color.RED.rgb)
+        if (radii == null) {
+            renderer.rect(x, y, width, height, Color.RED.rgb)
+        } else {
+            renderer.roundedRect(x, y, width, height, radii, Color.RED.rgb)
+        }
     }
 }
 
-class Text(val text: String, constraints: Constraints) : ElementV2(constraints) {
+class Text(val text: String, constraints: Constraints?) : Element(constraints) {
 
     override fun draw() {
-        renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
+        //renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
         renderer.text(text, x, y, Color.WHITE.rgb, 20f)
     }
 

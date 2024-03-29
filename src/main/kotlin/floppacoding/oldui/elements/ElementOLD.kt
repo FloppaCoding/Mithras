@@ -9,16 +9,16 @@ import floppacoding.oldui.events.Event
 import floppacoding.oldui.events.Mouse
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 
-abstract class Element(val constraints: Constraints) {
+abstract class ElementOLD(val constraints: Constraints) {
 
     lateinit var ui: UI
 
     val renderer: Renderer2D
         get() = ui.renderer
 
-    var parent: Element? = null
+    var parent: ElementOLD? = null
 
-    val elements: ArrayList<Element> = arrayListOf()
+    val elements: ArrayList<ElementOLD> = arrayListOf()
 
     var internalX = constraints.x.update(this, Type.X)
         set(value) {
@@ -116,7 +116,7 @@ abstract class Element(val constraints: Constraints) {
     }
 
     @MustBeInvokedByOverriders
-    open fun addElement(element: Element) {
+    open fun addElement(element: ElementOLD) {
         if (::ui.isInitialized) element.initialize(ui)
         element.parent = this
         elements.add(element)

@@ -6,7 +6,7 @@ import floppacoding.oldui.color.IColor
 import floppacoding.oldui.constraint.Constraints
 import floppacoding.oldui.constraint.Pixel
 import floppacoding.oldui.constraint.placeholderConstraints
-import floppacoding.oldui.elements.Element
+import floppacoding.oldui.elements.ElementOLD
 
 class Text(
     var text: String,
@@ -14,7 +14,7 @@ class Text(
     color: IColor,
     var size: Float,
     var align: TextAlign = TextAlign.LEFT_TOP
-) : Element(constraints ?: placeholderConstraints()) {
+) : ElementOLD(constraints ?: placeholderConstraints()) {
 
     init {
         this.color = color

@@ -3,7 +3,7 @@ package floppacoding.oldui
 import floppacoding.aurora.core.Renderer2D
 import floppacoding.oldui.constraint.Constraints
 import floppacoding.oldui.constraint.px
-import floppacoding.oldui.elements.Element
+import floppacoding.oldui.elements.ElementOLD
 import floppacoding.oldui.elements.impl.Group
 import floppacoding.oldui.events.Event
 import floppacoding.oldui.events.Mouse
@@ -16,7 +16,7 @@ class UI(val renderer: Renderer2D) {
 
     val main: Group = Group(Constraints(0.px, 0.px, 1920.px, 1080.px))
 
-    private var elementHovered: Element? = null
+    private var elementHovered: ElementOLD? = null
         set(value) {
             if (field === value) return
             field?.isHovered = false
@@ -59,8 +59,8 @@ class UI(val renderer: Renderer2D) {
         elementHovered = getHovered(x / 2f, y / 2f)
     }
 
-    private fun getHovered(x: Float, y: Float, element: Element = main): Element? {
-        var result: Element? = null
+    private fun getHovered(x: Float, y: Float, element: ElementOLD = main): ElementOLD? {
+        var result: ElementOLD? = null
         if (element.enabled && element.isInside(x, y)) {
             // checks if even accepts any input/events
             if (element.events != null) result = element
@@ -71,7 +71,7 @@ class UI(val renderer: Renderer2D) {
         return result
     }
 
-    private fun dispatchEvent(event: Event, element: Element? = elementHovered): Boolean {
+    private fun dispatchEvent(event: Event, element: ElementOLD? = elementHovered): Boolean {
         var current = element
         while (current != null) {
             if (current.accept(event)) return true
@@ -80,7 +80,7 @@ class UI(val renderer: Renderer2D) {
         return false
     }
 
-    private fun dispatchEventGlobal(event: Event, element: Element) {
+    private fun dispatchEventGlobal(event: Event, element: ElementOLD) {
         element.accept(event)
         for (child in element.elements) {
             dispatchEventGlobal(event, child)

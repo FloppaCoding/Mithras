@@ -1,22 +1,22 @@
 package floppacoding.oldui.constraint
 
-import floppacoding.oldui.elements.Element
+import floppacoding.oldui.elements.ElementOLD
 
 open class Constraints(
     var x: Constraint, var y: Constraint, var width: Constraint, var height: Constraint
 ) {
-    fun updatePosition(element: Element) {
+    fun updatePosition(element: ElementOLD) {
         element.internalX = x.update(element, Type.X)
         element.internalY = y.update(element, Type.Y)
     }
 
-    fun updateSize(element: Element) {
+    fun updateSize(element: ElementOLD) {
         element.width = width.update(element, Type.WIDTH)
         element.height = height.update(element, Type.HEIGHT)
     }
 }
 
-fun Element.getCounterpart(type: Type): Float {
+fun ElementOLD.getCounterpart(type: Type): Float {
     return when (type) {
         Type.X -> width
         Type.Y -> height
@@ -45,18 +45,18 @@ enum class Type {
 
 
 abstract class Constraint {
-    abstract fun update(element: Element, type: Type): Float
+    abstract fun update(element: ElementOLD, type: Type): Float
 }
 
 class Pixel(val value: Float) : Constraint() {
-    override fun update(element: Element, type: Type): Float {
+    override fun update(element: ElementOLD, type: Type): Float {
         return value
     }
 }
 
 class Aligning(private val align: Align, private val padding: Float = 0f) : Constraint() {
 
-    override fun update(element: Element, type: Type): Float {
+    override fun update(element: ElementOLD, type: Type): Float {
         return when (align) {
             Align.START -> padding
             Align.MIDDLE -> (element.parent?.getCounterpart(type) ?: 0f) / 2f - element.getCounterpart(type) / 2f
@@ -75,7 +75,7 @@ enum class Align {
 
 
 object Placeholder : Constraint() {
-    override fun update(element: Element, type: Type): Float {
+    override fun update(element: ElementOLD, type: Type): Float {
         return 0f
     }
 }
@@ -87,7 +87,7 @@ fun placeholderConstraints() = Constraints(Placeholder, Placeholder, Placeholder
 // size based constraint
 class Bounding : Constraint() {
 
-    override fun update(element: Element, type: Type): Float {
+    override fun update(element: ElementOLD, type: Type): Float {
         var value = 0f
         for (child in element.elements) {
             if (!child.enabled) continue
@@ -102,9 +102,9 @@ class Bounding : Constraint() {
 }
 
 // todo: change directon to enum
-class Linked(private val link: Element?, val padding: Float) : Constraint() {
+class Linked(private val link: ElementOLD?, val padding: Float) : Constraint() {
 
-    override fun update(element: Element, type: Type): Float {
+    override fun update(element: ElementOLD, type: Type): Float {
         if (link == null) return 0f
         return when (type) {
             Type.X -> link.internalX + link.width
@@ -116,7 +116,7 @@ class Linked(private val link: Element?, val padding: Float) : Constraint() {
 
 class Copy : Constraint() {
 
-    override fun update(element: Element, type: Type): Float {
+    override fun update(element: ElementOLD, type: Type): Float {
         return when (type) {
             Type.WIDTH -> element.parent?.width ?: 0f
             Type.HEIGHT -> element.parent?.height ?: 0f

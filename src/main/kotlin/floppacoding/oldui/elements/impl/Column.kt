@@ -1,17 +1,17 @@
 package floppacoding.oldui.elements.impl
 
 import floppacoding.oldui.constraint.*
-import floppacoding.oldui.elements.Element
+import floppacoding.oldui.elements.ElementOLD
 
 class Column(
     constraints: Constraints?,
     private val padding: Float = 0f
-) : Element(setupConstraint(constraints)) {
+) : ElementOLD(setupConstraint(constraints)) {
     override fun draw() {
         //renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
     }
 
-    override fun addElement(element: Element) {
+    override fun addElement(element: ElementOLD) {
         if (element.constraints.y is Placeholder) {
             val last = elements.lastOrNull { it.constraints.y is Linked }
             element.constraints.y = Linked(last, padding)
