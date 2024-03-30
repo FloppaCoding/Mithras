@@ -57,11 +57,22 @@ abstract class Element(constraints: Constraints?) {
 
     abstract fun draw()
 
-    fun render() {
+    var init = false
+
+    fun position() {
         internalX = constraints.x.get(this, Axis.HORIZONTAL)
         internalY = constraints.y.get(this, Axis.VERTICAL)
         width = constraints.width.get(this, Axis.HORIZONTAL)
         height = constraints.height.get(this, Axis.VERTICAL)
+        if (elements != null) {
+            for (element in elements!!) {
+                element.position()
+            }
+        }
+    }
+
+    fun render() {
+        position()
         draw()
         if (elements != null) {
             for (element in elements!!) {

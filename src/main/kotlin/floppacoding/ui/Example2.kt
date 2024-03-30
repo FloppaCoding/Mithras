@@ -110,8 +110,8 @@ fun Element.rect(
 }
 
 fun Element.text(text: String, constraints: Constraints? = null, block: Text.() -> Unit = {}): Text {
-    val rect = Text(text, constraints)
-    addElement(rect)
-    rect.block()
-    return rect
+    val text = Text(text, constraints)
+    addElement(text)
+    text.block()
+    return text
 }

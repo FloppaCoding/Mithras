@@ -16,12 +16,10 @@ class Column(constraints: Constraints?) : Element(constraints) {
     }
 
     override fun setupPosition(element: Element) {
-        element.also { it ->
-            if (it.constraints.x is Undefined) it.constraints.x = Pixel(0f)
-            if (it.constraints.y is Undefined) {
-                val last = elements?.lastOrNull { it.constraints.y is Linked }
-                it.constraints.y = Linked(last)
-            }
+        if (element.constraints.x is Undefined) element.constraints.x = Pixel(0f)
+        if (element.constraints.y is Undefined) {
+            val last = elements?.lastOrNull { it.constraints.y is Linked }
+            element.constraints.y = Linked(last)
         }
     }
 
@@ -45,7 +43,7 @@ class Rect(constraints: Constraints?, private val radii: Vector4f?) : Element(co
 class Text(val text: String, constraints: Constraints?) : Element(constraints) {
 
     override fun draw() {
-        //renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
+//        renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
         renderer.text(text, x, y, Color.WHITE.rgb, 20f)
     }
 
