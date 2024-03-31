@@ -1,15 +1,18 @@
-package floppacoding.oldui
+package floppacoding.ui
 
-import floppacoding.mithras.Mithras.mc
+import floppacoding.mithras.Mithras
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
 
-// UI Implementation for Minecraft screen ui
-class UIScreen(val ui: UI, val scale: Float = 1f) : Screen(Text.literal("")) {
+class UIScreen(val ui: UI) : Screen(Text.literal("screen")) {
+
+    override fun init() {
+        ui.initialize()
+    }
 
     override fun render(context: DrawContext?, mouseX: Int, mouseY: Int, delta: Float) {
-        ui.render(scale)
+        ui.render()
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
@@ -23,7 +26,6 @@ class UIScreen(val ui: UI, val scale: Float = 1f) : Screen(Text.literal("")) {
     }
 
     override fun mouseMoved(mouseX: Double, mouseY: Double) {
-        ui.onMouseMoved(mc.mouse.x.toFloat(), mc.mouse.y.toFloat())
+        ui.onMouseMoved(Mithras.mc.mouse.x.toFloat(), Mithras.mc.mouse.y.toFloat())
     }
-
 }

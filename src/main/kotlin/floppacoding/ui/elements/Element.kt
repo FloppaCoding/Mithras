@@ -1,6 +1,15 @@
 package floppacoding.ui.elements
 
-import floppacoding.ui.UIV2
+import floppacoding.ui.UI
+import floppacoding.ui.color.IColor
+import floppacoding.ui.constraints.Axis
+import floppacoding.ui.constraints.Constraints
+import floppacoding.ui.constraints.measurements.Undefined
+import floppacoding.ui.constraints.positions.Align
+import floppacoding.ui.constraints.positions.Aligning
+import floppacoding.ui.constraints.sizes.Copying
+import floppacoding.ui.events.Event
+import floppacoding.ui.events.Mouse
 
 
 // Positioning (X or Y) should be: defined with a measurement or aligned by left/top, center, right/bottom (with some padding)
@@ -29,14 +38,15 @@ abstract class Element(constraints: Constraints?) {
 
     val constraints: Constraints = constraints ?: Constraints(Undefined, Undefined, Undefined, Undefined)
 
-    lateinit var ui: UIV2
+    lateinit var ui: UI
 
-    val renderer get() = ui.renderer2D
+    val renderer get() = ui.renderer
 
     var parent: Element? = null
 
     var elements: ArrayList<Element>? = null
 
+    var events: HashMap<Event, ArrayList<Event.() -> Boolean>>? = null
 
     var x: Float = 0f
     var y: Float = 0f
@@ -55,9 +65,24 @@ abstract class Element(constraints: Constraints?) {
             y = value + (parent?.y ?: 0f)
         }
 
-    abstract fun draw()
+    var color: IColor? = null
 
-    var init = false
+    var isHovered = false
+        set(value) {
+            if (value) {
+                accept(Mouse.Entered)
+            } else {
+                accept(Mouse.Exited)
+            }
+            field = value
+        }
+
+    var enabled: Boolean = true
+
+    var renders: Boolean = true
+        get() = enabled && field
+
+    abstract fun draw()
 
     fun position() {
         internalX = constraints.x.get(this, Axis.HORIZONTAL)
@@ -67,11 +92,13 @@ abstract class Element(constraints: Constraints?) {
         if (elements != null) {
             for (element in elements!!) {
                 element.position()
+                element.renders = element.intersects(x, y, width, height)
             }
         }
     }
 
     fun render() {
+        if (!renders) return
         position()
         draw()
         if (elements != null) {
@@ -79,6 +106,22 @@ abstract class Element(constraints: Constraints?) {
                 element.render()
             }
         }
+    }
+
+    fun accept(event: Event): Boolean {
+        if (events != null) {
+            events?.get(event)?.let {
+                for (block in it) {
+                    if (block(event)) return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun registerEvent(event: Event, block: Event.() -> Boolean) {
+        if (events == null) events = HashMap()
+        events!!.getOrPut(event) { arrayListOf() }.add(block)
     }
 
     fun addElement(element: Element) {
@@ -89,7 +132,7 @@ abstract class Element(constraints: Constraints?) {
         setupPosition(element)
     }
 
-    fun initialize(ui: UIV2) {
+    fun initialize(ui: UI) {
         this.ui = ui
         setupSize()
     }
@@ -106,84 +149,18 @@ abstract class Element(constraints: Constraints?) {
         if (constraints.width is Undefined) constraints.width = Copying()
         if (constraints.height is Undefined) constraints.height = Copying()
     }
-}
 
-//@JvmInline
-//value class Constraints private constructor(val constraints: Array<Measurement>) {
-//
-//    constructor(x: Measurement?, y: Measurement?, width: Measurement?, height: Measurement?) : this(arrayOf(x, y, width, height))
-//
-//}
-
-class Constraints(var x: Position, var y: Position, var width: Size, var height: Size)
-
-interface Position {
-    fun get(element: Element, axis: Axis): Float
-}
-interface Size {
-    fun get(element: Element, axis: Axis): Float
-}
-
-interface Measurement : Position, Size
-
-data object Undefined : Measurement {
-    override fun get(element: Element, axis: Axis): Float {
-        return 0f
+    fun isInside(x: Float, y: Float): Boolean {
+        val tx = this.x
+        val ty = this.y
+        return x in tx..tx + width && y in ty..ty + height
     }
-}
 
-class Pixel(private val value: Float) : Measurement {
-    override fun get(element: Element, axis: Axis): Float = value
-}
-
-class Linked(private val link: Element?) : Position {
-    override fun get(element: Element, axis: Axis): Float {
-        if (link == null) return 0f
-        return when (axis) {
-            Axis.HORIZONTAL -> link.internalX + link.width
-            Axis.VERTICAL ->link.internalY + link.height
-        }
+    fun intersects(x: Float, y: Float, width: Float, height: Float): Boolean {
+        val tx = this.x
+        val ty = this.y
+        val tw = this.width
+        val th = this.height
+        return (x <= tx + tw && tx <= x + width) && (y <= ty + th && ty <= y + height)
     }
-}
-
-class Aligning(private val align: Align, val padding: Float = 0f) : Position {
-    override fun get(element: Element, axis: Axis): Float {
-        if (align == Align.START) return padding
-
-        val value = if (axis == Axis.HORIZONTAL) element.width else element.height
-        val parentValue = (if (axis == Axis.HORIZONTAL) element.parent?.width else element.parent?.height) ?: 0f
-        return if (align == Align.MIDDLE) parentValue / 2f - value / 2f else parentValue - value - padding
-    }
-}
-
-
-class Bounds : Size {
-    override fun get(element: Element, axis: Axis): Float {
-        var value = 0f
-        for (child in element.elements ?: return value) {
-            //if (!child.enabled) continue
-            when (axis) {
-                Axis.HORIZONTAL -> (child.internalX + child.width).also { if (it > value) value = it }
-                Axis.VERTICAL -> (child.internalY + child.height).also { if (it > value) value = it }
-            }
-        }
-        return value
-    }
-}
-
-class Copying : Size {
-    override fun get(element: Element, axis: Axis): Float {
-        return when (axis) {
-            Axis.HORIZONTAL -> element.parent!!.width
-            Axis.VERTICAL -> element.parent!!.height
-        }
-    }
-}
-
-enum class Axis {
-    HORIZONTAL, VERTICAL
-}
-
-enum class Align {
-    START, MIDDLE, END
 }

@@ -3,11 +3,22 @@ package floppacoding.ui
 import floppacoding.aurora.core.Renderer2D
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.ModuleManager.modules
-import floppacoding.ui.elements.*
+import floppacoding.ui.animation.Animations
+import floppacoding.ui.color.AnimatedColor
+import floppacoding.ui.color.Color
+import floppacoding.ui.color.IColor
+import floppacoding.ui.constraints.Constraints
+import floppacoding.ui.constraints.measurements.Animatable
+import floppacoding.ui.constraints.measurements.Undefined
+import floppacoding.ui.constraints.sizes.Bounding
+import floppacoding.ui.constraints.sizes.Copying
+import floppacoding.ui.elements.Element
+import floppacoding.ui.elements.impl.Block
 import floppacoding.ui.elements.impl.Column
-import floppacoding.ui.elements.impl.Rect
 import floppacoding.ui.elements.impl.Text
-import floppacoding.ui.utils.radii
+import floppacoding.ui.events.onClick
+import floppacoding.ui.events.onMouseEnterExit
+import floppacoding.ui.utils.*
 import org.joml.Vector4f
 
 
@@ -47,49 +58,67 @@ import org.joml.Vector4f
  */
 
 
-
-
-
-fun create(renderer2D: Renderer2D): UIV2 {
-    return UIV2(renderer2D).apply {
+fun create(renderer2D: Renderer2D): UI {
+    return UI(renderer2D).apply {
         main.apply {
             for (category in Category.entries) {
                 val panelX = category.ordinal * 260 + 20
 
                 column(at(panelX.px, 20.px)) {
-                    rect(size(240.px, 40.px), radii(tr = 5f,  tl = 5f)) {
+                    val animatable = Animatable(Bounding(), 0.px)
+                    block(size(240.px, 40.px), Color(26, 26, 26), radii(tl = 5, tr = 5)) {
                         text(category.name)
-                    }       
-                    column {
+
+                        onClick(1) {
+                            animatable.animate(0.5.seconds, Animations.EaseInOutQuint)
+                            true
+                        }
+                    }
+                    column(size(Undefined, animatable)) {
                         for (module in modules.filter { category == it.category }) {
-                            rect(size(240.px, 32.px)) {
+                            button(size(240.px, 32.px), Color(26, 26, 26), Color(50, 150, 220), module.enabled) {
                                 text(module.name)
+
+                                onClick(0) {
+                                    module.toggle()
+                                    true
+                                }
                             }
                         }
                     }
-                    rect(size(240.px, 10.px), radii(br = 5f,  bl = 5f))
+                    block(size(240.px, 10.px), Color(26, 26, 26), radii(br = 5, bl = 5))
                 }
             }
-
-
-
-//            column(Constraints(10.px, 10.px, Undefined, Undefined)) {
-//                repeat(10) {
-//                    rect(Constraints(Undefined, Undefined, 240.px, 40.px)) {
-//                        text("hi", Constraints(Undefined, Undefined, Undefined, Undefined))
-//                    }
-//                }
-//            }
         }
     }
 }
 
-fun at(x: Position, y: Position) = Constraints(x, y, Undefined, Undefined)
-
-fun size(width: Size, height: Size) = Constraints(Undefined, Undefined, width, height)
-
-val Number.px
-    get() = Pixel(this.toFloat())
+fun Element.button(
+    constraints: Constraints? = null,
+    offColor: IColor,
+    onColor: IColor,
+    on: Boolean = false,
+    dsl: Block.() -> Unit
+): Block {
+    val mainColor = AnimatedColor(offColor, onColor)
+    val hoverColor = AnimatedColor(Color(0, 0, 0, 0f), Color(255, 255, 255, 0.05f))
+    if (on) {
+        mainColor.animate(0f)
+    }
+    return block(constraints, mainColor) {
+        block(Constraints(0.px, 0.px, Copying(), Copying()), hoverColor) {
+            onMouseEnterExit {
+                hoverColor.animate(0.25.seconds)
+                true
+            }
+        }
+        onClick(0) {
+            mainColor.animate(0.15.seconds)
+            false
+        }
+        dsl()
+    }
+}
 
 fun Element.column(constraints: Constraints? = null, block: Column.() -> Unit = {}): Column {
     val column = Column(constraints)
@@ -98,19 +127,25 @@ fun Element.column(constraints: Constraints? = null, block: Column.() -> Unit = 
     return column
 }
 
-fun Element.rect(
+fun Element.block(
     constraints: Constraints? = null,
+    color: IColor,
     radii: Vector4f? = null,
-    block: Rect.() -> Unit = {}
-): Rect {
-    val rect = Rect(constraints, radii)
-    addElement(rect)
-    rect.block()
-    return rect
+    block: Block.() -> Unit = {}
+): Block {
+    val block = Block(constraints, color, radii)
+    addElement(block)
+    block.block()
+    return block
 }
 
-fun Element.text(text: String, constraints: Constraints? = null, block: Text.() -> Unit = {}): Text {
-    val text = Text(text, constraints)
+fun Element.text(
+    text: String,
+    color: IColor = Color(255, 255, 255),
+    constraints: Constraints? = null,
+    block: Text.() -> Unit = {}
+): Text {
+    val text = Text(text, color, constraints)
     addElement(text)
     text.block()
     return text

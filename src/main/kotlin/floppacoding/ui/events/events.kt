@@ -1,4 +1,4 @@
-package floppacoding.oldui.events
+package floppacoding.ui.events
 
 interface Event
 

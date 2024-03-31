@@ -28,9 +28,7 @@ import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
 import floppacoding.mithras.utils.render.ImageManager
-import floppacoding.oldui.UIScreen
-import floppacoding.oldui.create
-import floppacoding.ui.UIV2Screen
+import floppacoding.ui.UIScreen
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.client.texture.PlayerSkinTexture
@@ -54,12 +52,7 @@ object DebugCommand : Command() {
         command("mdebug") {
             literal("ui") {
                 execute {
-                    Extensions.setScreen(UIScreen(create(renderer2D), 2f))
-                }
-            }
-            literal("ui2") {
-                execute {
-                    Extensions.setScreen(UIV2Screen(createOdin(renderer2D)))
+                    Extensions.setScreen(UIScreen(createOdin(renderer2D)))
                 }
             }
             literal("data") {

@@ -1,8 +1,13 @@
 package floppacoding.ui.elements.impl
 
-import floppacoding.ui.elements.*
+import floppacoding.ui.constraints.Constraints
+import floppacoding.ui.constraints.measurements.Pixel
+import floppacoding.ui.constraints.measurements.Undefined
+import floppacoding.ui.constraints.positions.Linked
+import floppacoding.ui.constraints.sizes.Bounding
+import floppacoding.ui.elements.Element
 import org.joml.Vector4f
-import java.awt.Color
+import floppacoding.ui.color.IColor as Color
 
 class Group(constraints: Constraints?) : Element(constraints) {
     override fun draw() {
@@ -24,27 +29,35 @@ class Column(constraints: Constraints?) : Element(constraints) {
     }
 
     override fun setupSize() {
-        if (constraints.width is Undefined) constraints.width = Bounds()
-        if (constraints.height is Undefined) constraints.height = Bounds()
+        if (constraints.width is Undefined) constraints.width = Bounding()
+        if (constraints.height is Undefined) constraints.height = Bounding()
     }
 }
 
-class Rect(constraints: Constraints?, private val radii: Vector4f?) : Element(constraints) {
+class Block(constraints: Constraints?, color: Color, private val radii: Vector4f?) : Element(constraints) {
+
+    init {
+        this.color = color
+    }
 
     override fun draw() {
         if (radii == null) {
-            renderer.rect(x, y, width, height, Color.RED.rgb)
+            renderer.rect(x, y, width, height, color!!.rgba)
         } else {
-            renderer.roundedRect(x, y, width, height, radii, Color.RED.rgb)
+            renderer.roundedRect(x, y, width, height, radii, color!!.rgba)
         }
     }
 }
 
-class Text(val text: String, constraints: Constraints?) : Element(constraints) {
+class Text(val text: String, textColor: Color, constraints: Constraints?) : Element(constraints) {
+
+    init {
+        this.color = textColor
+    }
 
     override fun draw() {
 //        renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
-        renderer.text(text, x, y, Color.WHITE.rgb, 20f)
+        renderer.text(text, x, y, color!!.rgba, 20f)
     }
 
     override fun setupSize() {

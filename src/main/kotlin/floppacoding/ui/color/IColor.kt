@@ -1,8 +1,12 @@
-package floppacoding.oldui.color
+package floppacoding.ui.color
 
 import java.awt.Color
 
-open class Color(hue: Float, saturation: Float, brightness: Float, alpha: Float = 1f) : IColor {
+interface IColor {
+    val rgba: Int
+}
+
+open class Color(hue: Float, saturation: Float, brightness: Float, alpha: Float = 1f) : IColor, Cloneable {
 
     constructor(hsb: FloatArray, alpha: Float = 1f) : this(hsb[0], hsb[1], hsb[2], alpha)
 
@@ -44,30 +48,30 @@ open class Color(hue: Float, saturation: Float, brightness: Float, alpha: Float 
             }
             return field
         }
+
+    inline val red
+        get() = this.rgba shr 16 and 0xFF
+
+    inline val green
+        get() = this.rgba shr 8 and 0xFF
+
+    inline val blue
+        get() = this.rgba and 0xFF
+
+    inline val a
+        get() = this.rgba shr 24 and 0xFF
+
+    public override fun clone() = Color(hue, saturation, brightness, alpha)
 }
 
-class Animating(private var color1: IColor, private var color2: IColor) : IColor {
+inline val Int.red
+    get() = this shr 16 and 0xFF
 
-    var current: Boolean = false
+inline val Int.green
+    get() = this shr 8 and 0xFF
 
-    override var rgba: Int = color1.rgba
+inline val Int.blue
+    get() = this and 0xFF
 
-    fun animate() { // implement actual animation
-        current = !current
-        rgba = if (current) color2.rgba else color1.rgba
-    }
-
-    fun animateTo(first: Boolean) {
-        current = !first
-        rgba = if (current) color2.rgba else color1.rgba
-    }
-}
-
-interface IColor {
-    val rgba: Int
-}
-
-inline val Int.red get() = this shr 16 and 0xFF
-inline val Int.green get() = this shr 8 and 0xFF
-inline val Int.blue get() = this and 0xFF
-inline val Int.alpha get() = this shr 24 and 0xFF
+inline val Int.alpha
+    get() = this shr 24 and 0xFF
