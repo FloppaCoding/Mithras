@@ -10,6 +10,8 @@ import floppacoding.ui.elements.impl.Group
 import floppacoding.ui.events.Event
 import floppacoding.ui.events.Mouse
 
+/* TODO: When finished with dsl and inputs, bring to its own window instead of inside of minecraft for benchmarking and reduce all memory usage
+ */
 class UI(val renderer: Renderer2D) {
 
     val main: Group = Group(Constraints(0.px, 0.px, 1920.px, 1080.px)).also { it.initialize(this) }
@@ -25,6 +27,8 @@ class UI(val renderer: Renderer2D) {
     var mouseX: Float = 0f
 
     var mouseY: Float = 0f
+
+    private var leftClickDown: Boolean = false
 
     fun initialize() {
 //        main.initialize(this)
@@ -51,12 +55,14 @@ class UI(val renderer: Renderer2D) {
     }
 
     fun onMouseClick(button: Int) {
+        if (button == 0) leftClickDown = true
 //        val start = System.nanoTime()
         dispatchEvent(Mouse.Clicked(button))
 //        println(System.nanoTime() - start)
     }
 
     fun onRelease(button: Int) {
+        if (button == 0) leftClickDown = false
         dispatchEventGlobal(Mouse.Released(button), main)
     }
 
@@ -64,6 +70,10 @@ class UI(val renderer: Renderer2D) {
         mouseX = x
         mouseY = y
         elementHovered = getHovered(x, y)
+        dispatchEventGlobal(Mouse.Moved)
+//        if (leftClickDown) {
+//            dispatchEvent(Mouse.Dragged)
+//        }
     }
 
     private fun getHovered(x: Float, y: Float, element: Element = main): Element? {
@@ -88,7 +98,7 @@ class UI(val renderer: Renderer2D) {
         return false
     }
 
-    private fun dispatchEventGlobal(event: Event, element: Element) {
+    private fun dispatchEventGlobal(event: Event, element: Element = main) {
         element.accept(event)
         if (element.elements != null) {
             for (child in element.elements!!) {

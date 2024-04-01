@@ -19,7 +19,7 @@ class Group(constraints: Constraints?) : Element(constraints) {
 
 class Column(constraints: Constraints?) : Element(constraints) {
     override fun draw() {
-        // nothing
+       // renderer.border(x, y, width, height, 1f, java.awt.Color.WHITE.rgb)
     }
 
     override fun setupPosition(element: Element) {
@@ -51,7 +51,7 @@ class Block(constraints: Constraints?, color: Color, private val radii: Vector4f
     }
 }
 
-class Text(val text: String, textColor: Color, constraints: Constraints?, val size: Measurement) : Element(constraints) {
+class Text(var text: String, textColor: Color, constraints: Constraints?, val size: Measurement) : Element(constraints) {
 
     init {
         this.color = textColor

@@ -3,26 +3,33 @@ package floppacoding.ui
 import floppacoding.aurora.core.Renderer2D
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.ModuleManager.modules
+import floppacoding.mithras.module.impl.debug.DebugModule.guiAnimSpeedTest
 import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.impl.BooleanSetting
+import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.ui.animation.Animations
 import floppacoding.ui.color.AnimatedColor
 import floppacoding.ui.color.Color
 import floppacoding.ui.color.IColor
 import floppacoding.ui.constraints.*
 import floppacoding.ui.constraints.measurements.Animatable
+import floppacoding.ui.constraints.measurements.RawAnimatable
 import floppacoding.ui.constraints.positions.Center
 import floppacoding.ui.constraints.sizes.Bounding
+import floppacoding.ui.constraints.sizes.Copying
 import floppacoding.ui.elements.Element
 import floppacoding.ui.elements.impl.Block
 import floppacoding.ui.elements.impl.Column
 import floppacoding.ui.elements.impl.Text
 import floppacoding.ui.events.onClick
 import floppacoding.ui.events.onMouseEnterExit
+import floppacoding.ui.events.onMouseMove
+import floppacoding.ui.events.onRelease
 import floppacoding.ui.utils.animate
 import floppacoding.ui.utils.radii
 import floppacoding.ui.utils.seconds
 import org.joml.Vector4f
+import kotlin.math.roundToInt
 
 
 /*
@@ -75,7 +82,7 @@ fun create(renderer2D: Renderer2D): UI {
                 text(category.name, size = 65.percent)
 
                 onClick(1) {
-                    sibling()!!.height().animate(0.5.seconds, Animations.EaseInOutQuint)
+                    sibling()!!.height().animate(0.5.seconds * guiAnimSpeedTest, Animations.EaseInOutQuint)
                     extended.toggle()
                     true
                 }
@@ -92,7 +99,7 @@ fun create(renderer2D: Renderer2D): UI {
                                 true
                             }
                             onClick(1) {
-                                parent!!.height().animate(0.25.seconds, Animations.EaseInOutQuint)
+                                parent!!.height().animate(0.25.seconds * guiAnimSpeedTest, Animations.EaseInOutQuint)
                                 true
                             }
                         }
@@ -100,8 +107,10 @@ fun create(renderer2D: Renderer2D): UI {
                         for (setting in module.settings) {
                             when (setting) {
                                 is BooleanSetting -> BooleanSetting(setting)
+                                is NumberSetting -> NumberSetting(setting)
                             }
                         }
+                        KeybindSetting(module.keyBind.code)
                     }
 
                 }
@@ -115,8 +124,14 @@ fun create(renderer2D: Renderer2D): UI {
     }
 }
 
+fun Element.KeybindSetting(keycode: Int) =
+    block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
+        text(text = "Keybind", at(6.px, Center()), size = 50.percent)
+    }
+
+
 fun Element.BooleanSetting(setting: BooleanSetting) =
-    block(size(240.px, 32.px), Color(37, 38, 38, 0.7f)) {
+    block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
         text(text = setting.name, at(6.px, Center()), size = 50.percent)
 
         block(constrain(-10.px, Center(), 20.px, 20.px), Color(50, 150, 220), radii(all = 5)) {
@@ -128,6 +143,62 @@ fun Element.BooleanSetting(setting: BooleanSetting) =
             }
         }
     }
+
+fun Element.NumberSetting(setting: NumberSetting<*>): Block { // todo: work on improving dsl for sitautions like these
+
+    return block(size(240.px, 40.px), Color(38, 38, 38, 0.7f)) {
+        text(text = setting.name, at(6.px, Center() - 3.px), size = 16.px)
+        val display = text(text = setting.displayValue(), at(-6.px, Center() - 3.px), size = 16.px)
+
+        slider(c(6.px, -5.px, 228.px, 7.px), setting.minDouble, setting.maxDouble, setting.doubleValue) {
+            setting.setByPercent(it)
+            display.text = setting.displayValue()
+        }
+    }
+}
+
+fun Element.slider(
+    constraints: Constraints?,
+    min: Double,
+    max: Double,
+    value: Double,
+    onChange: (percent: Float) -> Unit
+): Block {
+    var dragging = false
+    return block(constraints, Color(-0xefeff0), radii(3)) {
+        // temp fix until i figure out a better solution?:
+
+        val sliderAnim = RawAnimatable(((value - min) / (max - min) * (constraints?.width?.get(this, Type.W) ?: 0f)).toFloat())
+        block(c(0.px, 0.px, sliderAnim, Copying()), Color(50, 150, 220), radii(all = 3f))
+
+        onClick(0) {
+            val pos = (ui.mouseX - x).coerceIn(0f, width)
+            sliderAnim.animate(to = pos, 0.75.seconds * guiAnimSpeedTest, Animations.EaseOutQuint)
+            onChange(pos / width)
+            dragging = true
+            true
+        }
+        onMouseMove {
+            if (dragging) {
+                val pos = (ui.mouseX - x).coerceIn(0f, width)
+                sliderAnim.to(pos)
+                onChange(pos / width)
+            }
+            true
+        }
+        onRelease(0) {
+            dragging = false
+        }
+    }
+}
+
+// imagine this was inside the numbersetting class
+fun NumberSetting<*>.setByPercent(percent: Float) {
+    doubleValue = percent * (maxDouble - minDouble) + minDouble
+}
+
+// imagine this was inside the numbersetting class
+fun NumberSetting<*>.displayValue() = "${(doubleValue * 100.0).roundToInt() / 100.0}"
 
 fun Element.button(
     constraints: Constraints? = null,
@@ -144,12 +215,12 @@ fun Element.button(
     return block(constraints, mainColor, radii) {
         block(color = hoverColor, radii = radii) {
             onMouseEnterExit {
-                hoverColor.animate(0.25.seconds)
+                hoverColor.animate(0.25.seconds * guiAnimSpeedTest)
                 true
             }
         }
         onClick(0) {
-            mainColor.animate(0.15.seconds)
+            mainColor.animate(0.15.seconds * guiAnimSpeedTest)
             false
         }
         dsl()

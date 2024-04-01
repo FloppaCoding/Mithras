@@ -30,4 +30,8 @@ interface Mouse : Event {
 
     object Exited : Mouse
 
+    object Moved: Mouse
+
+    object Dragged : Mouse
+
 }

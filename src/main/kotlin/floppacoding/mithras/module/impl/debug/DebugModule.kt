@@ -5,6 +5,7 @@ import floppacoding.mithras.events.DrawSlotEvent
 import floppacoding.mithras.events.RenderWorldOverlayEvent
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.mithras.utils.ChatUtils.stripControlCodes
 import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
@@ -19,6 +20,8 @@ object DebugModule : Module(
     "Debug Module",
     category = Category.MISC,
 ) {
+    val guiAnimSpeedTest: Float by NumberSetting("Animation speed", 1f, 0f, 5f, 0.1f)
+
     @EventHandler
     fun onRender(event: RenderWorldOverlayEvent) {
         Renderer3D.drawBoxOutline(event.context, 114f, -51f, -51f, 115f, -50f, -50f, Color(0,255,0, 50), 20f, phase = true)

@@ -163,7 +163,7 @@ abstract class Element(constraints: Constraints?) {
         val ty = this.y
         val tw = this.width
         val th = this.height
-        return (x <= tx + tw && tx <= x + width) && (y <= ty + th && ty <= y + height)
+        return (x < tx + tw && tx < x + width) && (y < ty + th && ty < y + height)
     }
 
     // todo: dsl, maybe move out of this class?

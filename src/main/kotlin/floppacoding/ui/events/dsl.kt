@@ -32,3 +32,13 @@ fun <E : Element> E.onMouseEnterExit(block: Event.() -> Boolean): E {
     registerEvent(Mouse.Exited, block)
     return this
 }
+
+fun <E : Element> E.onMouseMove(block: Mouse.Moved.() -> Boolean): E {
+    registerEvent(Mouse.Moved, block as Event.() -> Boolean)
+    return this
+}
+
+fun <E : Element> E.onMouseDragged(block: Mouse.Dragged.() -> Boolean): E {
+    registerEvent(Mouse.Dragged, block as Event.() -> Boolean)
+    return this
+}
