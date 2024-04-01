@@ -4,11 +4,11 @@ import floppacoding.aurora.core.Renderer2D
 import floppacoding.aurora.core.TextAlign
 import floppacoding.mithras.Mithras
 import floppacoding.ui.constraints.Constraints
+import floppacoding.ui.constraints.px
 import floppacoding.ui.elements.Element
 import floppacoding.ui.elements.impl.Group
 import floppacoding.ui.events.Event
 import floppacoding.ui.events.Mouse
-import floppacoding.ui.utils.px
 
 class UI(val renderer: Renderer2D) {
 
@@ -43,7 +43,7 @@ class UI(val renderer: Renderer2D) {
         frames++
         frameTime += System.nanoTime() - start
         if (frames > 100) {
-            performance = "frametime avg: ${(frameTime / frames) / 1_000_000.0}"
+            performance = "frametime avg: ${(frameTime / frames) / 1_000_000.0}ms"
             frames = 0
             frameTime = 0
         }
@@ -51,7 +51,9 @@ class UI(val renderer: Renderer2D) {
     }
 
     fun onMouseClick(button: Int) {
+//        val start = System.nanoTime()
         dispatchEvent(Mouse.Clicked(button))
+//        println(System.nanoTime() - start)
     }
 
     fun onRelease(button: Int) {

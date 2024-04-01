@@ -1,6 +1,8 @@
 package floppacoding.ui.elements.impl
 
 import floppacoding.ui.constraints.Constraints
+import floppacoding.ui.constraints.Measurement
+import floppacoding.ui.constraints.Type
 import floppacoding.ui.constraints.measurements.Pixel
 import floppacoding.ui.constraints.measurements.Undefined
 import floppacoding.ui.constraints.positions.Linked
@@ -49,7 +51,7 @@ class Block(constraints: Constraints?, color: Color, private val radii: Vector4f
     }
 }
 
-class Text(val text: String, textColor: Color, constraints: Constraints?) : Element(constraints) {
+class Text(val text: String, textColor: Color, constraints: Constraints?, val size: Measurement) : Element(constraints) {
 
     init {
         this.color = textColor
@@ -57,11 +59,16 @@ class Text(val text: String, textColor: Color, constraints: Constraints?) : Elem
 
     override fun draw() {
 //        renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
-        renderer.text(text, x, y, color!!.rgba, 20f)
+        renderer.text(text, x, y, color!!.rgba, height)
     }
 
     override fun setupSize() {
-        constraints.width = Pixel(renderer.textWidth(text, 20f))
-        constraints.height = Pixel(20f)
+        constraints.width = object : Measurement {
+            override fun get(element: Element, type: Type): Float {
+                element as Text
+                return element.renderer.textWidth(element.text, element.height)
+            }
+        }
+        constraints.height = size
     }
 }

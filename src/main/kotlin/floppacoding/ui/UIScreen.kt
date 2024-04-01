@@ -28,4 +28,6 @@ class UIScreen(val ui: UI) : Screen(Text.literal("screen")) {
     override fun mouseMoved(mouseX: Double, mouseY: Double) {
         ui.onMouseMoved(Mithras.mc.mouse.x.toFloat(), Mithras.mc.mouse.y.toFloat())
     }
+
+    override fun shouldPause(): Boolean = false
 }

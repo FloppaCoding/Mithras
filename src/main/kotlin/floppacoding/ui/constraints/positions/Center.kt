@@ -5,9 +5,10 @@ import floppacoding.ui.constraints.Position
 import floppacoding.ui.constraints.Type
 import floppacoding.ui.elements.Element
 
-class Linked(private val link: Element?) : Position {
+class Center : Position {
     override fun get(element: Element, type: Type): Float {
-        if (link == null) return 0f
-        return if (type.axis == HORIZONTAL) link.internalX + link.width else link.internalY + link.height
+        val axis = type.axis
+        return if (axis == HORIZONTAL) (element.parent?.width ?: 0f) / 2f - element.width / 2f
+        else (element.parent?.height ?: 0f) / 2f - element.height / 2f
     }
 }

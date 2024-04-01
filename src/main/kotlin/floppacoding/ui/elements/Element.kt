@@ -2,11 +2,11 @@ package floppacoding.ui.elements
 
 import floppacoding.ui.UI
 import floppacoding.ui.color.IColor
-import floppacoding.ui.constraints.Axis
+import floppacoding.ui.constraints.Constraint
 import floppacoding.ui.constraints.Constraints
+import floppacoding.ui.constraints.Type
 import floppacoding.ui.constraints.measurements.Undefined
-import floppacoding.ui.constraints.positions.Align
-import floppacoding.ui.constraints.positions.Aligning
+import floppacoding.ui.constraints.positions.Center
 import floppacoding.ui.constraints.sizes.Copying
 import floppacoding.ui.events.Event
 import floppacoding.ui.events.Mouse
@@ -85,10 +85,10 @@ abstract class Element(constraints: Constraints?) {
     abstract fun draw()
 
     fun position() {
-        internalX = constraints.x.get(this, Axis.HORIZONTAL)
-        internalY = constraints.y.get(this, Axis.VERTICAL)
-        width = constraints.width.get(this, Axis.HORIZONTAL)
-        height = constraints.height.get(this, Axis.VERTICAL)
+        internalX = constraints.x.get(this, Type.X)
+        internalY = constraints.y.get(this, Type.Y)
+        width = constraints.width.get(this, Type.W)
+        height = constraints.height.get(this, Type.H)
         if (elements != null) {
             for (element in elements!!) {
                 element.position()
@@ -137,14 +137,16 @@ abstract class Element(constraints: Constraints?) {
         setupSize()
     }
 
+    // TODO: Added an "internal" event for running events when, for example, an element is added
     // sets up position if element being added has an undefined position
     open fun setupPosition(element: Element) {
         element.apply {
-            if (constraints.x is Undefined) constraints.x = Aligning(Align.MIDDLE)
-            if (constraints.y is Undefined) constraints.y = Aligning(Align.MIDDLE)
+            if (constraints.x is Undefined) constraints.x = Center()
+            if (constraints.y is Undefined) constraints.y = Center()
         }
     }
 
+    // TODO: Rely on implementation in constructor instead of as a function
     open fun setupSize() {
         if (constraints.width is Undefined) constraints.width = Copying()
         if (constraints.height is Undefined) constraints.height = Copying()
@@ -162,5 +164,24 @@ abstract class Element(constraints: Constraints?) {
         val tw = this.width
         val th = this.height
         return (x <= tx + tw && tx <= x + width) && (y <= ty + th && ty <= y + height)
+    }
+
+    // todo: dsl, maybe move out of this class?
+    fun toggle(value: Boolean = !enabled) {
+        enabled = value
+    }
+
+    // todo: dsl, maybe move out of this class?
+    fun height(): Constraint {
+        return constraints.height
+    }
+
+    // todo: dsl, maybe move out of this class?
+    fun sibling(distance: Int = 1): Element? {
+        if (parent != null) {
+            val currIndex = parent!!.elements!!.indexOf(this)
+            return parent!!.elements!!.getOrNull(currIndex + distance)
+        }
+        return null
     }
 }

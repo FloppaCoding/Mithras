@@ -3,14 +3,16 @@ package floppacoding.ui.utils
 import floppacoding.ui.animation.Animations
 import floppacoding.ui.color.AnimatedColor
 import floppacoding.ui.color.IColor
-import floppacoding.ui.constraints.Constraints
-import floppacoding.ui.constraints.Position
-import floppacoding.ui.constraints.Size
-import floppacoding.ui.constraints.measurements.Pixel
-import floppacoding.ui.constraints.measurements.Undefined
+import floppacoding.ui.constraints.Constraint
+import floppacoding.ui.constraints.measurements.Animatable
 import org.joml.Vector4f
 
 fun radii(tl: Number = 0f, tr: Number = 0f, bl: Number = 0f, br: Number = 0f) = Vector4f(tl.toFloat(), bl.toFloat(), br.toFloat(), tr.toFloat())
+
+fun radii(all: Number): Vector4f {
+    val value = all.toFloat()
+    return Vector4f(value, value, value, value)
+}
 
 /**
  * DSL for checking if a [color][IColor] is [animatable][AnimatedColor] and animating it.
@@ -22,12 +24,9 @@ fun IColor.animate(duration: Number, type: Animations = Animations.Linear) {
     if (this is AnimatedColor) animate(duration.toFloat(), type)
 }
 
-fun at(x: Position, y: Position) = Constraints(x, y, Undefined, Undefined)
-
-fun size(width: Size, height: Size) = Constraints(Undefined, Undefined, width, height)
-
-val Number.px
-    get() = Pixel(this.toFloat())
+fun Constraint.animate(duration: Number, type: Animations = Animations.Linear) {
+    if (this is Animatable) animate(duration.toFloat(), type)
+}
 
 val Number.seconds
     get() = this.toFloat() * 1_000_000_000

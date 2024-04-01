@@ -62,6 +62,11 @@ open class Color(hue: Float, saturation: Float, brightness: Float, alpha: Float 
         get() = this.rgba shr 24 and 0xFF
 
     public override fun clone() = Color(hue, saturation, brightness, alpha)
+
+    companion object {
+        @JvmField
+        val TRANSPARENT = Color(0, 0, 0, 0f)
+    }
 }
 
 inline val Int.red

@@ -34,6 +34,7 @@ class AnimatedColor(private var color1: IColor, private var color2: IColor) : IC
     fun animate(duration: Float = 0f, type: Animations) {
         if (duration == 0f) {
             swap()
+            current = color1.rgba // here so it updates if you swap a color and want to animate it later
         } else {
             if (animation != null) {
                 swap()
