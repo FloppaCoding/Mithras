@@ -36,6 +36,7 @@ import floppacoding.ui.events.Mouse
 
 abstract class Element(constraints: Constraints?) {
 
+    // todo: maybe bring all values into here?
     val constraints: Constraints = constraints ?: Constraints(Undefined, Undefined, Undefined, Undefined)
 
     lateinit var ui: UI
@@ -46,7 +47,7 @@ abstract class Element(constraints: Constraints?) {
 
     var elements: ArrayList<Element>? = null
 
-    var events: HashMap<Event, ArrayList<Event.() -> Boolean>>? = null
+    open var events: HashMap<Event, ArrayList<Event.() -> Boolean>>? = null
 
     var x: Float = 0f
     var y: Float = 0f
@@ -108,7 +109,7 @@ abstract class Element(constraints: Constraints?) {
         }
     }
 
-    fun accept(event: Event): Boolean {
+    open fun accept(event: Event): Boolean {
         if (events != null) {
             events?.get(event)?.let {
                 for (block in it) {
@@ -119,9 +120,10 @@ abstract class Element(constraints: Constraints?) {
         return false
     }
 
-    fun registerEvent(event: Event, block: Event.() -> Boolean) {
+    fun registerEvent(event: Event, focused: Boolean = false, block: Event.() -> Boolean) {
         if (events == null) events = HashMap()
         events!!.getOrPut(event) { arrayListOf() }.add(block)
+
     }
 
     fun addElement(element: Element) {
@@ -137,7 +139,7 @@ abstract class Element(constraints: Constraints?) {
         setupSize()
     }
 
-    // TODO: Added an "internal" event for running events when, for example, an element is added
+    // TODO: Added an "internal" event for running events when, for example, an element is added to set up position, as this is verbose imo
     // sets up position if element being added has an undefined position
     open fun setupPosition(element: Element) {
         element.apply {
@@ -146,7 +148,7 @@ abstract class Element(constraints: Constraints?) {
         }
     }
 
-    // TODO: Rely on implementation in constructor instead of as a function
+    // TODO: Rely on implementation in constructor instead of as a function, because this is quite verbose/confusing, especially with setupPosition imo
     open fun setupSize() {
         if (constraints.width is Undefined) constraints.width = Copying()
         if (constraints.height is Undefined) constraints.height = Copying()
@@ -172,6 +174,11 @@ abstract class Element(constraints: Constraints?) {
     }
 
     // todo: dsl, maybe move out of this class?
+    fun width(): Constraint {
+        return constraints.width
+    }
+
+    // todo: dsl, maybe move out of this class?
     fun height(): Constraint {
         return constraints.height
     }
@@ -183,5 +190,15 @@ abstract class Element(constraints: Constraints?) {
             return parent!!.elements!!.getOrNull(currIndex + distance)
         }
         return null
+    }
+
+    // todo: dsl, maybe move out of this class?
+    fun sendEventTo(event: Event, target: Element): Boolean {
+        return target.accept(event)
+    }
+
+    // todo: dsl, maybe move out of this class?
+    fun sendEventTo(target: Element): Event.() -> Boolean {
+        return { target.accept(this) }
     }
 }

@@ -2,6 +2,7 @@ package floppacoding.ui
 
 import floppacoding.aurora.core.Renderer2D
 import floppacoding.mithras.module.Category
+import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.ModuleManager.modules
 import floppacoding.mithras.module.impl.debug.DebugModule.guiAnimSpeedTest
 import floppacoding.mithras.module.impl.render.MainSettings
@@ -13,7 +14,6 @@ import floppacoding.ui.color.Color
 import floppacoding.ui.color.IColor
 import floppacoding.ui.constraints.*
 import floppacoding.ui.constraints.measurements.Animatable
-import floppacoding.ui.constraints.measurements.RawAnimatable
 import floppacoding.ui.constraints.positions.Center
 import floppacoding.ui.constraints.sizes.Bounding
 import floppacoding.ui.constraints.sizes.Copying
@@ -21,51 +21,12 @@ import floppacoding.ui.elements.Element
 import floppacoding.ui.elements.impl.Block
 import floppacoding.ui.elements.impl.Column
 import floppacoding.ui.elements.impl.Text
-import floppacoding.ui.events.onClick
-import floppacoding.ui.events.onMouseEnterExit
-import floppacoding.ui.events.onMouseMove
-import floppacoding.ui.events.onRelease
-import floppacoding.ui.utils.animate
-import floppacoding.ui.utils.radii
-import floppacoding.ui.utils.seconds
+import floppacoding.ui.events.*
+import floppacoding.ui.utils.*
+import net.minecraft.client.util.InputUtil
 import org.joml.Vector4f
+import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
-
-
-/*
-    column(constraint(panel.x, panel.y)) {
-        button(size(240.px, 40.px), defaultColor, ClickGUIColor, radii(10, 10)) {
-            text(panel.name)
-
-            onClick(1) {
-                panel.extended = !panel.extended
-                parent!!.elements[1].toggle()
-            }
-        }
-        column {
-            for (module in modules.filter) {
-                if (module.category != panel) continue
-
-                column(height(animatable(from = 32.px, to = bound()))) {
-                    button(size(240.px, 32.px)) {
-                        text(module.name)
-
-                        onClick(0) {
-                            module.toggle()
-                        }
-                        onClick(1) {
-                            disableAllButThis() // prob better for diff implementation
-                        }
-                    }
-                    for (setting in module.settings) {
-                        setting.createElement() // handle elements in setting class itself
-                    }
-                }
-            }
-        }.scrollable().toggle(panel.extended)
-        rect(240.px, 10.px)
-    }.draggable()
- */
 
 
 fun create(renderer2D: Renderer2D): UI {
@@ -86,6 +47,7 @@ fun create(renderer2D: Renderer2D): UI {
                     extended.toggle()
                     true
                 }
+                draggable(acceptsEvent = true, target = parent!!)
             }
             column(Animatable(from = Bounding(), to = 0.px, swapIf = !extended.enabled).toHeight()) {
                 for (module in modules.filter { category == it.category }) {
@@ -110,7 +72,7 @@ fun create(renderer2D: Renderer2D): UI {
                                 is NumberSetting -> NumberSetting(setting)
                             }
                         }
-                        KeybindSetting(module.keyBind.code)
+                        KeybindSetting(module)
                     }
 
                 }
@@ -124,11 +86,34 @@ fun create(renderer2D: Renderer2D): UI {
     }
 }
 
-fun Element.KeybindSetting(keycode: Int) =
-    block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
-        text(text = "Keybind", at(6.px, Center()), size = 50.percent)
-    }
+fun Element.KeybindSetting(module: Module): Block {
+    val keyStr = module.keyBind.localizedText.string
 
+    return block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
+        text(text = "Keybind", at(6.px, Center()), size = 16.px)
+
+        val clr = AnimatedColor(Color.TRANSPARENT, Color(50, 150, 220))
+
+        block(c(-6.px, 6.px, Bounding() + 6.px, 70.percent), Color(38, 38, 38), radii(all = 5), clr) {
+            val display = text(text = keyStr, size = 70.percent)
+
+            onKeyType {
+                val key = if (code == GLFW.GLFW_KEY_ESCAPE) InputUtil.UNKNOWN_KEY else InputUtil.Type.KEYSYM.createFromCode(code!!)
+                module.keyBind = key
+                ui.unfocus()
+                true
+            }
+            onFocusGain {
+                clr.animate(0.25.seconds)
+            }
+            onFocusLost {
+                val str = module.keyBind.localizedText.string
+                display.text = str
+                clr.animate(0.25.seconds)
+            }
+        }.focuses()
+    }
+}
 
 fun Element.BooleanSetting(setting: BooleanSetting) =
     block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
@@ -145,31 +130,32 @@ fun Element.BooleanSetting(setting: BooleanSetting) =
     }
 
 fun Element.NumberSetting(setting: NumberSetting<*>): Block { // todo: work on improving dsl for sitautions like these
-
     return block(size(240.px, 40.px), Color(38, 38, 38, 0.7f)) {
         text(text = setting.name, at(6.px, Center() - 3.px), size = 16.px)
         val display = text(text = setting.displayValue(), at(-6.px, Center() - 3.px), size = 16.px)
 
-        slider(c(6.px, -5.px, 228.px, 7.px), setting.minDouble, setting.maxDouble, setting.doubleValue) {
+        val slider = slider(c(6.px, -5.px, 228.px, 7.px), setting.doubleValue, setting.minDouble, setting.maxDouble) {
             setting.setByPercent(it)
             display.text = setting.displayValue()
         }
+        onClick(0, sendEventTo(slider))
+        onRelease(0) { sendEventTo(slider) }
     }
 }
 
 fun Element.slider(
     constraints: Constraints?,
+    value: Double,
     min: Double,
     max: Double,
-    value: Double,
     onChange: (percent: Float) -> Unit
 ): Block {
     var dragging = false
     return block(constraints, Color(-0xefeff0), radii(3)) {
-        // temp fix until i figure out a better solution?:
-
-        val sliderAnim = RawAnimatable(((value - min) / (max - min) * (constraints?.width?.get(this, Type.W) ?: 0f)).toFloat())
-        block(c(0.px, 0.px, sliderAnim, Copying()), Color(50, 150, 220), radii(all = 3f))
+        val color = AnimatedColor(Color(50, 150, 220), Color(75, 175, 245))
+        // temp fix until i figure out a better solution?
+        val sliderAnim = Animatable.Raw(((value - min) / (max - min) * (constraints?.width?.get(this, Type.W) ?: 0f)).toFloat())
+        block(c(0.px, 0.px, sliderAnim, Copying()), color, radii(all = 3f))
 
         onClick(0) {
             val pos = (ui.mouseX - x).coerceIn(0f, width)
@@ -188,6 +174,10 @@ fun Element.slider(
         }
         onRelease(0) {
             dragging = false
+        }
+        onMouseEnterExit {
+            color.animate(0.25.seconds)
+            true
         }
     }
 }
@@ -238,9 +228,10 @@ fun Element.block(
     constraints: Constraints? = null,
     color: IColor,
     radii: Vector4f? = null,
+    outlineColor: IColor? = null,
     block: Block.() -> Unit = {}
 ): Block {
-    val block = Block(constraints, color, radii)
+    val block = Block(constraints, color, outlineColor, radii)
     addElement(block)
     block.block()
     return block

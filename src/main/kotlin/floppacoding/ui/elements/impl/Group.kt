@@ -36,7 +36,7 @@ class Column(constraints: Constraints?) : Element(constraints) {
     }
 }
 
-class Block(constraints: Constraints?, color: Color, private val radii: Vector4f?) : Element(constraints) {
+class Block(constraints: Constraints?, color: Color, var outlineColor: Color?, private val radii: Vector4f?) : Element(constraints) {
 
     init {
         this.color = color
@@ -47,6 +47,9 @@ class Block(constraints: Constraints?, color: Color, private val radii: Vector4f
             renderer.rect(x, y, width, height, color!!.rgba)
         } else {
             renderer.roundedRect(x, y, width, height, radii, color!!.rgba)
+        }
+        if (outlineColor != null) {
+            renderer.border(x, y, width, height, 1f, radii, outlineColor!!.rgba)
         }
     }
 }

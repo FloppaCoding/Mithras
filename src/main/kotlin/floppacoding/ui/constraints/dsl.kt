@@ -4,6 +4,7 @@ import floppacoding.ui.constraints.measurements.LeftPixel
 import floppacoding.ui.constraints.measurements.Percent
 import floppacoding.ui.constraints.measurements.Pixel
 import floppacoding.ui.constraints.measurements.Undefined
+import floppacoding.ui.constraints.operational.Additive
 import floppacoding.ui.constraints.operational.Subtractive
 import floppacoding.ui.constraints.positions.Center
 
@@ -58,6 +59,6 @@ fun copyParent(indent: Number = 0f): Constraints {
     return Constraints(px, px, -px, -px)
 }
 
-operator fun Constraint.plus(other: Constraint) = Subtractive(this, other)
+operator fun Constraint.plus(other: Constraint) = Additive(this, other)
 
 operator fun Constraint.minus(other: Constraint) = Subtractive(this, other)

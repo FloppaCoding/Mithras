@@ -5,6 +5,11 @@ import floppacoding.ui.color.AnimatedColor
 import floppacoding.ui.color.IColor
 import floppacoding.ui.constraints.Constraint
 import floppacoding.ui.constraints.measurements.Animatable
+import floppacoding.ui.constraints.measurements.Pixel
+import floppacoding.ui.elements.Element
+import floppacoding.ui.events.onClick
+import floppacoding.ui.events.onMouseMove
+import floppacoding.ui.events.onRelease
 import org.joml.Vector4f
 
 fun radii(tl: Number = 0f, tr: Number = 0f, bl: Number = 0f, br: Number = 0f) = Vector4f(tl.toFloat(), bl.toFloat(), br.toFloat(), tr.toFloat())
@@ -30,3 +35,47 @@ fun Constraint.animate(duration: Number, type: Animations = Animations.Linear) {
 
 val Number.seconds
     get() = this.toFloat() * 1_000_000_000
+
+
+fun <E : Element> E.draggable(acceptsEvent: Boolean = false, target: Element = this): E {
+    var px: Pixel
+    var py: Pixel
+    target.constraints.apply {
+        px = when (x) {
+            is Pixel -> x as Pixel
+            else -> Pixel(0f)
+        }
+        py = when (y) {
+            is Pixel -> y as Pixel
+            else -> Pixel(0f)
+        }
+    }
+    var pressed = false
+    var x = 0f
+    var y = 0f
+    onClick(0) {
+        pressed = true
+        x = ui.mouseX - this@draggable.x
+        y = ui.mouseY - this@draggable.y
+        acceptsEvent
+    }
+    onMouseMove {
+        if (pressed) {
+            px.pixels = ui.mouseX - x
+            py.pixels = ui.mouseY - y
+        }
+        acceptsEvent
+    }
+    onRelease(0) {
+        pressed = false
+    }
+    return this
+}
+
+fun <E : Element> E.focuses(): E {
+    onClick(0) {
+        ui.focus(this@focuses)
+        true
+    }
+    return this
+}

@@ -29,5 +29,16 @@ class UIScreen(val ui: UI) : Screen(Text.literal("screen")) {
         ui.onMouseMoved(Mithras.mc.mouse.x.toFloat(), Mithras.mc.mouse.y.toFloat())
     }
 
+    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+        if (ui.onKeyTyped(keyCode)) {
+            return true
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers)
+    }
+
+    override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+        return super.keyReleased(keyCode, scanCode, modifiers)
+    }
+
     override fun shouldPause(): Boolean = false
 }

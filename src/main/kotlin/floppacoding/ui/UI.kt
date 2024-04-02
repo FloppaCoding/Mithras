@@ -8,9 +8,13 @@ import floppacoding.ui.constraints.px
 import floppacoding.ui.elements.Element
 import floppacoding.ui.elements.impl.Group
 import floppacoding.ui.events.Event
+import floppacoding.ui.events.Focused
+import floppacoding.ui.events.Key
 import floppacoding.ui.events.Mouse
+import java.util.logging.Logger
 
 /* TODO: When finished with dsl and inputs, bring to its own window instead of inside of minecraft for benchmarking and reduce all memory usage
+// TODO: Maybe split event handling into a different class
  */
 class UI(val renderer: Renderer2D) {
 
@@ -24,16 +28,16 @@ class UI(val renderer: Renderer2D) {
             field = value
         }
 
+    private var focused: Element? = null
+
     var mouseX: Float = 0f
-
     var mouseY: Float = 0f
-
-    private var leftClickDown: Boolean = false
 
     fun initialize() {
 //        main.initialize(this)
     }
 
+    // frametime metrics
     private var frames: Int = 0
     private var frameTime: Long = 0
     private var performance: String = ""
@@ -42,6 +46,7 @@ class UI(val renderer: Renderer2D) {
         renderer.beginFrame()
         val start = System.nanoTime()
         main.render()
+       // elementHovered?.let { renderer.border(it.x, it.y, it.width, it.height, 1f, java.awt.Color.WHITE.rgb) }
 
         renderer.text(performance, Mithras.mc.window.width - 2f, Mithras.mc.window.height - 2f, -1, 16f, textAlign = TextAlign.RIGHT_BOTTOM)
         frames++
@@ -54,26 +59,47 @@ class UI(val renderer: Renderer2D) {
         renderer.endFrame()
     }
 
+
     fun onMouseClick(button: Int) {
-        if (button == 0) leftClickDown = true
-//        val start = System.nanoTime()
-        dispatchEvent(Mouse.Clicked(button))
-//        println(System.nanoTime() - start)
+        val event = Mouse.Clicked(button)
+//        if (focused != null) {
+//            if (!focused!!.isInside(mouseX, mouseY)) {
+//                unfocus()
+//                println("Unfocused")
+//            }
+//            focused?.accept(event)
+//            return
+//        }
+        dispatchEvent(event)
     }
 
     fun onRelease(button: Int) {
-        if (button == 0) leftClickDown = false
-        dispatchEventGlobal(Mouse.Released(button), main)
+        val event = Mouse.Released(button)
+//        if (focused != null) {
+//            focused!!.focusedEvents?.get(event::class.java)?.let {
+//                for (action in it) {
+//                    action(event)
+//                }
+//            }
+//            return
+//        }
+        dispatchEventGlobal(event, main)
     }
+
 
     fun onMouseMoved(x: Float, y: Float) {
         mouseX = x
         mouseY = y
         elementHovered = getHovered(x, y)
         dispatchEventGlobal(Mouse.Moved)
-//        if (leftClickDown) {
-//            dispatchEvent(Mouse.Dragged)
-//        }
+    }
+
+    fun onKeyTyped(code: Int): Boolean {
+        val event = Key.Typed(code)
+        if (focused != null) {
+            return focused!!.accept(event)
+        }
+        return false
     }
 
     private fun getHovered(x: Float, y: Float, element: Element = main): Element? {
@@ -105,5 +131,22 @@ class UI(val renderer: Renderer2D) {
                 dispatchEventGlobal(event, child)
             }
         }
+    }
+
+
+
+    fun focus(element: Element) {
+        focused?.accept(Focused.Lost)
+        focused = element
+        element.accept(Focused.Gained)
+    }
+
+    fun unfocus() {
+        focused?.accept(Focused.Lost).also { println(it) }
+        focused = null
+    }
+
+    companion object {
+        val logger: Logger = Logger.getLogger("UI")
     }
 }

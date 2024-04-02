@@ -61,30 +61,29 @@ class Animatable(var from: Constraint, var to: Constraint): Measurement {
         if (value) swap()
         return this
     }
-}
 
+    class Raw(start: Float) : Measurement {
 
-class RawAnimatable(start: Float) : Measurement {
+        private var current: Float = start
 
-    private var current: Float = start
+        private var animation: Animation? = null
 
-    private var animation: Animation? = null
-
-    fun animate(to: Float, duration: Float, type: Animations = Animations.Linear) {
-        if (duration != 0f) animation = Animation(duration, type, animation?.get() ?: current, to) else current = to
-    }
-
-    fun to(to: Float) = if (animation != null) animation!!.to = to else current = to
-
-    override fun get(element: Element, type: Type): Float {
-        if (animation != null) {
-            val result = animation!!.get()
-            if (animation!!.finished) {
-                animation = null
-                current = result
-            }
-            return result
+        fun animate(to: Float, duration: Float, type: Animations = Animations.Linear) {
+            if (duration != 0f) animation = Animation(duration, type, animation?.get() ?: current, to) else current = to
         }
-        return current
+
+        fun to(to: Float) = if (animation != null) animation!!.to = to else current = to
+
+        override fun get(element: Element, type: Type): Float {
+            if (animation != null) {
+                val result = animation!!.get()
+                if (animation!!.finished) {
+                    animation = null
+                    current = result
+                }
+                return result
+            }
+            return current
+        }
     }
 }
