@@ -29,6 +29,7 @@ import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
 import floppacoding.mithras.utils.render.ImageManager
 import floppacoding.ui.UIScreen
+import floppacoding.ui.textInput
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.client.texture.PlayerSkinTexture
@@ -53,6 +54,11 @@ object DebugCommand : Command() {
             literal("ui") {
                 execute {
                     Extensions.setScreen(UIScreen(createOdin(renderer2D)))
+                }
+            }
+            literal("ti") { // text input
+                execute {
+                    Extensions.setScreen(UIScreen(textInput(renderer2D)))
                 }
             }
             literal("data") {

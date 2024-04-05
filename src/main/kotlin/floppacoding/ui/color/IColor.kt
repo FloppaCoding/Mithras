@@ -6,6 +6,7 @@ interface IColor {
     val rgba: Int
 }
 
+
 open class Color(hue: Float, saturation: Float, brightness: Float, alpha: Float = 1f) : IColor, Cloneable {
 
     constructor(hsb: FloatArray, alpha: Float = 1f) : this(hsb[0], hsb[1], hsb[2], alpha)

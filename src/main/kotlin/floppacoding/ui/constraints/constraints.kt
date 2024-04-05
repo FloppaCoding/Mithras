@@ -9,8 +9,8 @@ interface Constraint {
     fun get(element: Element, type: Type): Float
 
     companion object {
-        const val HORIZONTAL = 0
-        const val VERTICAL = 1
+        const val HORIZONTAL: Int = 0
+        const val VERTICAL: Int  = 1
     }
 }
 

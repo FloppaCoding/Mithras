@@ -13,7 +13,7 @@ import floppacoding.ui.color.IColor as Color
 
 class Group(constraints: Constraints?) : Element(constraints) {
     override fun draw() {
-//        renderer.border(x, y, width, height, 1f, Color.WHITE.rgb)
+//        renderer.border(x, y, width, height, 1f, java.awt.Color.WHITE.rgb)
     }
 }
 
@@ -36,7 +36,9 @@ class Column(constraints: Constraints?) : Element(constraints) {
     }
 }
 
-class Block(constraints: Constraints?, color: Color, var outlineColor: Color?, private val radii: Vector4f?) : Element(constraints) {
+class Block(constraints: Constraints?, color: Color, private val radii: Vector4f?) : Element(constraints) {
+
+    var outlineColor: Color? = null
 
     init {
         this.color = color
@@ -51,6 +53,12 @@ class Block(constraints: Constraints?, color: Color, var outlineColor: Color?, p
         if (outlineColor != null) {
             renderer.border(x, y, width, height, 1f, radii, outlineColor!!.rgba)
         }
+    }
+
+    // Maybe add width
+    fun outline(color: Color): Block {
+        outlineColor = color
+        return this
     }
 }
 

@@ -5,6 +5,7 @@ import floppacoding.ui.color.IColor
 import floppacoding.ui.constraints.Constraint
 import floppacoding.ui.constraints.Constraints
 import floppacoding.ui.constraints.Type
+import floppacoding.ui.constraints.measurements.Animatable
 import floppacoding.ui.constraints.measurements.Undefined
 import floppacoding.ui.constraints.positions.Center
 import floppacoding.ui.constraints.sizes.Copying
@@ -87,26 +88,34 @@ abstract class Element(constraints: Constraints?) {
 
     fun position() {
         internalX = constraints.x.get(this, Type.X)
-        internalY = constraints.y.get(this, Type.Y)
+        internalY = constraints.y.get(this, Type.Y)// - scroll.get(this, Type.H)
         width = constraints.width.get(this, Type.W)
-        height = constraints.height.get(this, Type.H)
+        height = constraints.height.get(this, Type.H)// + sy
         if (elements != null) {
             for (element in elements!!) {
                 element.position()
+//                element.internalX + sx
+//                element.internalY + sy
                 element.renders = element.intersects(x, y, width, height)
             }
         }
     }
 
+    //var sx = 0f
+    val scroll = Animatable.Raw(0f)
+
     fun render() {
         if (!renders) return
         position()
         draw()
+//        renderer.push()
+//        renderer.translate(sx, sy)
         if (elements != null) {
             for (element in elements!!) {
                 element.render()
             }
         }
+//        renderer.pop()
     }
 
     open fun accept(event: Event): Boolean {
@@ -120,7 +129,7 @@ abstract class Element(constraints: Constraints?) {
         return false
     }
 
-    fun registerEvent(event: Event, focused: Boolean = false, block: Event.() -> Boolean) {
+    fun registerEvent(event: Event, block: Event.() -> Boolean) {
         if (events == null) events = HashMap()
         events!!.getOrPut(event) { arrayListOf() }.add(block)
 
@@ -167,6 +176,8 @@ abstract class Element(constraints: Constraints?) {
         val th = this.height
         return (x < tx + tw && tx < x + width) && (y < ty + th && ty < y + height)
     }
+
+    fun focused(): Boolean = ui.eventManager?.focused == this
 
     // todo: dsl, maybe move out of this class?
     fun toggle(value: Boolean = !enabled) {

@@ -2,15 +2,25 @@ package floppacoding.ui.color
 
 import floppacoding.ui.animation.Animation
 import floppacoding.ui.animation.Animations
+import floppacoding.ui.utils.getRGBA
 
-class AnimatedColor(private var color1: IColor, private var color2: IColor) : IColor {
+class AnimatedColor(from: IColor, to: IColor) : IColor {
+
+    constructor(from: IColor, to: IColor, swapIf: Boolean) : this(from, to) {
+        if (swapIf) {
+            swap()
+            current = color1.rgba
+        }
+    }
+
+    private var color1: IColor = from
+    private var color2: IColor = to
 
     private var animation: Animation? = null
 
     var current: Int = color1.rgba
     var from: Int = color1.rgba
 
-    // proof of concept
     override val rgba: Int
         get() {
             if (animation != null) {
@@ -51,8 +61,4 @@ class AnimatedColor(private var color1: IColor, private var color2: IColor) : IC
         color2 = color1
         color1 = temp
     }
-}
-
-fun getRGBA(red: Int, green: Int, blue: Int, alpha: Int): Int {
-    return ((alpha shl 24) and 0xFF000000.toInt()) or ((red shl 16) and 0x00FF0000) or ((green shl 8) and 0x0000FF00) or (blue and 0x000000FF)
 }

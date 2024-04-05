@@ -18,17 +18,29 @@ import floppacoding.ui.constraints.positions.Center
 import floppacoding.ui.constraints.sizes.Bounding
 import floppacoding.ui.constraints.sizes.Copying
 import floppacoding.ui.elements.Element
-import floppacoding.ui.elements.impl.Block
-import floppacoding.ui.elements.impl.Column
-import floppacoding.ui.elements.impl.Text
+import floppacoding.ui.elements.impl.*
 import floppacoding.ui.events.*
 import floppacoding.ui.utils.*
 import net.minecraft.client.util.InputUtil
 import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
+import floppacoding.aurora.core.images.Image as AuroraImage
+
+fun textInput(renderer: Renderer2D): UI {
+    return UI(renderer).apply {
+        main.apply {
+            block(c(10.px, 10.px, 200.px, 200.px), Color(38, 38, 38)) {
+                addElement(
+                    TextInput("a", at(10.px, 10.px))
+                )
+            }
+        }
+    }
+}
 
 
+// recreating current ui doesn't allow me to test everything i want add into the ui, but i dont want to make a new one
 fun create(renderer2D: Renderer2D): UI {
     return UI(renderer2D).apply {
         main.apply {
@@ -40,22 +52,30 @@ fun create(renderer2D: Renderer2D): UI {
 
         column(at(x = panelX.px, y = 20.px)) {
             block(size(w = 240.px, h = 40.px), Color(26, 26, 26), radii(tl = 5, tr = 5)) {
-                text(category.name, size = 65.percent)
-
+                text(
+                    text = category.name,
+                    size = 65.percent
+                )
                 onClick(1) {
                     sibling()!!.height().animate(0.5.seconds * guiAnimSpeedTest, Animations.EaseInOutQuint)
                     extended.toggle()
                     true
                 }
-                draggable(acceptsEvent = true, target = parent!!)
-            }
-            column(Animatable(from = Bounding(), to = 0.px, swapIf = !extended.enabled).toHeight()) {
+            }.draggable(acceptsEvent = true, target = this)
+
+            val modules = column(Animatable(from = Bounding(), to = 0.px, swapIf = !extended.enabled).toHeight()) {
                 for (module in modules.filter { category == it.category }) {
 
                     column(Animatable(from = 32.px, to = Bounding()).toHeight()) {
-                        button(size(w = 240.px, h = 32.px), Color(26, 26, 26), on = module.enabled) {
-                            text(module.name, size = 60.percent)
-
+                        button(
+                            constraints = size(w = 240.px, h = 32.px),
+                            offColor = Color(26, 26, 26),
+                            on = module.enabled
+                        ) {
+                            text(
+                                text = module.name,
+                                size = 60.percent
+                            )
                             onClick(0) {
                                 module.toggle()
                                 true
@@ -78,6 +98,7 @@ fun create(renderer2D: Renderer2D): UI {
                 }
             }
             block(size(240.px, 10.px), Color(26, 26, 26), radii(br = 5, bl = 5))
+            scrollable(0.2.seconds, target = modules)
         }
     }
 
@@ -92,41 +113,40 @@ fun Element.KeybindSetting(module: Module): Block {
     return block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
         text(text = "Keybind", at(6.px, Center()), size = 16.px)
 
-        val clr = AnimatedColor(Color.TRANSPARENT, Color(50, 150, 220))
-
-        block(c(-6.px, 6.px, Bounding() + 6.px, 70.percent), Color(38, 38, 38), radii(all = 5), clr) {
+        block(constrain(-6.px, 6.px, Bounding() + 6.px, 70.percent), Color(38, 38, 38), radii(all = 5)) {
             val display = text(text = keyStr, size = 70.percent)
-
-            onKeyType {
-                val key = if (code == GLFW.GLFW_KEY_ESCAPE) InputUtil.UNKNOWN_KEY else InputUtil.Type.KEYSYM.createFromCode(code!!)
+            onClick(null) {
+                module.keyBind = InputUtil.Type.MOUSE.createFromCode(button!!)
+                ui.unfocus()
+                true
+            }
+            onKeycodePressed {
+                val key = if (code == GLFW.GLFW_KEY_ESCAPE) InputUtil.UNKNOWN_KEY else InputUtil.Type.KEYSYM.createFromCode(code)
                 module.keyBind = key
                 ui.unfocus()
                 true
             }
             onFocusGain {
-                clr.animate(0.25.seconds)
+                outlineColor!!.animate(0.25.seconds)
             }
             onFocusLost {
                 val str = module.keyBind.localizedText.string
                 display.text = str
-                clr.animate(0.25.seconds)
+                outlineColor!!.animate(0.25.seconds)
             }
-        }.focuses()
+        }.focuses().outline(color = anim(from = Color.TRANSPARENT, to = Color(50, 150, 220)))
     }
 }
 
 fun Element.BooleanSetting(setting: BooleanSetting) =
     block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
         text(text = setting.name, at(6.px, Center()), size = 50.percent)
-
-        block(constrain(-10.px, Center(), 20.px, 20.px), Color(50, 150, 220), radii(all = 5)) {
-            button(copyParent(indent = 1), on = setting.enabled, radii = radii(5)) {
-                onClick(0) {
-                    setting.toggle()
-                    true
-                }
+        button(c(-10.px, Center(), 20.px, 20.px), on = setting.enabled, radii = radii(all = 5)) {
+            onClick(0) {
+                setting.toggle()
+                true
             }
-        }
+        }.outline(Color(50, 150, 220))
     }
 
 fun Element.NumberSetting(setting: NumberSetting<*>): Block { // todo: work on improving dsl for sitautions like these
@@ -143,6 +163,7 @@ fun Element.NumberSetting(setting: NumberSetting<*>): Block { // todo: work on i
     }
 }
 
+// maybe make this its own class?
 fun Element.slider(
     constraints: Constraints?,
     value: Double,
@@ -158,7 +179,7 @@ fun Element.slider(
         block(c(0.px, 0.px, sliderAnim, Copying()), color, radii(all = 3f))
 
         onClick(0) {
-            val pos = (ui.mouseX - x).coerceIn(0f, width)
+            val pos = (ui.eventManager!!.mouseX - x).coerceIn(0f, width)
             sliderAnim.animate(to = pos, 0.75.seconds * guiAnimSpeedTest, Animations.EaseOutQuint)
             onChange(pos / width)
             dragging = true
@@ -166,7 +187,7 @@ fun Element.slider(
         }
         onMouseMove {
             if (dragging) {
-                val pos = (ui.mouseX - x).coerceIn(0f, width)
+                val pos = (ui.eventManager!!.mouseX - x).coerceIn(0f, width)
                 sliderAnim.to(pos)
                 onChange(pos / width)
             }
@@ -198,10 +219,9 @@ fun Element.button(
     radii: Vector4f? = radii(),
     dsl: Block.() -> Unit
 ): Block {
-    val mainColor = AnimatedColor(offColor, onColor)
+    val mainColor = AnimatedColor(offColor, onColor, on)
     val hoverColor = AnimatedColor(Color.TRANSPARENT, Color(255, 255, 255, 0.05f))
-    if (on) mainColor.animate(0f)
-
+    //if (on) mainColor.animate(0f)
     return block(constraints, mainColor, radii) {
         block(color = hoverColor, radii = radii) {
             onMouseEnterExit {
@@ -210,6 +230,7 @@ fun Element.button(
             }
         }
         onClick(0) {
+            println("hello")
             mainColor.animate(0.15.seconds * guiAnimSpeedTest)
             false
         }
@@ -224,14 +245,14 @@ fun Element.column(constraints: Constraints? = null, block: Column.() -> Unit = 
     return column
 }
 
+// todo: improve outline color
 fun Element.block(
     constraints: Constraints? = null,
     color: IColor,
     radii: Vector4f? = null,
-    outlineColor: IColor? = null,
     block: Block.() -> Unit = {}
 ): Block {
-    val block = Block(constraints, color, outlineColor, radii)
+    val block = Block(constraints, color, radii)
     addElement(block)
     block.block()
     return block
@@ -248,4 +269,23 @@ fun Element.text(
     addElement(text)
     text.block()
     return text
+}
+
+fun Element.group(constraints: Constraints? = null, block: Group.() -> Unit = {}): Group {
+    val column = Group(constraints)
+    addElement(column)
+    column.block()
+    return column
+}
+
+fun Element.image(
+    image: AuroraImage,
+    constraints: Constraints? = null,
+    radius: Float = 0f,
+    block: Image.() -> Unit = {}
+): Image {
+    val block = Image(image, constraints, radius, null)
+    addElement(block)
+    block.block()
+    return block
 }

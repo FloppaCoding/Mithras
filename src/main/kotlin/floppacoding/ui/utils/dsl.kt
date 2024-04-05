@@ -6,7 +6,9 @@ import floppacoding.ui.color.IColor
 import floppacoding.ui.constraints.Constraint
 import floppacoding.ui.constraints.measurements.Animatable
 import floppacoding.ui.constraints.measurements.Pixel
+import floppacoding.ui.constraints.minus
 import floppacoding.ui.elements.Element
+import floppacoding.ui.events.Mouse
 import floppacoding.ui.events.onClick
 import floppacoding.ui.events.onMouseMove
 import floppacoding.ui.events.onRelease
@@ -33,10 +35,13 @@ fun Constraint.animate(duration: Number, type: Animations = Animations.Linear) {
     if (this is Animatable) animate(duration.toFloat(), type)
 }
 
+fun anim(from: IColor, to: IColor, swapIf: Boolean = false) = AnimatedColor(from, to, swapIf)
+
 val Number.seconds
     get() = this.toFloat() * 1_000_000_000
 
 
+// todo: cleanup
 fun <E : Element> E.draggable(acceptsEvent: Boolean = false, target: Element = this): E {
     var px: Pixel
     var py: Pixel
@@ -55,14 +60,14 @@ fun <E : Element> E.draggable(acceptsEvent: Boolean = false, target: Element = t
     var y = 0f
     onClick(0) {
         pressed = true
-        x = ui.mouseX - this@draggable.x
-        y = ui.mouseY - this@draggable.y
+        x = ui.mx - this@draggable.x
+        y = ui.my - this@draggable.y
         acceptsEvent
     }
     onMouseMove {
         if (pressed) {
-            px.pixels = ui.mouseX - x
-            py.pixels = ui.mouseY - y
+            px.pixels = ui.mx - x
+            py.pixels = ui.my - y
         }
         acceptsEvent
     }
@@ -75,6 +80,20 @@ fun <E : Element> E.draggable(acceptsEvent: Boolean = false, target: Element = t
 fun <E : Element> E.focuses(): E {
     onClick(0) {
         ui.focus(this@focuses)
+        true
+    }
+    return this
+}
+
+fun <E : Element> E.scrollable(duration: Float, target: Element, min: Float = 0f): E {
+    var s = 0f
+    val anim = Animatable.Raw(0f)
+    target.constraints.apply {
+        y = (y - anim)
+    }
+    registerEvent(Mouse.Scrolled(0f)) {
+        s -= (this as Mouse.Scrolled).amount * 16
+        anim.animate(s.coerceIn(min, target.height), duration)
         true
     }
     return this

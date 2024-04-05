@@ -4,8 +4,8 @@ package floppacoding.ui.events
 
 import floppacoding.ui.elements.Element
 
-fun <E : Element> E.onClick(button: Int, block: Mouse.Clicked.() -> Boolean): E {
-    registerEvent(Mouse.Clicked(button), false, block as Event.() -> Boolean)
+fun <E : Element> E.onClick(button: Int?, block: Mouse.Clicked.() -> Boolean): E {
+    registerEvent(Mouse.Clicked(button), block as Event.() -> Boolean)
     return this
 }
 
@@ -18,31 +18,35 @@ fun <E : Element> E.onRelease(button: Int, block: Mouse.Released.() -> Unit): E 
 }
 
 fun <E : Element> E.onMouseEnter(block: Mouse.Entered.() -> Boolean): E {
-    registerEvent(Mouse.Entered, false, block as Event.() -> Boolean)
+    registerEvent(Mouse.Entered, block as Event.() -> Boolean)
     return this
 }
 
 fun <E : Element> E.onMouseExit(block: Mouse.Exited.() -> Boolean): E {
-    registerEvent(Mouse.Exited, false, block as Event.() -> Boolean)
+    registerEvent(Mouse.Exited, block as Event.() -> Boolean)
     return this
 }
 
 fun <E : Element> E.onMouseEnterExit(block: Event.() -> Boolean): E {
-    registerEvent(Mouse.Entered, false, block)
-    registerEvent(Mouse.Exited, false, block)
+    registerEvent(Mouse.Entered, block)
+    registerEvent(Mouse.Exited, block)
     return this
 }
 
 fun <E : Element> E.onMouseMove(block: Mouse.Moved.() -> Boolean): E {
-    registerEvent(Mouse.Moved, false, block as Event.() -> Boolean)
+    registerEvent(Mouse.Moved, block as Event.() -> Boolean)
     return this
 }
 
-// todo: maybe make key.typed always be equal as long as other is also key.typed?
-fun <E : Element> E.onKeyType(keycode: Int? = null, block: Key.Typed.() -> Boolean): E {
-    registerEvent(Key.Typed(keycode), false, block as Event.() -> Boolean)
+fun <E : Element> E.onKeycodePressed(keycode: Int = -1, block: Key.CodePressed.() -> Boolean): E {
+    registerEvent(Key.CodePressed(keycode, true), block as Event.() -> Boolean)
     return this
 }
+
+//fun <E : Element> E.onKeyRelease(keycode: Int? = null, block: Key.CodeReleased.() -> Boolean): E {
+//    registerEvent(Key.CodeReleased(keycode), false, block as Event.() -> Boolean)
+//    return this
+//}
 
 fun <E : Element> E.onFocusGain(block: Focused.Gained.() -> Unit): E {
     registerEvent(Focused.Gained) {
