@@ -10,7 +10,7 @@ interface Constraint {
 
     companion object {
         const val HORIZONTAL: Int = 0
-        const val VERTICAL: Int  = 1
+        const val VERTICAL: Int = 1
     }
 }
 
@@ -24,7 +24,11 @@ enum class Type {
     X, Y, W, H;
 
     inline val axis: Int
-        get() = ordinal % 2
+        get() = when (this) {
+            X, W -> 0
+            Y, H -> 1
+        }
+
 
     inline val isPosition: Boolean
         get() = ordinal < 2

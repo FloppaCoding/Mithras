@@ -23,7 +23,10 @@ class UI(val renderer: Renderer2D) {
     val my get() = eventManager!!.mouseY
 
     fun initialize() {
-//        main.initialize(this)
+//        main.position()
+//        main.position()
+//        main.position()
+//        main.position()
     }
 
     // frametime metrics
@@ -34,6 +37,7 @@ class UI(val renderer: Renderer2D) {
     fun render() {
         val start = System.nanoTime()
         renderer.beginFrame()
+        main.position()
         main.render()
         eventManager?.elementHovered?.let { renderer.border(it.x, it.y, it.width, it.height, 1f, java.awt.Color.WHITE.rgb) }
 
@@ -70,12 +74,12 @@ class UI(val renderer: Renderer2D) {
     }
 
     fun focus(element: Element) {
-        if (eventManager == null) return logger.warning("Event Manager isn't setup, but called focus?")
+        if (eventManager == null) return logger.warning("Event Manager isn't setup, but called focus")
         eventManager!!.focus(element)
     }
 
     fun unfocus() {
-        if (eventManager == null) return logger.warning("Event Manager isn't setup, but called unfocus?")
+        if (eventManager == null) return logger.warning("Event Manager isn't setup, but called unfocus")
         eventManager!!.unfocus()
     }
 

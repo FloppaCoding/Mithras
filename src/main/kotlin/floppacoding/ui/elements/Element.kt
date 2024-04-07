@@ -5,7 +5,6 @@ import floppacoding.ui.color.IColor
 import floppacoding.ui.constraints.Constraint
 import floppacoding.ui.constraints.Constraints
 import floppacoding.ui.constraints.Type
-import floppacoding.ui.constraints.measurements.Animatable
 import floppacoding.ui.constraints.measurements.Undefined
 import floppacoding.ui.constraints.positions.Center
 import floppacoding.ui.constraints.sizes.Copying
@@ -57,12 +56,14 @@ abstract class Element(constraints: Constraints?) {
 
     var internalX: Float = 0f
         set(value) {
+//            if (field == value) return
             field = value
             x = value + (parent?.x ?: 0f)
         }
 
     var internalY: Float = 0f
         set(value) {
+//            if (field == value) return
             field = value
             y = value + (parent?.y ?: 0f)
         }
@@ -86,36 +87,32 @@ abstract class Element(constraints: Constraints?) {
 
     abstract fun draw()
 
-    fun position() {
+    internal fun position() {
+//        val nx = constraints.x.get(this, Type.X)
+
         internalX = constraints.x.get(this, Type.X)
-        internalY = constraints.y.get(this, Type.Y)// - scroll.get(this, Type.H)
-        width = constraints.width.get(this, Type.W)
-        height = constraints.height.get(this, Type.H)// + sy
+        internalY = constraints.y.get(this, Type.Y)
+
+
         if (elements != null) {
             for (element in elements!!) {
                 element.position()
-//                element.internalX + sx
-//                element.internalY + sy
-                element.renders = element.intersects(x, y, width, height)
+                element.renders = element.intersects(this.x, this.y, width, height)
             }
         }
+        width = constraints.width.get(this, Type.W)
+        height = constraints.height.get(this, Type.H)
     }
-
-    //var sx = 0f
-    val scroll = Animatable.Raw(0f)
 
     fun render() {
         if (!renders) return
-        position()
+//        position()
         draw()
-//        renderer.push()
-//        renderer.translate(sx, sy)
         if (elements != null) {
             for (element in elements!!) {
                 element.render()
             }
         }
-//        renderer.pop()
     }
 
     open fun accept(event: Event): Boolean {
@@ -141,6 +138,7 @@ abstract class Element(constraints: Constraints?) {
         element.parent = this
         element.initialize(ui)
         setupPosition(element)
+        position()
     }
 
     fun initialize(ui: UI) {
