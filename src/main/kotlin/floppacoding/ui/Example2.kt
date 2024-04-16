@@ -61,12 +61,12 @@ fun create(renderer2D: Renderer2D): UI {
                     extended.toggle()
                     true
                 }
-            }.draggable(acceptsEvent = true, target = this)
+            }.draggable(target = this /* moves this parent */)
 
-            val modules = column(Animatable(from = Bounding(), to = 0.px, swapIf = !extended.enabled).toHeight()) {
+            val modules = column(Animatable(from = Bounding, to = 0.px, swapIf = !extended.enabled).toHeight()) {
                 for (module in modules.filter { category == it.category }) {
 
-                    column(Animatable(from = 32.px, to = Bounding()).toHeight()) {
+                    column(Animatable(from = 32.px, to = Bounding).toHeight()) {
                         button(
                             constraints = size(w = 240.px, h = 32.px),
                             offColor = Color(26, 26, 26),
@@ -96,7 +96,7 @@ fun create(renderer2D: Renderer2D): UI {
                     }
 
                 }
-            }
+            }.background(Color(38, 38, 38, 0.7f))
             block(size(240.px, 10.px), Color(26, 26, 26), radii(br = 5, bl = 5))
             scrollable(0.2.seconds, target = modules)
         }
@@ -110,10 +110,10 @@ fun create(renderer2D: Renderer2D): UI {
 fun Element.KeybindSetting(module: Module): Block {
     val keyStr = module.keyBind.localizedText.string
 
-    return block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
-        text(text = "Keybind", at(6.px, Center()), size = 16.px)
+    return block(size(240.px, 32.px), Color(38, 38, 38, 0f)) {
+        text(text = "Keybind", at(x = 6.px, y = Center), size = 16.px)
 
-        block(constrain(-6.px, 6.px, Bounding() + 6.px, 70.percent), Color(38, 38, 38), radii(all = 5)) {
+        block(constrain(-6.px, 6.px, Bounding + 6.px, 70.percent), Color(38, 38, 38), radii(all = 5)) {
             val display = text(text = keyStr, size = 70.percent)
             onClick(null) {
                 module.keyBind = InputUtil.Type.MOUSE.createFromCode(button!!)
@@ -139,9 +139,17 @@ fun Element.KeybindSetting(module: Module): Block {
 }
 
 fun Element.BooleanSetting(setting: BooleanSetting) =
-    block(size(240.px, 32.px), Color(38, 38, 38, 0.7f)) {
-        text(text = setting.name, at(6.px, Center()), size = 50.percent)
-        button(c(-10.px, Center(), 20.px, 20.px), on = setting.enabled, radii = radii(all = 5)) {
+    group(constraints = size(240.px, 32.px)) {
+        text(
+            text = setting.name,
+            at = at(6.px, Center),
+            size = 50.percent
+        )
+        button(
+            constraints = constrain(-10.px, Center, 20.px, 20.px),
+            on = setting.enabled,
+            radii = radii(all = 5)
+        ) {
             onClick(0) {
                 setting.toggle()
                 true
@@ -149,19 +157,31 @@ fun Element.BooleanSetting(setting: BooleanSetting) =
         }.outline(Color(50, 150, 220))
     }
 
-fun Element.NumberSetting(setting: NumberSetting<*>): Block { // todo: work on improving dsl for sitautions like these
-    return block(size(240.px, 40.px), Color(38, 38, 38, 0.7f)) {
-        text(text = setting.name, at(6.px, Center() - 3.px), size = 16.px)
-        val display = text(text = setting.displayValue(), at(-6.px, Center() - 3.px), size = 16.px)
-
-        val slider = slider(c(6.px, -5.px, 228.px, 7.px), setting.doubleValue, setting.minDouble, setting.maxDouble) {
-            setting.setByPercent(it)
-            display.text = setting.displayValue()
-        }
+fun Element.NumberSetting(setting: NumberSetting<*>) =
+    group(size(240.px, 40.px)) {
+        text(
+            text = setting.name,
+            at(x = 6.px, y = Center - 3.px),
+            size = 16.px
+        )
+        var display by text(
+            text = setting.displayValue(),
+            at(x = -6.px, y = Center - 3.px),
+            size = 16.px
+        )
+        val slider = slider(
+            constraints = constrain(6.px, -5.px, 228.px, 7.px),
+            value = setting.doubleValue,
+            min = setting.minDouble,
+            max =  setting.maxDouble,
+            onChange = {
+                setting.setByPercent(it)
+                display = setting.displayValue()
+            }
+        )
         onClick(0, sendEventTo(slider))
         onRelease(0) { sendEventTo(slider) }
     }
-}
 
 // maybe make this its own class?
 fun Element.slider(

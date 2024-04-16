@@ -4,7 +4,6 @@ import floppacoding.aurora.core.Renderer2D
 import floppacoding.aurora.core.TextAlign
 import floppacoding.mithras.Mithras
 import floppacoding.ui.constraints.Constraints
-import floppacoding.ui.constraints.measurements.Undefined
 import floppacoding.ui.constraints.px
 import floppacoding.ui.elements.Element
 import floppacoding.ui.elements.impl.Group
@@ -22,6 +21,13 @@ class UI(val renderer: Renderer2D) {
 
     val my get() = eventManager!!.mouseY
 
+    var onUpdate: ArrayList<() -> Unit>? = null
+
+    fun onUpdate(action: () -> Unit) {
+        if (onUpdate == null) onUpdate = arrayListOf()
+        onUpdate!!.add(action)
+    }
+
     fun initialize() {
 //        main.position()
 //        main.position()
@@ -37,32 +43,33 @@ class UI(val renderer: Renderer2D) {
     fun render() {
         val start = System.nanoTime()
         renderer.beginFrame()
+        if (onUpdate != null) {
+            for (action in onUpdate!!) {
+                action()
+            }
+        }
         main.position()
         main.render()
-        eventManager?.elementHovered?.let { renderer.border(it.x, it.y, it.width, it.height, 1f, java.awt.Color.WHITE.rgb) }
+//        eventManager?.elementHovered?.let { renderer.border(it.x, it.y, it.width, it.height, 1f, java.awt.Color.WHITE.rgb) }
 
         renderer.text(performance, Mithras.mc.window.width - 2f, Mithras.mc.window.height - 2f, -1, 16f, textAlign = TextAlign.RIGHT_BOTTOM)
         renderer.endFrame()
         frames++
         frameTime += System.nanoTime() - start
         if (frames > 100) {
-            performance = "undefined constraints: ${temp(main)}, frametime avg: ${(frameTime / frames) / 1_000_000.0}ms"
+            performance = "elements: ${getElementAmount(main, false)}, elements rendering: ${getElementAmount(main, true)}, frametime avg: ${(frameTime / frames) / 1_000_000.0}ms"
             frames = 0
             frameTime = 0
         }
     }
 
-    fun temp(element: Element): Int {
-        var amount = 0
-        element.constraints.apply {
-            if (x is Undefined) amount++
-            if (y is Undefined) amount++
-            if (width is Undefined) amount++
-            if (height is Undefined) amount++
-        }
-        element.elements?.let {
-            for (i in it) {
-                amount += temp(i)
+    fun getElementAmount(element: Element, onlyRender: Boolean): Int {
+        var amount = 1
+        if (!(onlyRender && !element.renders)) {
+            element.elements?.let {
+                for (i in it) {
+                    amount += getElementAmount(i, onlyRender)
+                }
             }
         }
         return amount

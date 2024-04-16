@@ -3,35 +3,45 @@ package floppacoding.ui.elements.impl
 import floppacoding.ui.color.IColor
 import floppacoding.ui.constraints.Constraints
 import floppacoding.ui.constraints.Measurement
+import floppacoding.ui.constraints.measurements.Pixel
 import floppacoding.ui.constraints.px
 import floppacoding.ui.elements.Element
+import floppacoding.ui.utils.replaceUndefined
+import kotlin.reflect.KProperty
 
-class Text(text: String, textColor: IColor, constraints: Constraints?, val size: Measurement) : Element(constraints) {
+class Text(
+    text: String,
+    textColor: IColor,
+    constraints: Constraints?,
+    val size: Measurement
+) : Element(constraints.replaceUndefined(w = 0.px, h = size)) {
 
     var text: String = text
         set(value) {
             if (field == value) return
             field = value
-            textWidth.pixels = renderer.textWidth(value, height)
+            (constraints.width as Pixel).pixels = renderer.textWidth(value, height)
 
         }
 
-    private var textWidth = 0.px
-
     init {
         this.color = textColor
+
+        onInitialization {
+            position()
+            (this.constraints.width as Pixel).pixels = renderer.textWidth(text, height)
+        }
     }
 
     override fun draw() {
-//        renderer.border(x, y, width, height, 1f, java.awt.Color.WHITE.rgb)
         renderer.text(text, x, y, color!!.rgba, height)
     }
 
-    override fun setupSize() {
-        constraints.width = textWidth
-        constraints.height = size
-        position()
-        val amount = renderer.textWidth(text, height)
-        textWidth.pixels = amount
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): String {
+        return text
+    }
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
+        text = value
     }
 }

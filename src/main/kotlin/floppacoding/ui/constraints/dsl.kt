@@ -8,7 +8,7 @@ import floppacoding.ui.constraints.operational.Additive
 import floppacoding.ui.constraints.operational.Subtractive
 import floppacoding.ui.constraints.positions.Center
 
-// I've given a lot of options depending on preferences
+// A lot of options depending on preferences
 
 fun constrain(x: Position, y: Position, w: Size, h: Size) = Constraints(x, y, w, h)
 
@@ -51,7 +51,7 @@ val Number.percent: Percent
         return Percent(value)
     }
 
-fun center(): Constraints = Constraints(Center(), Center(), Undefined, Undefined)
+fun center(): Constraints = Constraints(Center, Center, Undefined, Undefined)
 
 // todo: check if indent is 0 and make it uses copying() and also make it an object to reduce amount of initialized classes
 fun copyParent(indent: Number = 0f): Constraints {

@@ -1,5 +1,6 @@
 package floppacoding.ui.utils
 
+import floppacoding.ui.UI
 import floppacoding.ui.animation.Animations
 import floppacoding.ui.color.AnimatedColor
 import floppacoding.ui.color.IColor
@@ -42,17 +43,29 @@ val Number.seconds
 
 
 // todo: cleanup
-fun <E : Element> E.draggable(acceptsEvent: Boolean = false, target: Element = this): E {
+fun <E : Element> E.draggable(acceptsEvent: Boolean = true, target: Element = this): E {
     var px: Pixel
     var py: Pixel
     target.constraints.apply {
         px = when (x) {
             is Pixel -> x as Pixel
-            else -> Pixel(0f)
+            else -> {
+                UI.logger.warning(
+                    "Draggable ${this@draggable::class.java} original X constraint wasn't Pixel, " +
+                         "instead it was ${this::class.simpleName}, this usually leads to unexpected behaviour"
+                )
+                Pixel(0f)
+            }
         }
         py = when (y) {
             is Pixel -> y as Pixel
-            else -> Pixel(0f)
+            else -> {
+                UI.logger.warning(
+                    "Draggable ${this@draggable::class.java} original Y constraint wasn't Pixel, " +
+                         "instead it was ${this::class.simpleName}, this usually leads to unexpected behaviour"
+                )
+                Pixel(0f)
+            }
         }
     }
     var pressed = false
@@ -92,8 +105,8 @@ fun <E : Element> E.scrollable(duration: Float, target: Element, min: Float = 0f
         y = (y - anim)
     }
     registerEvent(Mouse.Scrolled(0f)) {
-        s -= (this as Mouse.Scrolled).amount * 16
-        anim.animate(s.coerceIn(min, target.height), duration)
+        s = (s - (this as Mouse.Scrolled).amount * 16).coerceIn(min, target.height)
+        anim.animate(s, duration)
         true
     }
     return this

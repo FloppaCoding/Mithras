@@ -7,7 +7,6 @@ import floppacoding.ui.constraints.Constraints
 import floppacoding.ui.constraints.Type
 import floppacoding.ui.constraints.measurements.Undefined
 import floppacoding.ui.constraints.positions.Center
-import floppacoding.ui.constraints.sizes.Copying
 import floppacoding.ui.events.Event
 import floppacoding.ui.events.Mouse
 
@@ -48,6 +47,8 @@ abstract class Element(constraints: Constraints?) {
     var elements: ArrayList<Element>? = null
 
     open var events: HashMap<Event, ArrayList<Event.() -> Boolean>>? = null
+
+    private var initializationTasks: MutableList<() -> Unit>? = null
 
     var x: Float = 0f
     var y: Float = 0f
@@ -106,7 +107,6 @@ abstract class Element(constraints: Constraints?) {
 
     fun render() {
         if (!renders) return
-//        position()
         draw()
         if (elements != null) {
             for (element in elements!!) {
@@ -132,6 +132,12 @@ abstract class Element(constraints: Constraints?) {
 
     }
 
+    fun onInitialization(action: () -> Unit) {
+        if (::ui.isInitialized) return UI.logger.warning("Tried calling \"onInitialization\" after init has already been done")
+        if (initializationTasks == null) initializationTasks = mutableListOf()
+        initializationTasks!!.add(action)
+    }
+
     fun addElement(element: Element) {
         if (elements == null) elements = arrayListOf()
         elements!!.add(element)
@@ -143,22 +149,22 @@ abstract class Element(constraints: Constraints?) {
 
     fun initialize(ui: UI) {
         this.ui = ui
-        setupSize()
+        if (initializationTasks != null) {
+            for (init in initializationTasks!!) {
+                init()
+            }
+            initializationTasks!!.clear()
+            initializationTasks = null
+        }
     }
 
     // TODO: Added an "internal" event for running events when, for example, an element is added to set up position, as this is verbose imo
     // sets up position if element being added has an undefined position
     open fun setupPosition(element: Element) {
         element.apply {
-            if (constraints.x is Undefined) constraints.x = Center()
-            if (constraints.y is Undefined) constraints.y = Center()
+            if (constraints.x is Undefined) constraints.x = Center
+            if (constraints.y is Undefined) constraints.y = Center
         }
-    }
-
-    // TODO: Rely on implementation in constructor instead of as a function, because this is quite verbose/confusing, especially with setupPosition imo
-    open fun setupSize() {
-        if (constraints.width is Undefined) constraints.width = Copying()
-        if (constraints.height is Undefined) constraints.height = Copying()
     }
 
     fun isInside(x: Float, y: Float): Boolean {
@@ -210,4 +216,14 @@ abstract class Element(constraints: Constraints?) {
     fun sendEventTo(target: Element): Event.() -> Boolean {
         return { target.accept(this) }
     }
+
+    // todo: dsl, maybe move out of this class?
+    fun onUIUpdate(action: () -> Unit) {
+        onInitialization {
+            if (ui.onUpdate == null) ui.onUpdate = arrayListOf()
+            ui.onUpdate!!.add(action)
+        }
+    }
+
+    operator fun invoke(action: Element.() -> Unit) = action()
 }

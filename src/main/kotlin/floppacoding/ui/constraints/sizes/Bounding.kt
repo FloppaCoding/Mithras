@@ -5,7 +5,7 @@ import floppacoding.ui.constraints.Size
 import floppacoding.ui.constraints.Type
 import floppacoding.ui.elements.Element
 
-class Bounding : Size {
+object Bounding : Size {
 
     override fun get(element: Element, type: Type): Float {
         var value = 0f

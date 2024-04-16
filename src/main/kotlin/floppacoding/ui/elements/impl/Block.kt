@@ -1,6 +1,7 @@
 package floppacoding.ui.elements.impl
 
 import floppacoding.ui.color.IColor
+import floppacoding.ui.color.alpha
 import floppacoding.ui.constraints.Constraints
 import floppacoding.ui.elements.Element
 import org.joml.Vector4f
@@ -14,12 +15,14 @@ class Block(constraints: Constraints?, color: IColor, private val radii: Vector4
     }
 
     override fun draw() {
-        if (radii == null) {
-            renderer.rect(x, y, width, height, color!!.rgba)
-        } else {
-            renderer.roundedRect(x, y, width, height, radii, color!!.rgba)
+        if (color!!.rgba.alpha != 0) {
+            if (radii == null) {
+                renderer.rect(x, y, width, height, color!!.rgba)
+            } else {
+                renderer.roundedRect(x, y, width, height, radii, color!!.rgba)
+            }
         }
-        if (outlineColor != null) {
+        if (outlineColor != null && outlineColor!!.rgba.alpha != 0) {
             renderer.border(x, y, width, height, 1f, radii, outlineColor!!.rgba)
         }
     }

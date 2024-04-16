@@ -1,6 +1,6 @@
 package floppacoding.ui.animation
 
-class Animation(var duration: Float, val type: Animations, var from: Float = 0f, var to: Float = 1f) {
+class Animation(private var duration: Float, val type: Animations, var from: Float = 0f, var to: Float = 1f) {
 
     private var time: Long = System.nanoTime()
 

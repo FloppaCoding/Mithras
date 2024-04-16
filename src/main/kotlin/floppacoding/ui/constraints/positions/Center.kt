@@ -5,7 +5,7 @@ import floppacoding.ui.constraints.Position
 import floppacoding.ui.constraints.Type
 import floppacoding.ui.elements.Element
 
-class Center : Position {
+object Center : Position {
     override fun get(element: Element, type: Type): Float {
         val axis = type.axis
         return if (axis == HORIZONTAL) (element.parent?.width ?: 0f) / 2f - element.width / 2f

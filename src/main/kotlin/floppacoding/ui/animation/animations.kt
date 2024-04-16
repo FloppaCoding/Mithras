@@ -2,7 +2,7 @@ package floppacoding.ui.animation
 
 import kotlin.math.pow
 
-interface Strategy {
+private interface Strategy {
     fun getValue(percent: Float): Float
 }
 
