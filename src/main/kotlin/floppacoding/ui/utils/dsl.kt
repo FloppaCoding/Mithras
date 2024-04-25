@@ -2,8 +2,7 @@ package floppacoding.ui.utils
 
 import floppacoding.ui.UI
 import floppacoding.ui.animation.Animations
-import floppacoding.ui.color.AnimatedColor
-import floppacoding.ui.color.IColor
+import floppacoding.ui.color.Color
 import floppacoding.ui.constraints.Constraint
 import floppacoding.ui.constraints.measurements.Animatable
 import floppacoding.ui.constraints.measurements.Pixel
@@ -28,15 +27,23 @@ fun radii(all: Number): Vector4f {
  * @param duration The time it takes to complete the animation (in nanoseconds)
  * @param type The type of animation to use. (By default it is Linear)
  */
-fun IColor.animate(duration: Number, type: Animations = Animations.Linear) {
-    if (this is AnimatedColor) animate(duration.toFloat(), type)
+fun Color.animate(duration: Number, type: Animations = Animations.Linear) {
+    if (this is Color.Animated) animate(duration.toFloat(), type)
 }
 
 fun Constraint.animate(duration: Number, type: Animations = Animations.Linear) {
     if (this is Animatable) animate(duration.toFloat(), type)
 }
 
-fun anim(from: IColor, to: IColor, swapIf: Boolean = false) = AnimatedColor(from, to, swapIf)
+// todo: make color functions for all color types
+fun color(r: Int, g: Int, b: Int, alpha: Float = 1f): Color.RGB = Color.RGB(r, g, b, alpha)
+
+fun color(from: Color, to: Color, swap: Boolean = false): Color.Animated = Color.Animated(from, to, swap)
+
+//
+//fun color(r: Int, g: Int, b: Int, alpha: Float = 1f): Color.RGB = Color.RGB(r, g, b, alpha)
+//
+//fun color(r: Int, g: Int, b: Int, alpha: Float = 1f): Color.RGB = Color.RGB(r, g, b, alpha)
 
 val Number.seconds
     get() = this.toFloat() * 1_000_000_000

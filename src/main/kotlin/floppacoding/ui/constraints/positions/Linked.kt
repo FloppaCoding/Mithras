@@ -11,3 +11,4 @@ class Linked(private val link: Element?) : Position {
         return if (type.axis == HORIZONTAL) link.internalX + link.width else link.internalY + link.height
     }
 }
+// column position gets

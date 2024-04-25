@@ -1,7 +1,8 @@
 package floppacoding.ui.elements
 
 import floppacoding.ui.UI
-import floppacoding.ui.color.IColor
+import floppacoding.ui.UI.Companion.logger
+import floppacoding.ui.color.Color
 import floppacoding.ui.constraints.Constraint
 import floppacoding.ui.constraints.Constraints
 import floppacoding.ui.constraints.Type
@@ -9,6 +10,7 @@ import floppacoding.ui.constraints.measurements.Undefined
 import floppacoding.ui.constraints.positions.Center
 import floppacoding.ui.events.Event
 import floppacoding.ui.events.Mouse
+import floppacoding.ui.utils.forLoop
 
 
 // Positioning (X or Y) should be: defined with a measurement or aligned by left/top, center, right/bottom (with some padding)
@@ -48,7 +50,7 @@ abstract class Element(constraints: Constraints?) {
 
     open var events: HashMap<Event, ArrayList<Event.() -> Boolean>>? = null
 
-    private var initializationTasks: MutableList<() -> Unit>? = null
+    private var initializationTasks: ArrayList<() -> Unit>? = null
 
     var x: Float = 0f
     var y: Float = 0f
@@ -69,7 +71,7 @@ abstract class Element(constraints: Constraints?) {
             y = value + (parent?.y ?: 0f)
         }
 
-    var color: IColor? = null
+    var color: Color? = null
 
     var isHovered = false
         set(value) {
@@ -88,18 +90,16 @@ abstract class Element(constraints: Constraints?) {
 
     abstract fun draw()
 
-    internal fun position() {
-//        val nx = constraints.x.get(this, Type.X)
+    open fun onReposition() { /* no-op */ }
 
+    open fun    position() {
+        if (!enabled) return
+        onReposition()
         internalX = constraints.x.get(this, Type.X)
         internalY = constraints.y.get(this, Type.Y)
-
-
-        if (elements != null) {
-            for (element in elements!!) {
-                element.position()
-                element.renders = element.intersects(this.x, this.y, width, height)
-            }
+        elements?.forLoop { element ->
+            element.position()
+            element.renders = element.intersects(this.x, this.y, width, height)
         }
         width = constraints.width.get(this, Type.W)
         height = constraints.height.get(this, Type.H)
@@ -108,20 +108,14 @@ abstract class Element(constraints: Constraints?) {
     fun render() {
         if (!renders) return
         draw()
-        if (elements != null) {
-            for (element in elements!!) {
-                element.render()
-            }
+        elements?.forLoop { element ->
+            element.render()
         }
     }
 
     open fun accept(event: Event): Boolean {
         if (events != null) {
-            events?.get(event)?.let {
-                for (block in it) {
-                    if (block(event)) return true
-                }
-            }
+            events?.get(event)?.let { actions -> actions.forLoop { if (it(event)) return true } }
         }
         return false
     }
@@ -133,8 +127,8 @@ abstract class Element(constraints: Constraints?) {
     }
 
     fun onInitialization(action: () -> Unit) {
-        if (::ui.isInitialized) return UI.logger.warning("Tried calling \"onInitialization\" after init has already been done")
-        if (initializationTasks == null) initializationTasks = mutableListOf()
+        if (::ui.isInitialized) return logger.warning("Tried calling \"onInitialization\" after init has already been done")
+        if (initializationTasks == null) initializationTasks = arrayListOf()
         initializationTasks!!.add(action)
     }
 
@@ -143,24 +137,21 @@ abstract class Element(constraints: Constraints?) {
         elements!!.add(element)
         element.parent = this
         element.initialize(ui)
-        setupPosition(element)
+        onElementAdded(element)
         position()
     }
 
     fun initialize(ui: UI) {
         this.ui = ui
         if (initializationTasks != null) {
-            for (init in initializationTasks!!) {
-                init()
-            }
+            initializationTasks!!.forLoop { it() }
             initializationTasks!!.clear()
             initializationTasks = null
         }
     }
 
-    // TODO: Added an "internal" event for running events when, for example, an element is added to set up position, as this is verbose imo
     // sets up position if element being added has an undefined position
-    open fun setupPosition(element: Element) {
+    open fun onElementAdded(element: Element) {
         element.apply {
             if (constraints.x is Undefined) constraints.x = Center
             if (constraints.y is Undefined) constraints.y = Center
@@ -215,6 +206,16 @@ abstract class Element(constraints: Constraints?) {
     // todo: dsl, maybe move out of this class?
     fun sendEventTo(target: Element): Event.() -> Boolean {
         return { target.accept(this) }
+    }
+
+    fun takeEvents(from: Element) {
+        if (from.events == null) return logger.warning("Tried to take event from an element that doesn't have events")
+        if (events != null) {
+            events!!.putAll(from.events!!)
+        } else {
+            events = from.events
+        }
+        from.events = null
     }
 
     // todo: dsl, maybe move out of this class?

@@ -15,6 +15,10 @@ class UI(val renderer: Renderer2D) {
 
     val main: Group = Group(Constraints(0.px, 0.px, 1920.px, 1080.px)).also { it.initialize(this) }
 
+    constructor(renderer: Renderer2D, block: Group.() -> Unit) : this(renderer) {
+        main.block()
+    }
+
     var eventManager: EventManager? = EventManager(this)
 
     val mx get() = eventManager!!.mouseX
@@ -64,8 +68,9 @@ class UI(val renderer: Renderer2D) {
     }
 
     fun getElementAmount(element: Element, onlyRender: Boolean): Int {
-        var amount = 1
+        var amount = 0
         if (!(onlyRender && !element.renders)) {
+            amount++
             element.elements?.let {
                 for (i in it) {
                     amount += getElementAmount(i, onlyRender)

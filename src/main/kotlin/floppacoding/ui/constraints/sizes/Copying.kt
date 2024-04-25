@@ -5,7 +5,7 @@ import floppacoding.ui.constraints.Size
 import floppacoding.ui.constraints.Type
 import floppacoding.ui.elements.Element
 
-class Copying : Size {
+object Copying : Size {
     override fun get(element: Element, type: Type): Float {
         return if (type.axis == HORIZONTAL) element.parent!!.width else element.parent!!.height
     }

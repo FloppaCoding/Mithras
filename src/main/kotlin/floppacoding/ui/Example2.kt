@@ -9,9 +9,7 @@ import floppacoding.mithras.module.impl.render.MainSettings
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.ui.animation.Animations
-import floppacoding.ui.color.AnimatedColor
 import floppacoding.ui.color.Color
-import floppacoding.ui.color.IColor
 import floppacoding.ui.constraints.*
 import floppacoding.ui.constraints.measurements.Animatable
 import floppacoding.ui.constraints.positions.Center
@@ -27,23 +25,55 @@ import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
 import floppacoding.aurora.core.images.Image as AuroraImage
 
-fun textInput(renderer: Renderer2D): UI {
-    return UI(renderer).apply {
-        main.apply {
-            block(c(10.px, 10.px, 200.px, 200.px), Color(38, 38, 38)) {
-                addElement(
-                    TextInput("a", at(10.px, 10.px))
-                )
+fun terminalTest(renderer: Renderer2D): UI {
+
+    val array = IntArray(14) { it + 1 }.apply { shuffle() }
+
+    return UI(renderer) {
+        column {
+
+            var current = 1
+
+            array.forEach {
+                block(
+                    constraints = size(50.px, 50.px),
+                    color = Color {
+                        when (current - it) {
+                            0 -> getRGBA(0, 255, 0, 255)
+                            -1 -> getRGBA(0, 200, 0, 255)
+                            -2 -> getRGBA(0, 150, 0, 255)
+                            else -> getRGBA(0, 0, 0, 255)
+                        }
+                    }
+                ) {
+                    text(
+                        text = "$it"
+                    )
+
+                    onClick(0) {
+                        if (current == it) {
+                            current++
+                            //color = Color.RGB(0, 255, 0)
+                        }
+                        true
+                    }
+                }
             }
         }
     }
+//            block(c(10.px, 10.px, 200.px, 200.px), Color.RGB(38, 38, 38)) {
+//                addElement(
+//                    TextInput("a", at(10.px, 10.px))
+//                )
+//            }
+
+
 }
 
 
 // recreating current ui doesn't allow me to test everything i want add into the ui, but i dont want to make a new one
 fun create(renderer2D: Renderer2D): UI {
-    return UI(renderer2D).apply {
-        main.apply {
+    return UI(renderer2D) {
 
 
     for (category in Category.entries) {
@@ -51,7 +81,7 @@ fun create(renderer2D: Renderer2D): UI {
         val extended = MainSettings.panelExtended[category]!!
 
         column(at(x = panelX.px, y = 20.px)) {
-            block(size(w = 240.px, h = 40.px), Color(26, 26, 26), radii(tl = 5, tr = 5)) {
+            block(size(w = 240.px, h = 40.px), Color.RGB(26, 26, 26), radii(tl = 5, tr = 5)) {
                 text(
                     text = category.name,
                     size = 65.percent
@@ -69,7 +99,7 @@ fun create(renderer2D: Renderer2D): UI {
                     column(Animatable(from = 32.px, to = Bounding).toHeight()) {
                         button(
                             constraints = size(w = 240.px, h = 32.px),
-                            offColor = Color(26, 26, 26),
+                            offColor = Color.RGB(26, 26, 26),
                             on = module.enabled
                         ) {
                             text(
@@ -96,25 +126,37 @@ fun create(renderer2D: Renderer2D): UI {
                     }
 
                 }
-            }.background(Color(38, 38, 38, 0.7f))
-            block(size(240.px, 10.px), Color(26, 26, 26), radii(br = 5, bl = 5))
+            }.background(color = Color.RGB(38, 38, 38, 0.7f))
+
+            block(
+                constraints = size(240.px, 10.px),
+                color = Color.RGB(26, 26, 26),
+                radius = radii(br = 5, bl = 5)
+            )
             scrollable(0.2.seconds, target = modules)
         }
     }
 
 
         }
-    }
 }
 
-fun Element.KeybindSetting(module: Module): Block {
-    val keyStr = module.keyBind.localizedText.string
-
-    return block(size(240.px, 32.px), Color(38, 38, 38, 0f)) {
-        text(text = "Keybind", at(x = 6.px, y = Center), size = 16.px)
-
-        block(constrain(-6.px, 6.px, Bounding + 6.px, 70.percent), Color(38, 38, 38), radii(all = 5)) {
-            val display = text(text = keyStr, size = 70.percent)
+fun Element.KeybindSetting(module: Module) =
+    group(size(w = 240.px, h = 32.px)) {
+        text(
+            text = "Keybind",
+            at(x = 6.px, y = Center),
+            size = 16.px
+        )
+        block(
+            constraints = constrain(x = -6.px, y = 6.px, w = Bounding + 6.px, h = 70.percent),
+            color = Color.RGB(38, 38, 38),
+            radius = radii(all = 5)
+        ) {
+            val display = text(
+                text = module.keyBind.localizedText.string,
+                size = 70.percent
+            )
             onClick(null) {
                 module.keyBind = InputUtil.Type.MOUSE.createFromCode(button!!)
                 ui.unfocus()
@@ -134,9 +176,8 @@ fun Element.KeybindSetting(module: Module): Block {
                 display.text = str
                 outlineColor!!.animate(0.25.seconds)
             }
-        }.focuses().outline(color = anim(from = Color.TRANSPARENT, to = Color(50, 150, 220)))
+        }.focuses().outline(color = Color.Animated(from = Color.TRANSPARENT, to = Color.RGB(50, 150, 220)))
     }
-}
 
 fun Element.BooleanSetting(setting: BooleanSetting) =
     group(constraints = size(240.px, 32.px)) {
@@ -154,7 +195,7 @@ fun Element.BooleanSetting(setting: BooleanSetting) =
                 setting.toggle()
                 true
             }
-        }.outline(Color(50, 150, 220))
+        }.outline(Color.RGB(50, 150, 220))
     }
 
 fun Element.NumberSetting(setting: NumberSetting<*>) =
@@ -179,8 +220,9 @@ fun Element.NumberSetting(setting: NumberSetting<*>) =
                 display = setting.displayValue()
             }
         )
-        onClick(0, sendEventTo(slider))
-        onRelease(0) { sendEventTo(slider) }
+        takeEvents(from = slider)
+//        onClick(0, sendEventTo(slider))
+//        onRelease(0) { sendEventTo(slider) }
     }
 
 // maybe make this its own class?
@@ -192,11 +234,11 @@ fun Element.slider(
     onChange: (percent: Float) -> Unit
 ): Block {
     var dragging = false
-    return block(constraints, Color(-0xefeff0), radii(3)) {
-        val color = AnimatedColor(Color(50, 150, 220), Color(75, 175, 245))
+    return block(constraints, Color.RGB(-0xefeff0), radii(3)) {
+        val color = Color.Animated(Color.RGB(50, 150, 220), Color.RGB(75, 175, 245))
         // temp fix until i figure out a better solution?
         val sliderAnim = Animatable.Raw(((value - min) / (max - min) * (constraints?.width?.get(this, Type.W) ?: 0f)).toFloat())
-        block(c(0.px, 0.px, sliderAnim, Copying()), color, radii(all = 3f))
+        block(c(0.px, 0.px, sliderAnim, Copying), color, radii(all = 3f))
 
         onClick(0) {
             val pos = (ui.eventManager!!.mouseX - x).coerceIn(0f, width)
@@ -233,24 +275,23 @@ fun NumberSetting<*>.displayValue() = "${(doubleValue * 100.0).roundToInt() / 10
 
 fun Element.button(
     constraints: Constraints? = null,
-    offColor: IColor = Color(38, 38, 38),
-    onColor: IColor = Color(50, 150, 220),
+    offColor: Color = Color.RGB(38, 38, 38),
+    onColor: Color = Color.RGB(50, 150, 220),
     on: Boolean = false,
     radii: Vector4f? = radii(),
     dsl: Block.() -> Unit
 ): Block {
-    val mainColor = AnimatedColor(offColor, onColor, on)
-    val hoverColor = AnimatedColor(Color.TRANSPARENT, Color(255, 255, 255, 0.05f))
-    //if (on) mainColor.animate(0f)
+    val mainColor = Color.Animated(offColor, onColor, on)
+    val hoverColor = Color.Animated(Color.TRANSPARENT, Color.RGB(255, 255, 255, 0.05f))
+
     return block(constraints, mainColor, radii) {
-        block(color = hoverColor, radii = radii) {
+        block(color = hoverColor, radius = radii) {
             onMouseEnterExit {
                 hoverColor.animate(0.25.seconds * guiAnimSpeedTest)
                 true
             }
         }
         onClick(0) {
-            println("hello")
             mainColor.animate(0.15.seconds * guiAnimSpeedTest)
             false
         }
@@ -268,11 +309,11 @@ fun Element.column(constraints: Constraints? = null, block: Column.() -> Unit = 
 // todo: improve outline color
 fun Element.block(
     constraints: Constraints? = null,
-    color: IColor,
-    radii: Vector4f? = null,
+    color: Color,
+    radius: Vector4f? = null,
     block: Block.() -> Unit = {}
 ): Block {
-    val block = Block(constraints, color, radii)
+    val block = if (radius != null) RoundedBlock(constraints, color, radius) else Block(constraints, color)
     addElement(block)
     block.block()
     return block
@@ -281,8 +322,8 @@ fun Element.block(
 fun Element.text(
     text: String,
     at: Constraints? = null,
-    size: Measurement,
-    color: IColor = Color(255, 255, 255),
+    size: Measurement = 50.percent,
+    color: Color = Color.WHITE,
     block: Text.() -> Unit = {}
 ): Text {
     val text = Text(text, color, at, size)

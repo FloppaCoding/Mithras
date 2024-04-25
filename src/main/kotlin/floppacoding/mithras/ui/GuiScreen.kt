@@ -4,9 +4,7 @@ import floppacoding.aurora.core.Renderer2D
 import floppacoding.aurora.core.TextAlign
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
-import floppacoding.mithras.utils.Extensions.seconds
 import floppacoding.mithras.utils.clock.Clock
-import floppacoding.mithras.utils.clock.Executor
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.LiteralTextContent
@@ -41,17 +39,22 @@ abstract class GuiScreen(
      */
     protected open val displayPerformance: Boolean = false
 
-    /** Used to show performance*/
-    private var frames = 0
+//    /** Used to show performance*/
+//    private var frames = 0
+//
+//    /** Used to show performance */
+//    private var performance: String = ""
+//
+//    /** Used to update fps */
+//    private val perfUpdater = Executor(1.seconds) {
+//        performance = "FPS : $frames, Frametime : ${clock.getTime() / 1000_000f}ms" // not avg frame time cuz too lazy for that
+//        frames = 0
+//    }
 
-    /** Used to show performance */
+    // frametime metrics
+    private var frames: Int = 0
+    private var frameTime: Long = 0
     private var performance: String = ""
-
-    /** Used to update fps */
-    private val perfUpdater = Executor(1.seconds) {
-        performance = "FPS : $frames, Frametime : ${clock.getTime() / 1000_000f}ms" // not avg frame time cuz too lazy for that
-        frames = 0
-    }
 
     val windowWidth: Float
         get() = mc.window.width / scale
@@ -63,8 +66,9 @@ abstract class GuiScreen(
      * Sets up the frame and scaling.
      */
     final override fun render(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
-        clock.update()
+        val start = System.nanoTime()
         renderer.beginFrame()
+        renderer.text(performance, Mithras.mc.window.width - 2f, Mithras.mc.window.height - 2f, -1, 16f, textAlign = TextAlign.RIGHT_BOTTOM)
         renderer.scale(scale, scale)
         renderer.push()
         render(getMouseX(), getMouseY(), partialTicks)
@@ -73,6 +77,13 @@ abstract class GuiScreen(
             displayPerformance()
         }
         renderer.endFrame()
+        frames++
+        frameTime += System.nanoTime() - start
+        if (frames > 100) {
+            performance = "frametime avg: ${(frameTime / frames) / 1_000_000.0}ms"
+            frames = 0
+            frameTime = 0
+        }
         super.render(context, mouseX, mouseY, partialTicks)
     }
 
@@ -135,12 +146,12 @@ abstract class GuiScreen(
     }
 
     private fun displayPerformance() {
-        frames++
-        perfUpdater.run()
-        renderer.push()
-        renderer.reset()
-        renderer.text(performance, mc.window.width - 2f, mc.window.height - 2f, -1, 16f, textAlign = TextAlign.RIGHT_BOTTOM)
-        renderer.pop()
+//        frames++
+//        perfUpdater.run()
+//        renderer.push()
+//        renderer.reset()
+//        renderer.text(performance, mc.window.width - 2f, mc.window.height - 2f, -1, 16f, textAlign = TextAlign.RIGHT_BOTTOM)
+//        renderer.pop()
     }
 
     fun getMouseX(): Float = mc.mouse.x.toFloat() / scale

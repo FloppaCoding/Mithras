@@ -1,6 +1,6 @@
 package floppacoding.ui.elements.impl
 
-import floppacoding.ui.color.IColor
+import floppacoding.ui.color.Color
 import floppacoding.ui.constraints.Constraints
 import floppacoding.ui.constraints.Measurement
 import floppacoding.ui.constraints.measurements.Pixel
@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty
 
 class Text(
     text: String,
-    textColor: IColor,
+    textColor: Color,
     constraints: Constraints?,
     val size: Measurement
 ) : Element(constraints.replaceUndefined(w = 0.px, h = size)) {
