@@ -1,5 +1,6 @@
 package floppacoding.mithras.commands.impl
 
+import com.github.stivais.ui.UIScreen
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import floppacoding.aurora.core.Aurora
@@ -28,8 +29,6 @@ import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
 import floppacoding.mithras.utils.render.ImageManager
-import floppacoding.ui.UIScreen
-import floppacoding.ui.terminalTest
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.client.texture.PlayerSkinTexture
@@ -46,7 +45,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import kotlin.experimental.and
-import floppacoding.ui.create as createOdin
+import com.github.stivais.ui.create as createOdin
 
 object DebugCommand : Command() {
     override val builder: LiteralArgumentBuilder<CmdSource> =
@@ -58,7 +57,7 @@ object DebugCommand : Command() {
             }
             literal("ti") { // text input
                 execute {
-                    Extensions.setScreen(UIScreen(terminalTest(renderer2D)))
+                    Extensions.setScreen(UIScreen(com.github.stivais.ui.terminalTest(renderer2D)))
                 }
             }
             literal("data") {
