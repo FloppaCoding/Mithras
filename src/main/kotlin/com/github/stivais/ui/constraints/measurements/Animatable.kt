@@ -57,9 +57,8 @@ class Animatable(var from: Constraint, var to: Constraint): Measurement {
         from = temp
     }
 
-    fun swapIf(value: Boolean): Animatable {
-        if (value) swap()
-        return this
+    override fun reliesOnChild(): Boolean {
+        return from.reliesOnChild() || to.reliesOnChild()
     }
 
     class Raw(start: Float) : Measurement {

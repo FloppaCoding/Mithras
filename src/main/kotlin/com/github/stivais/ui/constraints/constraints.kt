@@ -8,6 +8,8 @@ class Constraints(var x: Position, var y: Position, var width: Size, var height:
 interface Constraint {
     fun get(element: Element, type: Type): Float
 
+    fun reliesOnChild() = false
+
     companion object {
         const val HORIZONTAL: Int = 0
         const val VERTICAL: Int = 1

@@ -28,8 +28,10 @@ class Text(
         this.color = textColor
 
         onInitialization {
-            position()
-            (this.constraints.width as Pixel).pixels = renderer.textWidth(text, height)
+            parent?.position()
+            val width = renderer.textWidth(text, height)
+            (this.constraints.width as Pixel).pixels = width
+            this.width = width
         }
     }
 

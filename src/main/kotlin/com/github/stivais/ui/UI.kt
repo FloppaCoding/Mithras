@@ -13,7 +13,10 @@ import java.util.logging.Logger
 // TODO: When finished with dsl and inputs, bring to its own window instead of inside of minecraft for benchmarking and reduce all memory usage
 class UI(val renderer: Renderer2D) {
 
-    val main: Group = Group(Constraints(0.px, 0.px, 1920.px, 1080.px)).also { it.initialize(this) }
+    val main: Group = Group(Constraints(0.px, 0.px, 1920.px, 1080.px)).also {
+        it.initialize(this)
+        it.position()
+    }
 
     constructor(renderer: Renderer2D, block: Group.() -> Unit) : this(renderer) {
         main.block()
@@ -25,15 +28,8 @@ class UI(val renderer: Renderer2D) {
 
     val my get() = eventManager!!.mouseY
 
-    var onUpdate: ArrayList<() -> Unit>? = null
-
-    fun onUpdate(action: () -> Unit) {
-        if (onUpdate == null) onUpdate = arrayListOf()
-        onUpdate!!.add(action)
-    }
-
     fun initialize() {
-//        main.position()
+        main.position()
 //        main.position()
 //        main.position()
 //        main.position()
@@ -47,11 +43,6 @@ class UI(val renderer: Renderer2D) {
     fun render() {
         val start = System.nanoTime()
         renderer.beginFrame()
-        if (onUpdate != null) {
-            for (action in onUpdate!!) {
-                action()
-            }
-        }
         main.position()
         main.render()
 //        eventManager?.elementHovered?.let { renderer.border(it.x, it.y, it.width, it.height, 1f, java.awt.Color.WHITE.rgb) }

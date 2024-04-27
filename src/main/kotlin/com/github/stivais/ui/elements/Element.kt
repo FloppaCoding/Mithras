@@ -59,14 +59,12 @@ abstract class Element(constraints: Constraints?) {
 
     var internalX: Float = 0f
         set(value) {
-//            if (field == value) return
             field = value
             x = value + (parent?.x ?: 0f)
         }
 
     var internalY: Float = 0f
         set(value) {
-//            if (field == value) return
             field = value
             y = value + (parent?.y ?: 0f)
         }
@@ -90,20 +88,21 @@ abstract class Element(constraints: Constraints?) {
 
     abstract fun draw()
 
-    open fun onReposition() { /* no-op */ }
-
-    // position needs a rework
+    // position needs a rework, make it only reposition if it needs,
+    // make it parent place child so it can be customized allowing for wrapping columns/rows
     open fun position() {
         if (!enabled) return
-        onReposition()
+        if (!constraints.width.reliesOnChild()) width = constraints.width.get(this, Type.W)
+        if (!constraints.height.reliesOnChild()) height = constraints.height.get(this, Type.H)
         internalX = constraints.x.get(this, Type.X)
         internalY = constraints.y.get(this, Type.Y)
+
         elements?.forLoop { element ->
             element.position()
             element.renders = element.intersects(this.x, this.y, width, height)
         }
-        width = constraints.width.get(this, Type.W)
-        height = constraints.height.get(this, Type.H)
+        if (constraints.width.reliesOnChild()) width = constraints.width.get(this, Type.W)
+        if (constraints.height.reliesOnChild()) height = constraints.height.get(this, Type.H)
     }
 
     fun render() {
@@ -139,7 +138,6 @@ abstract class Element(constraints: Constraints?) {
         element.parent = this
         element.initialize(ui)
         onElementAdded(element)
-        position()
     }
 
     fun initialize(ui: UI) {
@@ -217,14 +215,6 @@ abstract class Element(constraints: Constraints?) {
             events = from.events
         }
         from.events = null
-    }
-
-    // todo: dsl, maybe move out of this class?
-    fun onUIUpdate(action: () -> Unit) {
-        onInitialization {
-            if (ui.onUpdate == null) ui.onUpdate = arrayListOf()
-            ui.onUpdate!!.add(action)
-        }
     }
 
     operator fun invoke(action: Element.() -> Unit) = action()

@@ -286,7 +286,7 @@ fun Element.button(
     val hoverColor = Color.Animated(Color.TRANSPARENT, Color.RGB(255, 255, 255, 0.05f))
 
     return block(constraints, mainColor, radii) {
-        block(color = hoverColor, radius = radii) {
+        block(copyParent(), color = hoverColor, radius = radii) {
             onMouseEnterExit {
                 hoverColor.animate(0.25.seconds * guiAnimSpeedTest)
                 true

@@ -18,4 +18,8 @@ object Bounding : Size {
         }
         return value
     }
+
+    override fun reliesOnChild(): Boolean {
+        return true
+    }
 }
