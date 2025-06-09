@@ -16,7 +16,7 @@ public abstract class WorldChunkMixin {
     @Shadow public abstract BlockState getBlockState(BlockPos pos);
 
     @Inject(method = "setBlockState", at = @At("HEAD"))
-    public void onSetBlock(BlockPos pos, BlockState state, boolean moved, CallbackInfoReturnable<BlockState> cir) {
+    public void onSetBlock(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable<BlockState> cir) {
         BlockState old = this.getBlockState(pos);
         if (state != old) {
             Mithras.EVENT_BUS.post(new BlockStateChangeEvent(pos, old, state));

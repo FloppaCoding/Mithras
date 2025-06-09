@@ -13,7 +13,6 @@ import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.utils.GeometryHelper
 import floppacoding.mithras.utils.LocationManager.inDungeons
-import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.BlockState
 import net.minecraft.block.Blocks
@@ -24,7 +23,7 @@ import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockStateRaycastContext
 import net.minecraft.world.BlockView
 import java.awt.Color
-
+// TODO readd rendering
 /**
  * A solver for the Dungeons Teleport Maze puzzle.
  *
@@ -52,7 +51,7 @@ object TeleportSolver : Module (
         if (!inDungeons || !inTpMaze) return
         val startPad = mc.player!!.blockPos
         if(mc.world!!.getBlockState(startPad).block !== Blocks.END_PORTAL_FRAME) return
-        val target = Vec3d(event.packet.x, event.packet.y, event.packet.z)
+        val target = Vec3d(event.packet.change.position.x, event.packet.change.position.y, event.packet.change.position.z)
         val targetPos = BlockPos.ofFloored(target)
 
         var endPad: BlockPos? = null
@@ -69,7 +68,7 @@ object TeleportSolver : Module (
 
         // If already certain about the solution don't search for it
         if (possibleSolutions.size == 1) return
-        val foundTargets = raycastPads(target, event.packet.yaw)
+        val foundTargets = raycastPads(target, event.packet.change.yaw)
 
         if (possibleSolutions.isEmpty()) {
             possibleSolutions.addAll(foundTargets)
@@ -92,15 +91,15 @@ object TeleportSolver : Module (
         if (!inTpMaze) return
         try {
             visitedPads.forEach {
-                Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = visitedColor)
+//                Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = visitedColor)
             }
             if (possibleSolutions.size > 1) {
                 possibleSolutions.forEach {
-                    Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = uncertainColor)
+//                    Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = uncertainColor)
                 }
             }
             else if (possibleSolutions.isNotEmpty()){
-                Renderer3D.drawBlockBoundingBox(event.context, possibleSolutions.first(), fillColor =  solutionColor, phase = phase)
+//                Renderer3D.drawBlockBoundingBox(event.context, possibleSolutions.first(), fillColor =  solutionColor, phase = phase)
             }
         }catch (_: ConcurrentModificationException) {}
     }

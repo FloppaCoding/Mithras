@@ -16,7 +16,6 @@ import floppacoding.mithras.utils.ChatUtils
 import floppacoding.mithras.utils.Extensions.HORIZONTALS
 import floppacoding.mithras.utils.Extensions.identicalToOneOf
 import floppacoding.mithras.utils.LocationManager
-import floppacoding.mithras.utils.render.Renderer3D
 import kotlinx.coroutines.launch
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.Blocks
@@ -109,7 +108,8 @@ object IceFillSolver : Module(
         var next: Vec3d
         for (ii in 1..<length) {
             next = Vec3d.of(renderPathBuffer[ii]).add(0.5, 0.0, 0.5)
-            Renderer3D.drawLine(event.context, last, next, lineColor, 4f, phase)
+//            Renderer3D.drawLine(event.context, last, next, lineColor, 4f, phase)
+            // TODO readd rendering
             last = next
         }
     }

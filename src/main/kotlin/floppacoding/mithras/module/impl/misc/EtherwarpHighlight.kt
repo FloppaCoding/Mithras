@@ -11,14 +11,12 @@ import floppacoding.mithras.utils.Extensions.equalsOneOf
 import floppacoding.mithras.utils.Extensions.isSubclassOfOneOf
 import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.inventory.ItemUtils.extraAttributes
-import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.*
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.util.Hand
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Box
 import net.minecraft.util.math.Direction
 import net.minecraft.world.BlockStateRaycastContext
 import net.minecraft.world.BlockView
@@ -49,8 +47,8 @@ object EtherwarpHighlight : Module(
         // The is holding check is not strictly required since the check for the ethermerge attribute will already cover that
 //        if (mc.player?.isHoldingInMainHand(SkyblockItem.AOTV,SkyblockItem.AOTE) != true) return
         val attributes = mc.player?.mainHandStack?.extraAttributes ?: return
-        if (!attributes.getBoolean("ethermerge")) return
-        val distance = 57.0 + attributes.getInt("tuned_transmission")
+        if (!attributes.getBoolean("ethermerge",false)) return
+        val distance = 57.0 + attributes.getInt("tuned_transmission", 0)
         val hitResult = raycastEtherwarp(distance) ?: return
         val targetState = mc.world?.getBlockState(hitResult.blockPos) ?: return
         val isValid =
@@ -66,7 +64,9 @@ object EtherwarpHighlight : Module(
             outlineColor = invalidOutlineColor
             fillColor    = invalidFillColor
         }
-        Renderer3D.drawBox(event.context, Box(hitResult.blockPos), outlineColor, fillColor, lineWidth)
+        //Renderer3D.drawBox(event.context, Box(hitResult.blockPos), outlineColor, fillColor, lineWidth)
+
+        // TODO fix rendering and uncomment this
     }
 
     private fun canEtherwarpTo(hitResult: BlockHitResult): Boolean {

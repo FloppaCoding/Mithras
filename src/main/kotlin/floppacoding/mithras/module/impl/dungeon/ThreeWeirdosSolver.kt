@@ -15,7 +15,6 @@ import floppacoding.mithras.utils.ChatUtils.modMessage
 import floppacoding.mithras.utils.Extensions
 import floppacoding.mithras.utils.Extensions.containsOneOf
 import floppacoding.mithras.utils.LocationManager.inDungeons
-import floppacoding.mithras.utils.render.Renderer3D
 import kotlinx.coroutines.runBlocking
 import meteordevelopment.orbit.EventHandler
 import meteordevelopment.orbit.EventPriority
@@ -93,7 +92,8 @@ object ThreeWeirdosSolver : Module(
     @EventHandler
     fun onRender(event: RenderWorldOverlayEvent) {
         if (correctChest == null) return
-        Renderer3D.drawBlockBoundingBox(event.context, correctChest!!, fillColor = solutionColor)
+        //Renderer3D.drawBlockBoundingBox(event.context, correctChest!!, fillColor = solutionColor)
+        // TODO readd rendering
     }
 
     /**

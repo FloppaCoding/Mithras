@@ -31,7 +31,7 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
     @Unique private final ArrayList<GuiElement> elements = new ArrayList<>();
     @Unique private float elementScale = (float) mc.getWindow().getScaleFactor();
     @Unique private boolean isVanillaGui = true;
-    @Unique private final Renderer2D renderer = Mithras.getRenderer2D();
+    @Unique private Renderer2D renderer() {return  Mithras.getRenderer2D(); }
 
     @Override
     public float mithras_getElementScale() {
@@ -65,6 +65,7 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderElements(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        Renderer2D renderer = renderer();
         if (isVanillaGui) {
             renderer.beginFrame();
             renderer.scale(elementScale, elementScale);
@@ -107,16 +108,16 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         Mithras.getLogger().info("mouseScrolled");
         float x = scaledMouseX();
         float y = scaledMouseY();
 
-        boolean interactedWithElement = interactWithElements( (element) -> element.mouseScrolled(x, y, (float) amount) );
+        boolean interactedWithElement = interactWithElements( (element) -> element.mouseScrolled(x, y, (float) verticalAmount) );
         if (interactedWithElement) {
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, amount);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
@@ -178,7 +179,7 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
      * Dispatches the BackgroundDrawEvent
      */
     @Inject(method = "renderBackground", at = @At("TAIL"))
-    private void onRenderBackground(DrawContext context, CallbackInfo ci) {
+    private void onRenderBackground(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
         Mithras.EVENT_BUS.post(new GuiBackgroundDrawnEvent((Screen) (Object) this, context));
     }
 }

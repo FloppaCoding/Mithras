@@ -1,12 +1,11 @@
 package floppacoding.mithras.ui.clickgui.elements.menu
 
+import floppacoding.aurora.core.TextAlign
 import floppacoding.mithras.module.settings.impl.StringSetting
 import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.aurora.core.TextAlign
-import net.minecraft.SharedConstants
 import org.lwjgl.glfw.GLFW
 
 /**
@@ -67,12 +66,16 @@ class ElementTextField(parent: ModuleButton, setting: StringSetting) :
 
     override fun charTyped(chr: Char, modifiers: Int): Boolean {
         if (listening) {
-            if (SharedConstants.isValidChar(chr)) {
+            if (isValidChar(chr)) {
                 setting.text += chr.toString()
                 return true
             }
         }
         return super.charTyped(chr, modifiers)
+    }
+
+    private fun isValidChar(chr: Char): Boolean {
+        return chr.code != 167 && chr >= ' ' && chr.code != 127
     }
 
     /**

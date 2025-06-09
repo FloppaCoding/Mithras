@@ -164,7 +164,7 @@ abstract class Command {
 
     fun CommandContext<*>.getBlockPos(name: String): BlockPos {
         return (this.getArgument(name, PosArgument::class.java) as PosArgument)
-            .toAbsoluteBlockPos(MinecraftClient.getInstance().player!!.commandSource)
+            .toAbsoluteBlockPos(MinecraftClient.getInstance().player!!.getCommandSource(null))
     }
 
     @JvmOverloads
@@ -172,8 +172,8 @@ abstract class Command {
         argument(name, Vec3ArgumentType.vec3(centerIntegers), tasks)
 
     fun CommandContext<*>.getVec3(name: String): Vec3d {
-            return (this.getArgument(name, PosArgument::class.java) as PosArgument)
-                .toAbsolutePos(MinecraftClient.getInstance().player!!.commandSource)
+        return (this.getArgument(name, PosArgument::class.java) as PosArgument)
+            .getPos(MinecraftClient.getInstance().player!!.getCommandSource(null))
         }
 
 }

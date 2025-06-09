@@ -12,16 +12,14 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.utils.Extensions
 import floppacoding.mithras.utils.LocationManager
-import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.Blocks
 import net.minecraft.block.LeverBlock
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Box
 import net.minecraft.util.math.Direction
 import java.awt.Color
 import java.util.*
-
+//TODO readd rendering
 /**
  * A solver for the dungeons water board puzzle.
  *
@@ -133,7 +131,7 @@ object WaterBoardSolver : Module(
         if (!inWater || flow == null || direction == null) return
         if (flowColor.alpha != 0) {
             flow!!.path.forEach {
-                Renderer3D.drawBox(event.context, Box(it.offset(direction!!.opposite)), null, flowColor)
+//                Renderer3D.drawBox(event.context, Box(it.offset(direction!!.opposite)), null, flowColor)
             }
         }
         if (variant != -1) {
@@ -147,7 +145,7 @@ object WaterBoardSolver : Module(
                 val solution = gate.getLevers(variant) ?: continue
                 for ((lever, switched) in leverStates) {
                     if (switched && !solution.contains(lever) || !switched && solution.contains(lever)) {
-                        Renderer3D.drawBox(event.context, Box(lever.position.up(offset)), gate.color, lineWidth = 3f)
+//                        Renderer3D.drawBox(event.context, Box(lever.position.up(offset)), gate.color, lineWidth = 3f)
                     }
                 }
                 offset++

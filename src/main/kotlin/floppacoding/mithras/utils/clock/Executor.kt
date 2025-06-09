@@ -4,7 +4,7 @@ package floppacoding.mithras.utils.clock
  * Class that allows repeating execution of code while being dynamic.
  * @author Stivais
  */
-open class Executor(open val delay: Long, inline val func: Executable) {
+open class Executor(open val delay: Long, val func: Executable) {
 
     private val clock = Clock()
     private var shouldFinish = false

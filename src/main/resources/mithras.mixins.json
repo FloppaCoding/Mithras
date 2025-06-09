@@ -4,7 +4,6 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MapStateAccessor",
-    "PlayerInventoryMixin",
     "WorldChunkMixin",
     "network.ClientConnectionMixin"
   ],
@@ -12,15 +11,14 @@
     "defaultRequire": 1
   },
   "client": [
+    "ClientCommonNetworkHandlerAccessor",
     "ClientPlayerEntityMixin",
     "GameOptionsMixin",
     "KeyBindingMixin",
     "KeyboardMixin",
-    "MinecraftClientAccessor",
     "MinecraftClientMixin",
     "MouseMixin",
     "ParticleManagerMixin",
-    "PlayerSkinAccessor",
     "gui.DrawContextMixin",
     "gui.HandledScreenAccessor",
     "gui.HandledScreenMixin",

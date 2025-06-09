@@ -4,10 +4,12 @@ import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.events.ClientTickEvent
 import floppacoding.mithras.events.ConnectionEvent
 import floppacoding.mithras.events.WorldChangeEvent
+import floppacoding.mithras.mixin.ClientCommonNetworkHandlerAccessor
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.network.ClientPlayNetworkHandler
+import net.minecraft.scoreboard.ScoreboardDisplaySlot
 import net.minecraft.util.Formatting
 
 object LocationManager {
@@ -32,7 +34,7 @@ object LocationManager {
             if (mc.player != null) {
 
                 if (!inSkyblock) {
-                    inSkyblock = onHypixel && mc.world?.scoreboard?.getObjectiveForSlot(1)
+                    inSkyblock = onHypixel && mc.world?.scoreboard?.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR)
                         ?.let { ScoreboardUtils.cleanSB(it.displayName.string).contains("SKYBLOCK") } ?: false
                 }
 
@@ -74,7 +76,7 @@ object LocationManager {
     @EventHandler
     fun onConnect(event: ConnectionEvent.Join) {
         onHypixel = mc.runCatching {
-            ((mc.player?.serverBrand?.lowercase()?.contains("hypixel")
+            (((mc.player?.networkHandler as? ClientCommonNetworkHandlerAccessor)?.brand?.lowercase()?.contains("hypixel")
                 ?: mc.currentServerEntry?.address?.lowercase()?.contains("hypixel")) == true)
         }.getOrDefault(false)
     }

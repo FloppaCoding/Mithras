@@ -1,15 +1,15 @@
 package floppacoding.mithras.module.impl.dungeon.dungeonmap.core
 
+import floppacoding.aurora.core.images.Image
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.mapX
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.mapZ
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.yaw
-import floppacoding.aurora.core.images.Image
 import floppacoding.mithras.utils.render.ImageManager
 import net.minecraft.client.network.AbstractClientPlayerEntity
-import net.minecraft.item.map.MapIcon
+import net.minecraft.item.map.MapDecoration
 import java.io.IOException
 
 /**
@@ -39,10 +39,10 @@ class DungeonPlayer(
 
     // TODO add abstraction here for general image.
     var skinImage: Image? = try {
-        ImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)} catch (e: IOException){null}
+        ImageManager.createImage(player.skinTextures.texture, Image.Flags.NEAREST)} catch (e: IOException){null}
         get() {
             if (field == null) try{
-                field = ImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)
+                field = ImageManager.createImage(player.skinTextures.texture, Image.Flags.NEAREST)
             }catch (_: IOException) {
             }
             return field
@@ -92,13 +92,13 @@ class DungeonPlayer(
     }*/
 
     fun loadSkinImage() {
-        skinImage = ImageManager.createImage(player.skinTexture, Image.Flags.NEAREST)
+        skinImage = ImageManager.createImage(player.skinTextures.texture, Image.Flags.NEAREST)
     }
 
     /**
      * Updates the teammates position and the secrets in the room they are in.
      */
-    fun updatePlayerAndRoom(decor: Map<String, MapIcon>?) {
+    fun updatePlayerAndRoom(decor: Map<String, MapDecoration>?) {
         // Update the position in the world
         val player = mc.world?.players?.find { it.name.string == this.name }
         // when the player is in render distance, use that data instead of the map item

@@ -14,7 +14,7 @@ object DisableHotbarScroll : Module(
 ) {
     /**
      * Returns whether hotbar scrolling should be prevented.
-     * @see floppacoding.mithras.mixin.PlayerInventoryMixin.onHotbarScroll
+     * @see floppacoding.mithras.mixin.MouseMixin.onHotbarSroll
      */
     fun shouldDisableHotbarScroll(): Boolean = this.enabled
 }

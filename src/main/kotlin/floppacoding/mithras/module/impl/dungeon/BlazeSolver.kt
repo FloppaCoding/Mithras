@@ -13,7 +13,6 @@ import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.utils.ChatUtils.modMessage
 import floppacoding.mithras.utils.ChatUtils.stripControlCodes
 import floppacoding.mithras.utils.LocationManager.inDungeons
-import floppacoding.mithras.utils.render.Renderer3D
 import kotlinx.coroutines.runBlocking
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.Blocks
@@ -126,13 +125,14 @@ object BlazeSolver : Module(
                 secondNext = orderedBlazes.getOrNull(2)
             }
         }
-        Renderer3D.drawEntityBoundingBox(event.context, target.blaze, outlineColor = targetColor, lineWidth = 4f)
-        if (next != null && lineColor.alpha != 0) {
-            Renderer3D.drawLine(event.context, target.blaze.pos.add(0.0,1.0,0.0), next.blaze.pos.add(0.0,1.0,0.0), lineColor, 4f)
-            if (secondNext != null && secondLineColor.alpha != 0) {
-                Renderer3D.drawLine(event.context, next.blaze.pos.add(0.0,1.0,0.0), secondNext.blaze.pos.add(0.0,1.0,0.0), secondLineColor, 4f)
-            }
-        }
+        // TODO readd rendering
+//        Renderer3D.drawEntityBoundingBox(event.context, target.blaze, outlineColor = targetColor, lineWidth = 4f)
+//        if (next != null && lineColor.alpha != 0) {
+//            Renderer3D.drawLine(event.context, target.blaze.pos.add(0.0,1.0,0.0), next.blaze.pos.add(0.0,1.0,0.0), lineColor, 4f)
+//            if (secondNext != null && secondLineColor.alpha != 0) {
+//                Renderer3D.drawLine(event.context, next.blaze.pos.add(0.0,1.0,0.0), secondNext.blaze.pos.add(0.0,1.0,0.0), secondLineColor, 4f)
+//            }
+//        }
 
     }
 

@@ -17,7 +17,7 @@ import floppacoding.aurora.core.images.Image
 import floppacoding.mithras.utils.render.ImageManager
 import floppacoding.aurora.core.TextAlign
 import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.entity.PlayerModelPart
+import net.minecraft.entity.player.PlayerModelPart
 import java.awt.Color
 
 object MapRender: HudElement(

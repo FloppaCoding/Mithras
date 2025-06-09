@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ProgressScreen.class)
 public abstract class ProgressScreenMixin {
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ProgressScreen;renderBackground(Lnet/minecraft/client/gui/DrawContext;)V"), cancellable = true)
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;render(Lnet/minecraft/client/gui/DrawContext;IIF)V"), cancellable = true)
     private void mithras$skipLoadingProgress(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (SmoothTransfer.INSTANCE.shouldHideLoadingScreen())
             ci.cancel();

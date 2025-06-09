@@ -10,8 +10,8 @@ import floppacoding.mithras.utils.clock.Clock
 import floppacoding.mithras.utils.clock.Executor
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
+import net.minecraft.text.PlainTextContent.Literal
 import net.minecraft.text.Text
 
 /**
@@ -38,7 +38,7 @@ abstract class GuiScreen(
         (this as ScreenMixinDuck).mithras_setElementScale(scale)
     }
 
-    constructor(title: String, scale: Float = 1f) : this(MutableText.of(LiteralTextContent(title)), scale)
+    constructor(title: String, scale: Float = 1f) : this(MutableText.of(Literal(title)), scale)
 
     open val renderer: Renderer2DMC
         get() = Mithras.renderer2D
@@ -109,10 +109,10 @@ abstract class GuiScreen(
 
     protected open fun mouseReleased(mouseX: Float, mouseY: Float, button: Int) : Boolean { return false }
 
-    final override fun mouseScrolled(mouseX: Double, mouseY: Double, amount: Double): Boolean {
-        if (mouseScrolled(getMouseX(), getMouseY(), amount.toFloat())) return true
+    final override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
+        if (mouseScrolled(getMouseX(), getMouseY(), verticalAmount.toFloat())) return true
 
-        return super.mouseScrolled(mouseX, mouseY, amount)
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
     }
 
     protected open fun mouseScrolled(mouseX: Float, mouseY: Float, amount: Float): Boolean { return false }
