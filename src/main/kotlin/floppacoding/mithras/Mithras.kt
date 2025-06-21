@@ -1,5 +1,6 @@
 package floppacoding.mithras
 
+import floppacoding.aurora.core.Aurora
 import floppacoding.aurora.mc_modern.AuroraMC
 import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.commands.MithrasCommandManager
@@ -41,6 +42,7 @@ object Mithras : ModInitializer {
 	const val SHORT_PREFIX = "§6§lF§r§eC §6§l»§r"
 	const val RESOURCE_DOMAIN = "mithras"
 	const val CONFIG_DOMAIN = "mithras"
+	val DEBUG: Boolean = System.getProperty("mithras.debug") == "true"
 
 	@JvmField
 	val mc: MinecraftClient = MinecraftClient.getInstance()
@@ -106,6 +108,7 @@ object Mithras : ModInitializer {
 	@EventHandler
 	fun onGameStart(event: GameStartEvent) {
 		renderer2D = AuroraMC
+		Aurora.runDirectory = mc.runDirectory.path
 
 		// Load and generate fonts.
 		FontManager

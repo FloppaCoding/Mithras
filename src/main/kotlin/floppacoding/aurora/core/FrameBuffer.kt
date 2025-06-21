@@ -1,9 +1,16 @@
 package floppacoding.aurora.core
 
+import org.lwjgl.opengl.GL46.GL_FRAMEBUFFER
+import org.lwjgl.opengl.GL46.glBindFramebuffer
+
 open class FrameBuffer {
     open val fbo: Int = 0
     open var width: Int = 0
     open var height: Int = 0
+
+    open fun use() {
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo)
+    }
 }
 
 class ResizableFrameBufferReference(
@@ -17,6 +24,7 @@ class ResizableFrameBufferReference(
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 class FrameBufferReference(
     override val fbo: Int,
     private val widthGetter: () -> Int,

@@ -5,7 +5,7 @@ import floppacoding.aurora.core.font.FontRender2D
 import floppacoding.aurora.core.images.Image
 import floppacoding.aurora.core.shader.impl.MainShader
 import org.joml.*
-import org.lwjgl.opengl.GL45.*
+import org.lwjgl.opengl.GL46.*
 import org.lwjgl.system.MemoryStack
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,6 +19,7 @@ import kotlin.math.*
  * @author Aton
  */
 object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
+    var runDirectory: String? = null
     override var matrices: MatrixStack2D = MatrixStack2D()
         private set
     override val vaoBuilder = VAOBuilder2D()
@@ -92,7 +93,10 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         super.endFrame()
         if(drawCalls.isEmpty()) return
 
-        if(useMSAA) msaaBuffer.useAndCopyFrom(mainBuffer)
+        if(useMSAA)
+            msaaBuffer.useAndCopyFrom(mainBuffer)
+        else
+            mainBuffer.use()
         flushDraw()
         if(useMSAA) msaaBuffer.copyBackTo(mainBuffer)
     }
@@ -105,11 +109,15 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         GLStateTracker.setupState()
         var scissoring = false
 
+        // OpenGL4 should support at least 80 texture units. This should be sufficient for now.
+        val avaliableUnits = 32
+        val unitShift = 10 // This prevents already bound textures from being affected. Only works if no more than 10 are in use. But easier fix than restoring them all.
+
         MemoryStack.stackPush().use { stack ->
             var unit: Int; var id: Int; var firstInBatch = 0; var lastInBatch: Int = drawCalls.size - 1; var call: RenderCall
             val textures: LinkedHashMap<Int, Int> = linkedMapOf()
 
-            val textureBuffer = stack.mallocInt(32)
+            val textureBuffer = stack.mallocInt(avaliableUnits)
             do {
                 //Bind as many of the required textures as possible
                 unit = 0
@@ -117,9 +125,8 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
                     call = drawCalls[ii]
                     id = call.texture ?: continue
 
-                    call.textureUnit = textures.getOrPut(id) { unit++ }
-
-                    if (unit > 31) {
+                    call.textureUnit = textures.getOrPut(id) { unitShift + unit++ }
+                    if (unit > avaliableUnits-1) {
                         lastInBatch = ii
                         break
                     }
@@ -127,7 +134,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
                 if (textures.isNotEmpty()) {
                     textureBuffer.limit(textures.keys.size)
                     textureBuffer.put(0, textures.keys.toIntArray())
-                    glBindTextures(0, textureBuffer)
+                    glBindTextures(unitShift, textureBuffer)
                 }
 
                 // Group consecutive render calls together when no state change is required.
@@ -689,11 +696,14 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         private var blend: Boolean = false
         private var cullFace: Boolean = false
         private var depthTest: Boolean = false
+        private var activeTexture: Int = 0
 
         fun setupState() {
             cullFace = glGetBoolean(GL_CULL_FACE)
             blend = glGetBoolean(GL_BLEND)
             depthTest = glGetBoolean(GL_DEPTH_TEST)
+
+            activeTexture = glGetInteger(GL_ACTIVE_TEXTURE)
 
             if (cullFace) glDisable(GL_CULL_FACE)
             if (!blend) glEnable(GL_BLEND)
@@ -704,6 +714,8 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
             if (cullFace) glEnable(GL_CULL_FACE)
             if (!blend) glDisable(GL_BLEND)
             if (depthTest) glEnable(GL_DEPTH_TEST)
+
+            glActiveTexture(activeTexture)
         }
     }
     private data class TextureCoordinates(val u0: Float, val v0: Float, val u1: Float, val v1: Float) {
@@ -747,4 +759,5 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
     )
     internal const val RESOURCE_DOMAIN: String = "aurora"
     internal val logger: Logger = LoggerFactory.getLogger("aurora")
+    internal val DEBUG: Boolean = System.getProperty("aurora.debug") == "true"
 }

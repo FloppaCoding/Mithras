@@ -17,6 +17,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.shaders.Shaders
 import floppacoding.mithras.ui.other.Test
 import floppacoding.mithras.ui.other.Test2
+import floppacoding.mithras.ui.other.Test3
 import floppacoding.mithras.utils.*
 import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.network.BazaarAPI
@@ -475,6 +476,11 @@ object DebugCommand : Command() {
                 }
             }
             literal("test") {
+                literal("screen3") {
+                    execute {
+                        Extensions.setScreen(Test3)
+                    }
+                }
                 literal("screen2") {
                     execute {
                         Extensions.setScreen(Test2)

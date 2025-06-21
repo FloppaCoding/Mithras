@@ -1,8 +1,11 @@
 package floppacoding.mithras.module
 
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.events.InputEvent
 import floppacoding.mithras.module.ModuleManager.modules
 import floppacoding.mithras.module.impl.debug.DebugModule
+import floppacoding.mithras.module.impl.debug.RenderTest
+import floppacoding.mithras.module.impl.debug.RenderTest2
 import floppacoding.mithras.module.impl.dungeon.*
 import floppacoding.mithras.module.impl.keybinds.AddKeybind
 import floppacoding.mithras.module.impl.keybinds.KeyBind
@@ -81,13 +84,22 @@ object ModuleManager {
         EtherwarpHighlight,
         ChatCleaner,
         ItemProtection,
-        DebugModule,
 
 
         //KEYBIND
         AddKeybind,
 
     )
+
+    init {
+        if (Mithras.DEBUG) {
+            modules.addAll(listOf(
+                DebugModule,
+                RenderTest,
+                RenderTest2,
+            ))
+        }
+    }
 
     /**
      * Loads in all modules and their elements.
