@@ -5,7 +5,7 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.module.settings.impl.NumberSetting
 import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.util.Hand
+import net.minecraft.util.Arm
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.math.RotationAxis
 import kotlin.math.exp
@@ -35,18 +35,18 @@ object ItemAnimations : Module(
     /**
      * Modifies the position, angle and scale of the held item.
      */
-    fun itemTransformHook(matrices: MatrixStack, hand: Hand, swingProgress: Float) {
+    fun itemTransformHook(matrices: MatrixStack, arm: Arm, swingProgress: Float) {
         if (!this.enabled) return
         val scale = exp(size)
         if (this.scaleSwing) {
-            val bl3 = hand == Hand.MAIN_HAND
+            val bl3 = arm == Arm.RIGHT
             val i = if (bl3) 1 else -1
             val f = -0.4f * MathHelper.sin(MathHelper.sqrt(swingProgress) * 3.1415927f) * (scale - 1)
             val g = 0.2f * MathHelper.sin(MathHelper.sqrt(swingProgress) * 6.2831855f) * (scale - 1)
             val h = -0.2f * MathHelper.sin(swingProgress * 3.1415927f) * (scale - 1)
             matrices.translate(i.toFloat() * f, g, h)
         }
-        if (hand == Hand.MAIN_HAND) {
+        if (arm == Arm.RIGHT) {
             matrices.translate(x* 0.56, y*0.52, z* -0.72)
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yaw))
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch))

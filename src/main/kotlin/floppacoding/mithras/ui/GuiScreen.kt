@@ -48,7 +48,7 @@ abstract class GuiScreen(
     /**
      * If this is false it will render FPS in bottom-right corner.
      */
-    protected open val displayPerformance: Boolean = false
+    open var displayPerformance: Boolean = Mithras.DEBUG
 
     /** Used to show performance*/
     private var frames = 0

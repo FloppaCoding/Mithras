@@ -66,5 +66,5 @@ object Test : GuiScreen("Hello", 2f) {
         renderer.circle(bobberX, y, sliderBobberRadius, color)
     }
 
-    override val displayPerformance: Boolean = true
+    override var displayPerformance: Boolean = true
 }

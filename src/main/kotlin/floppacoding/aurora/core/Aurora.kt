@@ -630,7 +630,8 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
      */
     private fun getAbsoluteBoundingBox(x: Float, y: Float, width: Float, height: Float): BoundingBox {
         val mat = matrices.peek()
-        val transform = Matrix3x2f(mat)
+        val scissorTransform = Matrix3x2f(1f, 0f, 0f, -1f, 0f, mainBuffer.height.toFloat())
+        val transform = Matrix3x2f(mat).mulLocal(scissorTransform)
 
         val corner = Vector2f()
 

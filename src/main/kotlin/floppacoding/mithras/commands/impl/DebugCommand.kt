@@ -475,7 +475,12 @@ object DebugCommand : Command() {
                     }
                 }
             }
-            literal("test") {
+            literal("render") {
+                literal("displayPerformance") {
+                    execute {
+                        Mithras.clickGUI.displayPerformance = !Mithras.clickGUI.displayPerformance
+                    }
+                }
                 literal("screen3") {
                     execute {
                         Extensions.setScreen(Test3)
