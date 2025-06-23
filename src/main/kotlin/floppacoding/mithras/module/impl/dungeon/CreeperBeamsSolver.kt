@@ -11,8 +11,10 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.module.settings.impl.NumberSetting
+import floppacoding.mithras.utils.Extensions.withAlpha
 import floppacoding.mithras.utils.GeometryHelper
 import floppacoding.mithras.utils.LocationManager.inDungeons
+import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.Blocks
 import net.minecraft.client.world.ClientWorld
@@ -108,12 +110,12 @@ object CreeperBeamsSolver : Module(
         if (!inCreeperRoom || solutionPairs.isEmpty()) return
         solutionPairs.withIndex().forEach {
             val color = SOLUTION_COLOURS.getOrNull(it.index) ?: return@forEach
-            // TODO readd rendering
-//            Renderer3D.drawBlockBoundingBox(event.context,it.value.first, fillColor = color.withAlpha(opacity))
-//            Renderer3D.drawBlockBoundingBox(event.context,it.value.second, fillColor = color.withAlpha(opacity))
-//            if (showLines) {
-//                Renderer3D.drawLine(event.context, it.value.first.toCenterPos(), it.value.second.toCenterPos(), color, lineWidth = 2f, phase = true)
-//            }
+
+            Renderer3D.drawBlockBoundingBox(event.context,it.value.first, fillColor = color.withAlpha(opacity))
+            Renderer3D.drawBlockBoundingBox(event.context,it.value.second, fillColor = color.withAlpha(opacity))
+            if (showLines) {
+                Renderer3D.drawLine(event.context, it.value.first.toCenterPos(), it.value.second.toCenterPos(), color, lineWidth = 2f, phase = true)
+            }
         }
     }
 

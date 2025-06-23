@@ -11,12 +11,14 @@ import floppacoding.mithras.utils.Extensions.equalsOneOf
 import floppacoding.mithras.utils.Extensions.isSubclassOfOneOf
 import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.inventory.ItemUtils.extraAttributes
+import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.*
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.util.Hand
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import net.minecraft.util.math.Direction
 import net.minecraft.world.BlockStateRaycastContext
 import net.minecraft.world.BlockView
@@ -64,9 +66,7 @@ object EtherwarpHighlight : Module(
             outlineColor = invalidOutlineColor
             fillColor    = invalidFillColor
         }
-        //Renderer3D.drawBox(event.context, Box(hitResult.blockPos), outlineColor, fillColor, lineWidth)
-
-        // TODO fix rendering and uncomment this
+        Renderer3D.drawBox(event.context, Box(hitResult.blockPos), outlineColor, fillColor, lineWidth)
     }
 
     private fun canEtherwarpTo(hitResult: BlockHitResult): Boolean {

@@ -76,14 +76,6 @@ dependencies {
 	// meteor orbit event bus
 	include(implementation("meteordevelopment:orbit:0.2.3"))
 
-//	include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
-
-	// NanoVG for rendering
-	include(implementation("org.lwjgl:lwjgl-nanovg:3.3.1"))
-	def classifiers = ["natives-windows", "natives-linux", "natives-macos"]
-	for (classifier in classifiers) {
-		include("org.lwjgl:lwjgl-nanovg:3.3.1:${classifier}")
-	}
 }
 
 processResources {

@@ -13,6 +13,7 @@ import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.utils.GeometryHelper
 import floppacoding.mithras.utils.LocationManager.inDungeons
+import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.BlockState
 import net.minecraft.block.Blocks
@@ -91,15 +92,15 @@ object TeleportSolver : Module (
         if (!inTpMaze) return
         try {
             visitedPads.forEach {
-//                Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = visitedColor)
+                Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = visitedColor)
             }
             if (possibleSolutions.size > 1) {
                 possibleSolutions.forEach {
-//                    Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = uncertainColor)
+                    Renderer3D.drawBlockBoundingBox(event.context, it, fillColor = uncertainColor)
                 }
             }
             else if (possibleSolutions.isNotEmpty()){
-//                Renderer3D.drawBlockBoundingBox(event.context, possibleSolutions.first(), fillColor =  solutionColor, phase = phase)
+                Renderer3D.drawBlockBoundingBox(event.context, possibleSolutions.first(), fillColor =  solutionColor, phase = phase)
             }
         }catch (_: ConcurrentModificationException) {}
     }

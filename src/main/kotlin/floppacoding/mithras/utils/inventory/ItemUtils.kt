@@ -25,7 +25,14 @@ object ItemUtils {
     //TODO redo all the item stack stuff as it no longer uses nbt as runtime data storage
 
     val ItemStack.extraAttributes: NbtCompound?
-        get() = Mithras.mc.player?.registryManager?.let{return@let (this.toNbt(it) as? NbtCompound)?.getCompound("ExtraAttributes")?.getOrNull()}
+        get() = Mithras.mc.player?.registryManager?.let{
+            return@let (
+                    try { this.toNbt(it) }
+                    catch (_: IllegalStateException) { null }
+                    as? NbtCompound
+            )
+                ?.getCompound("ExtraAttributes")?.getOrNull()
+        }
 
     val ItemStack.isDungeonMobDrop: Boolean
         get() {

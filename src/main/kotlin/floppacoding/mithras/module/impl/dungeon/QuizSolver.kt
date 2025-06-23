@@ -12,11 +12,13 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.utils.ChatUtils.stripControlCodes
 import floppacoding.mithras.utils.Extensions.containsOneOf
 import floppacoding.mithras.utils.LocationManager.inDungeons
+import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import meteordevelopment.orbit.EventPriority
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.text.Text
 import net.minecraft.util.math.Box
+import java.awt.Color
 import kotlin.math.floor
 
 
@@ -78,8 +80,8 @@ object QuizSolver  : Module(
             val name = it.customName?.string ?: return@getEntitiesByClass false
             name.containsOneOf("ⓐ","ⓑ","ⓒ") && name.contains(triviaAnswer!!)
         }.firstOrNull()?.let {
-//            Renderer3D.drawBlockBoundingBox(event.context, it.blockPos.up(), null, Color(20,255,40,150))
-            // TODO readd rendering
+            Renderer3D.drawBlockBoundingBox(event.context, it.blockPos.up(), null, Color(20,255,40,150))
+
         }
     }
 

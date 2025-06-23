@@ -25,6 +25,7 @@
     "gui.InGameHudMixin",
     "gui.ScreenMixin",
     "network.ClientPlayNetworkHandlerMixin",
+    "render.DownloadingTerrainScreenMixin",
     "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",
     "render.HeldItemRendererMixin",

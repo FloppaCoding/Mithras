@@ -83,7 +83,6 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        Mithras.getLogger().info("mouseClicked");
         float x = scaledMouseX();
         float y = scaledMouseY();
 
@@ -96,7 +95,6 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        Mithras.getLogger().info("mouseReleased");
         float x = scaledMouseX();
         float y = scaledMouseY();
 
@@ -109,7 +107,6 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        Mithras.getLogger().info("mouseScrolled");
         float x = scaledMouseX();
         float y = scaledMouseY();
 
@@ -122,8 +119,6 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     public void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
-        Mithras.getLogger().info("keyPressed");
-
         boolean interactedWithElement = interactWithElements( (element) -> element.keyPressed(keyCode, scanCode, modifiers) );
         if (interactedWithElement) {
             cir.setReturnValue(true);
@@ -132,8 +127,6 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Override
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-        Mithras.getLogger().info("keyReleased");
-
         boolean interactedWithElement = interactWithElements( (element) -> element.keyReleased(keyCode, scanCode, modifiers) );
         if (interactedWithElement) {
             return true;
@@ -143,8 +136,6 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Override
     public boolean charTyped(char chr, int modifiers) {
-        Mithras.getLogger().info("charTyped");
-
         boolean interactedWithElement = interactWithElements( (element) -> element.charTyped(chr, modifiers) );
         if (interactedWithElement) {
             return true;

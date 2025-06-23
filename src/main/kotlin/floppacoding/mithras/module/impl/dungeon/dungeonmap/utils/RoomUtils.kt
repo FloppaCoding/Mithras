@@ -49,7 +49,7 @@ object RoomUtils {
 
     fun getRoomScoreboardID(): String? {
         val id = try {
-            ScoreboardUtils.sidebarLines.last().trim().split(" ").last()
+            ScoreboardUtils.sidebarLines.find { it.contains(Regex("\\d{2}/\\d{2}/\\d{2}")) }?.trim()?.split(" ")?.last()
         } catch (_: NoSuchElementException) {
             null
         }

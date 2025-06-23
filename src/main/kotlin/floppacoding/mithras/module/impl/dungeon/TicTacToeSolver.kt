@@ -11,6 +11,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.utils.LocationManager.inDungeons
+import floppacoding.mithras.utils.render.Renderer3D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.block.Blocks
 import net.minecraft.entity.decoration.ItemFrameEntity
@@ -167,8 +168,7 @@ object TicTacToeSolver : Module(
     fun onRenderWorld(event: RenderWorldOverlayEvent) {
         if (!inDungeons) return
         if (bestMove != null) {
-            //Renderer3D.drawBlockBoundingBox(event.context, bestMove!!, outlineColor, fillColor, 2f)
-            //TODO readd rendering
+            Renderer3D.drawBlockBoundingBox(event.context, bestMove!!, outlineColor, fillColor, 2f)
         }
     }
 

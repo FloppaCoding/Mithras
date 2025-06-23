@@ -10,7 +10,6 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils.yaw
 import floppacoding.mithras.utils.render.ImageManager
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.item.map.MapDecoration
-import java.io.IOException
 
 /**
  * Class to store information about dungeon teammates.
@@ -39,19 +38,15 @@ class DungeonPlayer(
 
     // TODO add abstraction here for general image.
     var skinImage: Image? = try {
-        ImageManager.createImage(player.skinTextures.texture, Image.Flags.NEAREST)} catch (e: IOException){null}
+        ImageManager.createSkinImage(player.skinTextures.texture)  } catch (e: ClassCastException){null}
         get() {
             if (field == null) try{
-                field = ImageManager.createImage(player.skinTextures.texture, Image.Flags.NEAREST)
-            }catch (_: IOException) {
+                ImageManager.createSkinImage(player.skinTextures.texture)
+            }catch (_: ClassCastException) {
             }
             return field
         }
         private set
-
-
-//    var skinImage: NVGImage? = null
-//        private set
 
     /**
      * Stores the index of the room the player is currently in within the [Dungeon.dungeonList].
@@ -92,7 +87,9 @@ class DungeonPlayer(
     }*/
 
     fun loadSkinImage() {
-        skinImage = ImageManager.createImage(player.skinTextures.texture, Image.Flags.NEAREST)
+        try {
+            skinImage = ImageManager.createSkinImage(player.skinTextures.texture)
+        }catch (_: ClassCastException){}
     }
 
     /**
