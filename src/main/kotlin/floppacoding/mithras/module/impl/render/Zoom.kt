@@ -6,7 +6,9 @@ import floppacoding.mithras.events.MouseScrollEvent
 import floppacoding.mithras.events.WorldChangeEvent
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.Module
+import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.BooleanSetting
+import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.mithras.utils.JavaExtensions
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.option.SimpleOption
@@ -30,8 +32,7 @@ object Zoom : Module(
     private const val BASE_FOV: Int = 50
     private const val MIN_FOV: Int = 2 // THIS VALUE MUST BE GREATER THAN 1 OR THE GAME CAN CRASH!
 
-    //private var zoomState by NumberSetting("State", 5, MIN_FOV, BASE_FOV, visibility = Visibility.HIDDEN)
-    private var zoomState = 5
+    private var zoomState by NumberSetting<Int>("State", 5, MIN_FOV, BASE_FOV, visibility = Visibility.HIDDEN)
 
     /**
      * Used as a stand in for the games fov setting when zoomed in.
