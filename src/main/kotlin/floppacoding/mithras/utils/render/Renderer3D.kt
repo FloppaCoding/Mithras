@@ -1,19 +1,11 @@
 package floppacoding.mithras.utils.render
 
-import com.mojang.blaze3d.opengl.GlConst
-import com.mojang.blaze3d.opengl.GlStateManager
-import com.mojang.blaze3d.pipeline.RenderPipeline
-import com.mojang.blaze3d.platform.DestFactor
-import com.mojang.blaze3d.platform.SourceFactor
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.VertexFormat
 import floppacoding.mithras.Mithras
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.block.BlockState
 import net.minecraft.block.ShapeContext
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.render.RenderLayer.MultiPhase
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.util.math.MatrixStack
@@ -47,8 +39,7 @@ object Renderer3D {
     // And the DEBUG_LINE_STRIP layer technically should support custom line widths, however that does not seem to work.
     // And even if it did, it still does not support transparency.
     //
-    // Creating custom rendering layers is also not that good of an option because it is awkward with relevant
-    // methods and classes being private.
+    // This is now implemented however line widths are for now no longer supported.
     //
     // Possible improvements for the future to this could be to either make a custom RenderLayer and properly disptach everything for it.
     // Or otherwise code a custom system similar to the render layers. */
@@ -88,8 +79,6 @@ object Renderer3D {
         matrices.push()
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
 
-        setupState(lineWidth, phase)
-
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
         val normalMatrix = matrices.peek()
         val rgba = color.rgb
@@ -104,11 +93,11 @@ object Renderer3D {
 
 
         val builtBuffer = bufferBuilder.end()
-        RenderLayer.getLines().draw(builtBuffer)
+        val layer = if (phase) RenderLayers.LINES_PHASE else RenderLayers.LINES
+        layer.draw(builtBuffer)
 
 
         matrices.pop()
-        restoreState()
     }
 
     /**
@@ -190,8 +179,6 @@ object Renderer3D {
         matrices.push()
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
 
-        setupState(lineWidth, phase)
-
         // Translate to circle corresponding coordinate
         matrices.translate(xCenter,yCenter,zCenter)
 
@@ -210,16 +197,15 @@ object Renderer3D {
         val tessellator = Tessellator.getInstance()
 
         if (fillColor?.isVisible() == true) {
-            fillEllipse(tessellator, positionMatrix, majorSemiaxis, minor, fillColor.rgb, segments)
+            fillEllipse(tessellator, positionMatrix, majorSemiaxis, minor, fillColor.rgb, segments, phase)
         }
 
         if (outlineColor?.isVisible() == true) {
-            outlineEllipse(tessellator, positionMatrix, normalMatrix, majorSemiaxis, minor, outlineColor.rgb, segments)
+            outlineEllipse(tessellator, positionMatrix, normalMatrix, majorSemiaxis, minor, outlineColor.rgb, segments, phase)
         }
 
 
         matrices.pop()
-        restoreState()
     }
 
     /**
@@ -340,17 +326,14 @@ object Renderer3D {
         matrices.push()
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
 
-        setupState(lineWidth, phase)
-
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
         val normalMatrix = matrices.peek()
 
         val tessellator = Tessellator.getInstance()
 
-        outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, color.rgb)
+        outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, color.rgb, phase)
 
         matrices.pop()
-        restoreState()
     }
 
     /**
@@ -391,31 +374,11 @@ object Renderer3D {
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
         val matrix4f: Matrix4f = matrices.peek().positionMatrix
 
-        GlStateManager._depthMask(true)
-        GlStateManager._disableCull()
-        if (phase) GlStateManager._disableDepthTest() else GlStateManager._enableDepthTest()
-        GlStateManager._enableBlend()
-        GlStateManager._blendFuncSeparate(
-            GlConst.toGl(SourceFactor.SRC_ALPHA), // GL_SRC_ALPHA
-            GlConst.toGl(DestFactor.ONE_MINUS_SRC_ALPHA), //GL_ONE_MINUS_SRC_ALPHA
-            GlConst.toGl(SourceFactor.ONE), // GL_ONE
-            GlConst.toGl(DestFactor.ONE_MINUS_SRC_ALPHA) // GL_ONE_MINUS_SRC_ALPHA
-        )
-
         val tessellator = Tessellator.getInstance()
 
-        fillSides(tessellator, matrix4f, x1, y1, z1, x2, y2, z2, fillColor.rgb)
+        fillSides(tessellator, matrix4f, x1, y1, z1, x2, y2, z2, fillColor.rgb, phase)
 
         matrices.pop()
-        GlStateManager._enableCull()
-        GlStateManager._depthMask(false)
-        GlStateManager._disableBlend()
-        GlStateManager._blendFuncSeparate(
-            GlConst.toGl(SourceFactor.SRC_ALPHA), // GL_SRC_ALPHA
-            GlConst.toGl(DestFactor.ONE_MINUS_SRC_ALPHA), //GL_ONE_MINUS_SRC_ALPHA
-            GlConst.toGl(SourceFactor.ONE), // GL_ONE
-            GlConst.toGl(DestFactor.ZERO) // GL_ZERO
-        )
     }
 
     /**
@@ -463,27 +426,17 @@ object Renderer3D {
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
         val normalMatrix = matrices.peek()
 
-        setupState()
-
         val tessellator = Tessellator.getInstance()
 
         if (fillColor.isVisible())
-            fillSides(tessellator, positionMatrix, x1, y1, z1, x2, y2, z2, fillColor.rgb)
+            fillSides(tessellator, positionMatrix, x1, y1, z1, x2, y2, z2, fillColor.rgb, phase)
         if (outlineColor.isVisible())
-            outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, outlineColor.rgb)
-
+            outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, outlineColor.rgb, phase)
 
         matrices.pop()
-        restoreState()
     }
 
-    private fun fillSides(tessellator: Tessellator, positionMatrix: Matrix4f, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int) {
-//        RenderSystem.setShader { GameRenderer.getPositionColorProgram() }
-        // This polygon offset takes care of the Z-fighting that would otherwise happen when one of the planes coincides
-        // with the side of a block. The block texture and the quad here drawn would clash in the depth test and
-        // rounding errors would determine which end up on top for every pixel individually.
-        GlStateManager._enablePolygonOffset()
-        GlStateManager._polygonOffset(-3f, -10f)
+    private fun fillSides(tessellator: Tessellator, positionMatrix: Matrix4f, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int, phase: Boolean) {
         val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
 
         // Bottom side
@@ -523,12 +476,11 @@ object Renderer3D {
         bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color)
 
         val builtBuffer = bufferBuilder.end()
-        QUADS.draw(builtBuffer)
-        GlStateManager._disablePolygonOffset()
+        val layer = if (phase) RenderLayers.QUADS_PHASE else RenderLayers.QUADS
+        layer.draw(builtBuffer)
     }
 
-    private fun outlineBox(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int) {
-//        RenderSystem.setShader { GameRenderer.getRenderTypeLinesProgram() }
+    private fun outlineBox(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int, phase: Boolean) {
         val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL)
         // This rendering works by using 2 vertices per line, one for the start point and one for the end.
         // The normal goes along the line and is used for properly displaying the line width.
@@ -564,10 +516,11 @@ object Renderer3D {
         bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,1f,0f)
 
         val builtBuffer = bufferBuilder.end()
-        RenderLayer.getLines().draw(builtBuffer)
+        val layer = if(phase) RenderLayers.LINES_PHASE else RenderLayers.LINES
+        layer.draw(builtBuffer)
     }
 
-    private fun outlineEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, xRadius: Float, yRadius: Float, color: Int, segments: Int) {
+    private fun outlineEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, xRadius: Float, yRadius: Float, color: Int, segments: Int, phase: Boolean) {
         val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINE_STRIP, VertexFormats.POSITION_COLOR_NORMAL)
 
         // Entries of the rotation matrix
@@ -590,15 +543,11 @@ object Renderer3D {
         }
 
         val builtBuffer = bufferBuilder.end()
-        RenderLayer.getLineStrip().draw(builtBuffer)
+        val layer = if(phase) RenderLayers.LINE_STRIP_PHASE else RenderLayers.LINE_STRIP
+        layer.draw(builtBuffer)
     }
 
-    private fun fillEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, xRadius: Float, yRadius: Float, color: Int, segments: Int) {
-        // This polygon offset takes care of the Z-fighting that would otherwise happen when one of the planes coincides
-        // with the side of a block. The block texture and the quad here drawn would clash in the depth test and
-        // rounding errors would determine which end up on top for every pixel individually.
-        GlStateManager._enablePolygonOffset()
-        GlStateManager._polygonOffset(-3f, -10f)
+    private fun fillEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, xRadius: Float, yRadius: Float, color: Int, segments: Int, phase: Boolean) {
         val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR)
 
         // Entries of the rotation matrix
@@ -624,34 +573,8 @@ object Renderer3D {
         }
 
         val builtBuffer = bufferBuilder.end()
-        TRIANGLE_FAN.draw(builtBuffer)
-    }
-
-    private fun setupState(lineWidth: Float = 1f, phase: Boolean = false) {
-        GlStateManager._depthMask(true)
-        GlStateManager._disableCull()
-        if (phase) GlStateManager._disableDepthTest() else GlStateManager._enableDepthTest()
-        RenderSystem.lineWidth(lineWidth)
-        GlStateManager._enableBlend()
-        GlStateManager._blendFuncSeparate(
-            GlConst.toGl(SourceFactor.SRC_ALPHA), // GL_SRC_ALPHA
-            GlConst.toGl(DestFactor.ONE_MINUS_SRC_ALPHA), //GL_ONE_MINUS_SRC_ALPHA
-            GlConst.toGl(SourceFactor.ONE), // GL_ONE
-            GlConst.toGl(DestFactor.ONE_MINUS_SRC_ALPHA) // GL_ONE_MINUS_SRC_ALPHA
-        )
-    }
-
-    private fun restoreState() {
-        RenderSystem.lineWidth(1.0f)
-        GlStateManager._enableCull()
-        GlStateManager._depthMask(false)
-        GlStateManager._disableBlend()
-        GlStateManager._blendFuncSeparate(
-            GlConst.toGl(SourceFactor.SRC_ALPHA), // GL_SRC_ALPHA
-            GlConst.toGl(DestFactor.ONE_MINUS_SRC_ALPHA), //GL_ONE_MINUS_SRC_ALPHA
-            GlConst.toGl(SourceFactor.ONE), // GL_ONE
-            GlConst.toGl(DestFactor.ZERO) // GL_ZERO
-        )
+        val layer = if (phase) RenderLayers.TRIANGLE_FAN_PHASE else RenderLayers.TRIANGLE_FAN
+        layer.draw(builtBuffer)
     }
 
     /**
@@ -660,36 +583,5 @@ object Renderer3D {
     private fun Color.isVisible(): Boolean = this.alpha != 0
 
 
-    private val TRIANGLE_FAN_PIPELINE: RenderPipeline = RenderPipelines.register(
-        RenderPipeline.builder(RenderPipelines.POSITION_COLOR_SNIPPET)
-            .withLocation("pipeline/debug_triangle_fan")
-            .withCull(false)
-            .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.TRIANGLE_FAN)
-            .withDepthBias(-1f, -1f)
-            .build()
-    )
 
-    private val TRIANGLE_FAN: MultiPhase = RenderLayer.of(
-        "mithras_triangle_fan",
-        1536,
-        false,
-        true,
-        TRIANGLE_FAN_PIPELINE,
-        RenderLayer.MultiPhaseParameters.builder().build(false)
-    )
-
-    private val QUADS_PIPELINE: RenderPipeline = RenderPipelines.register(
-        RenderPipeline.builder(RenderPipelines.POSITION_COLOR_SNIPPET).withLocation("pipeline/debug_quads")
-            .withDepthBias(-1f, -1f)
-            .withCull(false).build()
-    )
-
-    private val QUADS: MultiPhase = RenderLayer.of(
-        "mithras_quads",
-        1536,
-        false,
-        true,
-        QUADS_PIPELINE,
-        RenderLayer.MultiPhaseParameters.builder().build(false)
-    )
 }
