@@ -6,6 +6,7 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.ItemEntityRenderer;
 import net.minecraft.client.render.entity.state.ItemEntityRenderState;
+import net.minecraft.client.render.entity.state.ItemStackEntityRenderState;
 import net.minecraft.client.render.item.ItemRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.ItemEntity;
@@ -44,5 +45,12 @@ public abstract class ItemEntityRendererMixin extends EntityRenderer<ItemEntity,
             ci.cancel();
         }
 
+    }
+
+    @Inject(method = "renderStack", at = @At("HEAD"), cancellable = true)
+    private static void onRenderStack(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, ItemStackEntityRenderState state, Random random, Box box, CallbackInfo ci) {
+        if (ItemPhysics.INSTANCE.renderStack(matrices, vertexConsumers, light, state, random, box)) {
+            ci.cancel();
+        }
     }
 }
