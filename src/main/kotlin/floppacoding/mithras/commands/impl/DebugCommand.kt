@@ -365,6 +365,18 @@ object DebugCommand : Command() {
                 }
             }
             literal("item") {
+                literal("customName") { execute {
+                    ChatUtils.chatMessage(mc.player?.mainHandStack?.customName ?: Text.literal("Not found"))
+                }}
+                literal("name") { execute {
+                    ChatUtils.chatMessage(mc.player?.mainHandStack?.name ?: Text.literal("Not found"))
+                }}
+                literal("itemName") { execute {
+                    ChatUtils.chatMessage(mc.player?.mainHandStack?.itemName ?: Text.literal("Not found"))
+                }}
+                literal("vanillaEnchantments") { execute {
+                    ChatUtils.chatMessage(mc.player?.mainHandStack?.enchantments.toString())
+                }}
                 literal("heldnbt") {
                     execute {
                         val stack = mc.player?.inventory?.selectedStack

@@ -1,14 +1,13 @@
 package floppacoding.mithras.utils.inventory
 
-import floppacoding.mithras.Mithras
 import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.powerAbilityScroll
+import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.LoreComponent
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.AbstractNbtNumber
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtString
-import net.minecraft.registry.DynamicRegistryManager
-import net.minecraft.text.Text
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -25,14 +24,7 @@ object ItemUtils {
     //TODO redo all the item stack stuff as it no longer uses nbt as runtime data storage
 
     val ItemStack.extraAttributes: NbtCompound?
-        get() = Mithras.mc.player?.registryManager?.let{
-            return@let (
-                    try { this.toNbt(it) }
-                    catch (_: IllegalStateException) { null }
-                    as? NbtCompound
-            )
-                ?.getCompound("ExtraAttributes")?.getOrNull()
-        }
+        get () = this.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()
 
     val ItemStack.isDungeonMobDrop: Boolean
         get() {
@@ -136,6 +128,10 @@ object ItemUtils {
 
 
     // TODO implement text lore.
+    val ItemStack.loreComponent: LoreComponent?
+        get() = this.get(DataComponentTypes.LORE)
+
+
     /**
      * Gets the lore attribute of the item.
      * The strings will **NOT** contain formatting codes.
@@ -146,21 +142,7 @@ object ItemUtils {
      */
     val ItemStack.lore: List<String>
         get() {
-            val display = Mithras.mc.player?.registryManager?.let{return@let (this.toNbt(it) as? NbtCompound)?.getCompound("display")}?.getOrNull() ?: return emptyList()
-            val nbtList = display.getList("Lore").getOrNull() ?: return emptyList()
-            val lore = ArrayList<String>()
-            for (ii in 0 until nbtList.size) {
-                // Use the following line instead of the try catch to get the formatting. That formatting will look
-                // according to MutableText.toString(), which is very unreadable, but might be required for more
-                // information in the future.
-                // lore.add(nbtList.getString(ii))
-                try {
-                    lore.add(Text.Serialization.fromJson(nbtList.getString(ii, ""), DynamicRegistryManager.EMPTY)?.string ?: "" )
-                } catch (_: Exception) {
-                    lore.add(nbtList.getString(ii,""))
-                }
-            }
-            return lore
+            return this.loreComponent?.lines?.map { it.string } ?: emptyList()
         }
 
     /**
@@ -173,13 +155,7 @@ object ItemUtils {
      */
     val ItemStack.formattedLore: List<String>
         get() {
-            val display = Mithras.mc.player?.registryManager?.let{return@let (this.toNbt(it) as? NbtCompound)?.getCompound("display")}?.getOrNull() ?: return emptyList()
-            val nbtList = display.getList("Lore").getOrNull() ?: return emptyList()
-            val lore = ArrayList<String>()
-            for (ii in 0 until nbtList.size) {
-                lore.add(nbtList.getString(ii,""))
-            }
-            return lore
+            return this.loreComponent?.styledLines?.map { it.string } ?: emptyList()
         }
 
     /**
