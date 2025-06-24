@@ -7,6 +7,7 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.commands.CmdSource
 import floppacoding.mithras.commands.Command
+import floppacoding.mithras.module.impl.dungeon.BlazeSolver
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.ConfigRoom
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
@@ -88,6 +89,21 @@ object DebugCommand : Command() {
                 }
             }
             literal("dungeon") {
+                literal("blaze") {
+                    literal("order") { execute {
+                        ChatUtils.chatMessage("Top down: " + BlazeSolver.topDown.toString())
+                    }}
+                    literal("healthOrder") { execute {
+                        val blazes = BlazeSolver.getOrderedBlazes()
+                        if(blazes.isEmpty()) {
+                            ChatUtils.chatMessage("empty")
+                            return@execute
+                        }
+                        blazes.forEach {
+                            ChatUtils.chatMessage(it.health.toString())
+                        }
+                    }}
+                }
                 literal("currentRoom") {
                     execute {
                         val room = Dungeon.currentRoom
