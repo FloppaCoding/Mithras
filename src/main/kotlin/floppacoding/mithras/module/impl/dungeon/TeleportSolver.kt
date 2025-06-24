@@ -36,8 +36,8 @@ object TeleportSolver : Module (
     Category.DUNGEON,
     "Assists you with solving the teleport maze puzzle."
 ){
-    private val visitedColor by ColorSetting("Visited Color", Color(255,50,10,150), description = "Color with which the visited pads will be highlighted")
-    private val solutionColor by ColorSetting("Solution Color", Color(20,255,40,150), description = "Color with which solution will be highlighted.")
+    private val visitedColor by ColorSetting("Visited Color", Color(255,50,10,150), description = "Color with which the visited pads will be highlighted.")
+    private val solutionColor by ColorSetting("Solution Color", Color(20,255,40,150), description = "Color with which the solution will be highlighted.")
     private val uncertainColor by ColorSetting("Uncertain Color", Color(255,255,10,150), description = "Color with which uncertain solutions will be highlighted before sufficient data is available.")
     private val phase by BooleanSetting("Phase Solutions", false, description = "Shows the solution highlight through walls.")
 

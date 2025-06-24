@@ -8,7 +8,7 @@ import org.joml.Vector2f
 
 object FractalShader : Shader(
     listOf("Position", "Color", "UV0"),
-    "/assets/${Mithras.RESOURCE_DOMAIN}/",
+    "/assets/${Mithras.RESOURCE_DOMAIN}/shaders/",
     "fractal/fractal.vert",
     "fractal/fractal.frag"
 ) {

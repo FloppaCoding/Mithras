@@ -11,6 +11,7 @@ import net.minecraft.client.render.RenderPhase.LineWidth
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.text.Text
+import net.minecraft.util.Identifier
 import java.util.*
 import kotlin.math.pow
 
@@ -27,6 +28,8 @@ object FractalScreen : Screen(Text.literal("Fractal")) {
     private val FRACTAL_LAYER: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.POST_EFFECT_PROCESSOR_SNIPPET)
             .withLocation("pipeline/fractal_layer")
+            .withVertexShader(Identifier.of("mithras", "shaders/fractal/fractal.vert"))
+            .withFragmentShader(Identifier.of("mithras", "shaders/fractal/fractal.frag"))
             .withCull(true)
             .withoutBlend()
             .build()

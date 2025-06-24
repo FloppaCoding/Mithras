@@ -462,6 +462,21 @@ interface Renderer2D : FontRender2D {
 class BoundingBox(var xmin: Float, var ymin: Float, var xmax: Float, var ymax: Float) {
     fun width(): Float = xmax - xmin
     fun height() : Float = ymax - ymin
+
+    fun shift(deltaX: Float, deltaY: Float): BoundingBox {
+        xmin += deltaX
+        ymin += deltaY
+        xmax += deltaX
+        ymax += deltaY
+        return this
+    }
+
+    companion object {
+        @JvmStatic
+        fun ofDimensions(x0: Float, y0: Float, width: Float, height: Float): BoundingBox {
+            return BoundingBox(x0, y0, x0+width, y0+height)
+        }
+    }
 }
 
 enum class CapStyle(val id: Int) {

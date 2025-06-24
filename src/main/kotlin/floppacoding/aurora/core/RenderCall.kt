@@ -57,6 +57,7 @@ class RenderCall @JvmOverloads constructor(
      */
     internal fun isCombinable(next: RenderCall) : Boolean{
         return colorModeId == next.colorModeId  // no color mode change
+            && next.scissorBox === scissorBox  // no scissor change
             && indexRange.last + 1 == next.indexRange.first // no gap in between index ranges.
             && (next.textureUnit == null || textureUnit == next.textureUnit) // no texture change.
             && (next.textScale == null || textScale == next.textScale ) // no font size change
