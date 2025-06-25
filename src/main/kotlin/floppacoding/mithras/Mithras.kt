@@ -36,9 +36,9 @@ object Mithras : ModInitializer {
 	@JvmStatic
     val logger: Logger = LoggerFactory.getLogger("mithras")
 	const val MOD_ID = "mithras"
-	const val MOD_NAME = "Project Mithras"
+	const val MOD_NAME = "Mithras"
 	const val MOD_VERSION = "0.0.1"
-	const val CHAT_PREFIX = "§6§lProject §r§eMithras §6§l»§r"
+	const val CHAT_PREFIX = "§r§eMithras §6§l»§r"
 	const val SHORT_PREFIX = "§6§lF§r§eC §6§l»§r"
 	const val RESOURCE_DOMAIN = "mithras"
 	const val CONFIG_DOMAIN = "mithras"
@@ -83,7 +83,7 @@ object Mithras : ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
-		logger.info("Initializing Project Mithras")
+		logger.info("Initializing Mithras")
 
 		// Important for orbit, I don't yet know why
 		EVENT_BUS.registerLambdaFactory("floppacoding.mithras") { lookupInMethod, klass ->

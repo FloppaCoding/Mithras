@@ -37,6 +37,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
     var useMSAA = true
         private set
     private var scissorBox: BoundingBox? = null
+    private var pausedScissorBox: BoundingBox? = null
 
     override fun setMaxDeviation(deviation: Float) {
         requiredPrecision = abs(1/deviation)
@@ -479,6 +480,16 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
 
     override fun endScissor() {
         scissorBox = null
+    }
+
+    override fun pauseScissor() {
+        pausedScissorBox = scissorBox
+        scissorBox = null
+    }
+
+    override fun resumeScissor() {
+        scissorBox = pausedScissorBox
+        pausedScissorBox = null
     }
 
     /**

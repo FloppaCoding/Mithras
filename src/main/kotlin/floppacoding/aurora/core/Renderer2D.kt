@@ -426,6 +426,18 @@ interface Renderer2D : FontRender2D {
     fun endScissor()
 
     /**
+     * Disables scissoring.
+     * Stores the scissor state internally to be resumed with [resumeScissor].
+     */
+    fun pauseScissor()
+
+    /**
+     * Resumes the previously paused scissor state.
+     * @see pauseScissor
+     */
+    fun resumeScissor()
+
+    /**
      * Begins drawing custom geometry.
      */
     fun beginShape() {

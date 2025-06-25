@@ -7,6 +7,7 @@ import floppacoding.mithras.ui.core.elements.GuiElement;
 import floppacoding.mithras.utils.ScreenMixinDuck;
 import net.minecraft.client.gui.AbstractParentElement;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,6 +29,7 @@ import static floppacoding.mithras.Mithras.mc;
  */
 @Mixin(Screen.class)
 public abstract class ScreenMixin extends AbstractParentElement implements ScreenMixinDuck {
+    @Shadow @Final private List<Drawable> drawables;
     @Unique private final ArrayList<GuiElement> elements = new ArrayList<>();
     @Unique private float elementScale = (float) mc.getWindow().getScaleFactor();
     @Unique private boolean isVanillaGui = true;
@@ -56,6 +58,11 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
     @Override
     public void mithras_setIsVanillaGui(boolean state) {
         isVanillaGui = state;
+    }
+
+    @Override
+    public List<Drawable> mithras_getDrawables() {
+        return this.drawables;
     }
 
     @Inject(method = "init()V", at = @At("TAIL"))

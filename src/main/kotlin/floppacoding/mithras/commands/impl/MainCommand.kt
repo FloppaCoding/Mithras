@@ -79,7 +79,11 @@ object MainCommand : Command() {
                             newValue.toDoubleOrNull()?.let { setting.doubleValue =  it }
                         }
                         is BooleanSetting -> {
-                            newValue.toBooleanStrictOrNull()?.let { setting.value =  it }
+                            if (newValue == "toggle") {
+                                setting.value = !setting.value
+                            }else {
+                                newValue.toBooleanStrictOrNull()?.let { setting.value = it }
+                            }
                         }
                         is ColorSetting -> {
                             when(newValue) {

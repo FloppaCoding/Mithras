@@ -36,7 +36,7 @@ object DungeonMap : Module(
     val mapBackground = ColorSetting("Background", Color(0, 0, 0, 100),true, visibility = Visibility.ADVANCED_ONLY, description = "Background Color for the map.")
     val mapBorder = ColorSetting("Border", Color(0, 0, 0, 255),true, visibility = Visibility.ADVANCED_ONLY, description = "Border Color for the map.")
     val chromaBorder = BooleanSetting("Chroma Border", true, visibility = Visibility.ADVANCED_ONLY, description = "Will add a chroma effect to your map border. The chroma can be configured in the ClickGui Module.")
-    val mapBorderWidth = NumberSetting("Border Width",3.0f,0.0f,10.0f,0.1f, visibility = Visibility.ADVANCED_ONLY, description = "Map border width.")
+    val mapBorderWidth = NumberSetting("Border Width",0.9f,0.0f,10.0f,0.1f, visibility = Visibility.ADVANCED_ONLY, description = "Map border width.")
 
 
 

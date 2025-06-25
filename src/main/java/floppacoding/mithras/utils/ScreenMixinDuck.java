@@ -1,6 +1,7 @@
 package floppacoding.mithras.utils;
 
 import floppacoding.mithras.ui.core.elements.GuiElement;
+import net.minecraft.client.gui.Drawable;
 
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface ScreenMixinDuck {
 
     // TODO replace with IsMidFrame and other stuff??? Probably a good idea!
     void mithras_setIsVanillaGui(boolean state);
+
+    List<Drawable> mithras_getDrawables();
 }

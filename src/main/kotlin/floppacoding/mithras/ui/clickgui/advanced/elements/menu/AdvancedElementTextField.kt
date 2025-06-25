@@ -32,7 +32,16 @@ class AdvancedElementTextField(
             renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
         }else {
             if (isTextHovered(mouseX, mouseY) || listening) {
+                renderer.pauseScissor()
+                val valueWidth = renderer.textWidth(displayValue)
+                val color = if (listening) {
+                    ColorUtil.clickGUIColor.rgb
+                }else {
+                    ColorUtil.elementColor
+                }
+                renderer.rect((settingWidth - valueWidth+1f) / 2f, 0f, valueWidth+2f, settingHeight,  color)
                 renderer.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
+                renderer.resumeScissor()
             } else {
                 renderer.text(setting.name, settingWidth/2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             }

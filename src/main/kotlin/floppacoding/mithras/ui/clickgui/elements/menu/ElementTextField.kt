@@ -27,7 +27,17 @@ class ElementTextField(parent: ModuleButton, setting: StringSetting) :
             renderer.text(displayValue, width-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
         }else {
             if (isTextHovered(mouseX, mouseY) || listening) {
+                // pause scissor
+                renderer.pauseScissor()
+                val valueWidth = renderer.textWidth(displayValue)
+                val color = if (listening) {
+                    ColorUtil.clickGUIColor.rgb
+                }else {
+                    ColorUtil.elementColor
+                }
+                renderer.rect((width - valueWidth+1f) / 2f, 0f, valueWidth+2f, height - 2f,  color)
                 renderer.text(displayValue, width / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
+                renderer.resumeScissor()
             } else {
                 renderer.text(displayName, width/2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             }
