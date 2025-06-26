@@ -24,7 +24,8 @@
 		]
 	},
 	"mixins": [
-		"mithras.mixins.json"
+		"mithras.mixins.json",
+		"mithras-sodium.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.14",
