@@ -26,7 +26,8 @@ object SoundManager {
     fun playSound(soundEvent: SoundEvent, volume: Float, pitch: Float, loud: Boolean = false, category: SoundCategory? = null) {
         val adjustedCategory = if (loud) SoundCategory.MASTER else category
         if (adjustedCategory != null) {
-            mc.player?.playSound(soundEvent, adjustedCategory, volume, pitch)
+            // mc.player?.playSound(soundEvent, adjustedCategory, volume, pitch)
+            mc.player?.playSound(soundEvent, volume, pitch)
         }else {
             mc.player?.playSound(soundEvent, volume, pitch)
         }

@@ -1,6 +1,6 @@
-# Project Mithras
+# Mithras
 
-Project Mithras is a 1.20.1 Minecraft Fabric mod for Hypixel Skyblock.
+Mithras is a 1.20.1 Minecraft Fabric mod for Hypixel Skyblock.
 
 This mod is designed to be in compliance with the 
 [Hypixel Server Rules](https://support.hypixel.net/hc/en-us/articles/6472550754962-Allowed-Modifications).

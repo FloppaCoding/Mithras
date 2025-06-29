@@ -110,6 +110,7 @@ object CreeperBeamsSolver : Module(
         if (!inCreeperRoom || solutionPairs.isEmpty()) return
         solutionPairs.withIndex().forEach {
             val color = SOLUTION_COLOURS.getOrNull(it.index) ?: return@forEach
+
             Renderer3D.drawBlockBoundingBox(event.context,it.value.first, fillColor = color.withAlpha(opacity))
             Renderer3D.drawBlockBoundingBox(event.context,it.value.second, fillColor = color.withAlpha(opacity))
             if (showLines) {

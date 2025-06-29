@@ -161,11 +161,11 @@ object TerminalSolvers : Module(
             TerminalType.COLOR -> {
                 val colorNeeded = DyeColor.entries.find {
                     screen.title.string.contains(
-                        it.getName().replace("_", " ").uppercase()
+                        it.id.replace("_", " ").uppercase()
                     )
                 }?.name ?: return clicks
                 clicks.addAll(chestSlots.filter {
-                    val translationKey = it.stack.translationKey
+                    val translationKey = it.stack.item.translationKey
                     it.stack?.hasEnchantments() == false &&
                             (translationKey.contains(colorNeeded) || colorNeeded == DyeColor.BLACK.name && translationKey == "item.minecraft.ink_sac" )
                             && with(it.id) {
@@ -219,7 +219,7 @@ object TerminalSolvers : Module(
         }
     }
 
-    fun getColorId(slot: Slot): Int? = ((slot.stack?.item as? BlockItem)?.block as? StainedGlassPaneBlock)?.color?.id
+    fun getColorId(slot: Slot): Int? = ((slot.stack?.item as? BlockItem)?.block as? StainedGlassPaneBlock)?.color?.index
 
     enum class TerminalType {
         NUMBERS, CORRECT_ALL, LETTER, COLOR, TIMING, SAME_COLOR, NONE

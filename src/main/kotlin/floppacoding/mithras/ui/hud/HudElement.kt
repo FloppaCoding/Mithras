@@ -1,12 +1,12 @@
 package floppacoding.mithras.ui.hud
 
+import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.events.HudRenderEvent
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.Visibility
 import floppacoding.mithras.module.settings.impl.NumberSetting
-import floppacoding.aurora.core.Renderer2D
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.gui.DrawContext
 
@@ -23,7 +23,7 @@ abstract class HudElement  {
     var width: Float
     var height: Float
 
-    open val renderer: Renderer2D
+    open val renderer: Renderer2DMC
         get() = Mithras.renderer2D
 
     private val zoomIncrement = 0.05f
@@ -152,7 +152,7 @@ abstract class HudElement  {
     }
 
     companion object {
-        val DEFAULT_RENDERER: Renderer2D
+        val DEFAULT_RENDERER: Renderer2DMC
             get() = Mithras.renderer2D
     }
 }

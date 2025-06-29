@@ -1,16 +1,17 @@
 package floppacoding.mithras.ui
 
-import floppacoding.aurora.core.Renderer2D
 import floppacoding.aurora.core.TextAlign
+import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.utils.Extensions.seconds
+import floppacoding.mithras.utils.ScreenMixinDuck
 import floppacoding.mithras.utils.clock.Clock
 import floppacoding.mithras.utils.clock.Executor
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
+import net.minecraft.text.PlainTextContent.Literal
 import net.minecraft.text.Text
 
 /**
@@ -26,12 +27,22 @@ import net.minecraft.text.Text
  */
 abstract class GuiScreen(
     title: Text,
+    // TODO link this to the element scale
     var scale: Float = 1f
 ) : Screen(title) {
 
-    constructor(title: String, scale: Float = 1f) : this(MutableText.of(LiteralTextContent(title)), scale)
+    init {
+        @Suppress("LeakingThis")
+        (this as ScreenMixinDuck).mithras_setIsVanillaGui(false)
+        @Suppress("LeakingThis")
+        (this as ScreenMixinDuck).mithras_setElementScale(scale)
+    }
 
-    open val renderer: Renderer2D
+    constructor(title: String, scale: Float = 1f) : this(MutableText.of(Literal(title)), scale)
+
+    open var blur: Boolean = false
+
+    open val renderer: Renderer2DMC
         get() = Mithras.renderer2D
 
     private val clock = Clock()
@@ -39,7 +50,7 @@ abstract class GuiScreen(
     /**
      * If this is false it will render FPS in bottom-right corner.
      */
-    protected open val displayPerformance: Boolean = false
+    open var displayPerformance: Boolean = Mithras.DEBUG
 
     /** Used to show performance*/
     private var frames = 0
@@ -63,17 +74,21 @@ abstract class GuiScreen(
      * Sets up the frame and scaling.
      */
     final override fun render(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        if (blur) applyBlur()
+        for (drawable in (this as ScreenMixinDuck).mithras_getDrawables()) {
+            drawable.render(context, mouseX, mouseY, partialTicks)
+        }
         clock.update()
         renderer.beginFrame()
         renderer.scale(scale, scale)
         renderer.push()
         render(getMouseX(), getMouseY(), partialTicks)
+//        super.render(context, mouseX, mouseY, partialTicks)
         renderer.pop()
         if (displayPerformance) {
             displayPerformance()
         }
         renderer.endFrame()
-        super.render(context, mouseX, mouseY, partialTicks)
     }
 
     /**
@@ -100,10 +115,10 @@ abstract class GuiScreen(
 
     protected open fun mouseReleased(mouseX: Float, mouseY: Float, button: Int) : Boolean { return false }
 
-    final override fun mouseScrolled(mouseX: Double, mouseY: Double, amount: Double): Boolean {
-        if (mouseScrolled(getMouseX(), getMouseY(), amount.toFloat())) return true
+    final override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
+        if (mouseScrolled(getMouseX(), getMouseY(), verticalAmount.toFloat())) return true
 
-        return super.mouseScrolled(mouseX, mouseY, amount)
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
     }
 
     protected open fun mouseScrolled(mouseX: Float, mouseY: Float, amount: Float): Boolean { return false }

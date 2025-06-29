@@ -38,8 +38,8 @@ object AuroraFontRenderer: FontRender2D {
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
         Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE, font.glID))
     }
-
-    override fun text(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign, splitWidth: Float?) {
+    // TODO add formatting support
+    override fun text(text: CharSequence, x: Float, y: Float, color: Int, fontSize: Float, font: Font, textAlign: TextAlign, splitWidth: Float?): BoundingBox {
         Aurora.push()
         val (y0, y1, scale) = setupFontTransform(x,y, fontSize, font, textAlign)
 
@@ -61,6 +61,16 @@ object AuroraFontRenderer: FontRender2D {
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
         Aurora.addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXT, font.glID, Aurora.getScale(positionMatrix)))
         Aurora.pop()
+
+        val width = lines.maxOfOrNull { it.length }?.times(scale) ?: 0f
+        val height = lines.size * fontSize
+        val xmin = when(textAlign.horizontal) {
+            TextAlign.Horizontal.LEFT -> 0f
+            TextAlign.Horizontal.CENTER -> -width/2
+            TextAlign.Horizontal.RIGHT -> -width
+        }
+        val ymin = y0 + font.fontMetrics.padding
+        return BoundingBox.ofDimensions(xmin,ymin, width, height)
     }
 
     override fun textBox(text: CharSequence, x: Float, y: Float, color: Int, width: Float, fontSize: Float, font: Font, textAlign: TextAlign, boxAlign: TextAlign) {
@@ -160,6 +170,7 @@ object AuroraFontRenderer: FontRender2D {
                 var width = 0f
                 var advance: Float
                 var jump = 0
+                val last = text.length -1
                 for ((index, char) in text.withIndex()) {
                     if (char == '\n') {
                         lines.add(Line(text.subSequence(jump, index), width))
@@ -168,14 +179,13 @@ object AuroraFontRenderer: FontRender2D {
                         continue
                     }
                     advance = font.glyphMetrics[char]?.advance ?: 0f
-                    if (width > splitWidth) {
-                        lines.add(Line(text.subSequence(jump, index - 1), width))
-                        width = advance
-                        jump = index
+                    width += advance
+                    if (width > splitWidth || index == last) {
+                        lines.add(Line(text.subSequence(jump, index+1), width - advance))
+                        width = 0f
+                        jump = index+1
                         continue
                     }
-
-                    width += advance
                 }
             }catch (_: Exception) {
                 return emptyList()
@@ -217,6 +227,7 @@ object AuroraFontRenderer: FontRender2D {
         var rows = 1
         var longestLine = 0f
         if (width != null) {
+            val scale = fontSize/font.fontMetrics.normalHeight
             var lineWidth = 0f
             var advance: Float
             for (char in text) {
@@ -226,8 +237,8 @@ object AuroraFontRenderer: FontRender2D {
                     rows++
                     continue
                 }
-                advance = font.glyphMetrics[char]?.advance ?: 0f
-                if (lineWidth > width) {
+                advance = font.glyphMetrics[char]?.advance?.times(scale) ?: 0f
+                if (lineWidth + advance > width) {
                     if (lineWidth > longestLine) longestLine = lineWidth
                     lineWidth = advance
                     rows++
@@ -240,10 +251,9 @@ object AuroraFontRenderer: FontRender2D {
         }else {
             val lineLenghts = text.split('\n').map{ textWidthInternal(it, font) }
             rows = lineLenghts.size
-            longestLine= lineLenghts.max()
+            longestLine= lineLenghts.max() * fontSize/font.fontMetrics.normalHeight
         }
-        longestLine *= fontSize/font.fontMetrics.normalHeight
-        val height = rows * font.fontMetrics.normalHeight * fontSize/font.fontMetrics.normalHeight
+        val height = rows * fontSize
         return BoundingBox(0f, 0f, longestLine, height)
     }
 

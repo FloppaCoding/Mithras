@@ -1,13 +1,12 @@
 package floppacoding.mithras.ui.clickgui.advanced.elements.menu
 
+import floppacoding.aurora.core.TextAlign
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.impl.StringSetting
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.aurora.core.TextAlign
-import net.minecraft.SharedConstants
 import org.lwjgl.glfw.GLFW
 
 /**
@@ -33,7 +32,16 @@ class AdvancedElementTextField(
             renderer.text(displayValue, settingWidth-1f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.RIGHT_TOP)
         }else {
             if (isTextHovered(mouseX, mouseY) || listening) {
+                renderer.pauseScissor()
+                val valueWidth = renderer.textWidth(displayValue)
+                val color = if (listening) {
+                    ColorUtil.clickGUIColor.rgb
+                }else {
+                    ColorUtil.elementColor
+                }
+                renderer.rect((settingWidth - valueWidth+1f) / 2f, 0f, valueWidth+2f, settingHeight,  color)
                 renderer.text(displayValue, settingWidth / 2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
+                renderer.resumeScissor()
             } else {
                 renderer.text(setting.name, settingWidth/2f, 2f, ColorUtil.TEXT_COLOR, textAlign = TextAlign.CENTER_TOP)
             }
@@ -72,12 +80,16 @@ class AdvancedElementTextField(
 
     override fun charTyped(chr: Char, modifiers: Int): Boolean {
         if (listening) {
-            if (SharedConstants.isValidChar(chr)) {
+            if (isValidChar(chr)) {
                 setting.text += chr.toString()
                 return true
             }
         }
         return super.charTyped(chr, modifiers)
+    }
+
+    private fun isValidChar(chr: Char): Boolean {
+        return chr.code != 167 && chr >= ' ' && chr.code != 127
     }
 
     /**

@@ -14,11 +14,14 @@ import floppacoding.mithras.utils.ChatUtils.setHoverText
 import net.minecraft.item.ItemStack
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.HoverEvent
+import net.minecraft.text.HoverEvent.ShowItem
+import net.minecraft.text.HoverEvent.ShowText
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.StringHelper
 import org.apache.commons.lang3.StringUtils
+import java.net.URI
 
 /**
  * # A collection of utility functions for creating and sending or displaying chat messages.
@@ -217,7 +220,7 @@ object ChatUtils {
 
     @JvmStatic
     fun MutableText.setHoverText(text: Text): MutableText {
-        return this.setHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, text))
+        return this.setHoverEvent(ShowText(text))
     }
 
     @JvmStatic
@@ -228,7 +231,7 @@ object ChatUtils {
 
     @JvmStatic
     fun MutableText.setHoverItem(itemStack: ItemStack): MutableText {
-        return this.setHoverEvent(HoverEvent(HoverEvent.Action.SHOW_ITEM, HoverEvent.ItemStackContent(itemStack)))
+        return this.setHoverEvent(ShowItem(itemStack))
     }
 
     @JvmStatic
@@ -238,7 +241,14 @@ object ChatUtils {
 
     @JvmStatic
     fun MutableText.setClickEvent(action: ClickEvent.Action, value: String) : MutableText {
-        return this.setClickEvent(ClickEvent(action, value))
+        return when(action) {
+            ClickEvent.Action.OPEN_URL -> this.setClickEvent(ClickEvent.OpenUrl(URI(value)))
+            ClickEvent.Action.OPEN_FILE -> this.setClickEvent(ClickEvent.OpenFile(value))
+            ClickEvent.Action.RUN_COMMAND -> this.setClickEvent(ClickEvent.RunCommand(value))
+            ClickEvent.Action.SUGGEST_COMMAND -> this.setClickEvent(ClickEvent.SuggestCommand(value))
+            ClickEvent.Action.CHANGE_PAGE -> this.setClickEvent(ClickEvent.ChangePage(value.toInt()))
+            ClickEvent.Action.COPY_TO_CLIPBOARD -> this.setClickEvent(ClickEvent.CopyToClipboard(value))
+        }
     }
 
     /**

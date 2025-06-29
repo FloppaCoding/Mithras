@@ -1,10 +1,9 @@
 {
   "required": true,
   "package": "floppacoding.mithras.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "MapStateAccessor",
-    "PlayerInventoryMixin",
     "WorldChunkMixin",
     "network.ClientConnectionMixin"
   ],
@@ -12,29 +11,29 @@
     "defaultRequire": 1
   },
   "client": [
+    "ClientCommonNetworkHandlerAccessor",
     "ClientPlayerEntityMixin",
     "GameOptionsMixin",
     "KeyBindingMixin",
     "KeyboardMixin",
-    "MainMixin",
-    "MinecraftClientAccessor",
     "MinecraftClientMixin",
     "MouseMixin",
     "ParticleManagerMixin",
-    "PlayerSkinAccessor",
+    "SoundSystemMixin",
     "gui.DrawContextMixin",
     "gui.HandledScreenAccessor",
     "gui.HandledScreenMixin",
     "gui.InGameHudMixin",
     "gui.ScreenMixin",
     "network.ClientPlayNetworkHandlerMixin",
+    "render.BackgroundRendererMixin",
+    "render.DownloadingTerrainScreenMixin",
     "render.EntityRenderDispatcherMixin",
     "render.GameRendererMixin",
     "render.HeldItemRendererMixin",
     "render.InGameOverlayRendererMixin",
     "render.ItemEntityRendererMixin",
     "render.LightmapTextureManagerMixin",
-    "render.ProgressScreenMixin",
-    "render.WorldRendererMixin"
+    "render.ProgressScreenMixin"
   ]
 }

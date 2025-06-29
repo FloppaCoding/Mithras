@@ -4,6 +4,7 @@ import floppacoding.mithras.Mithras;
 import floppacoding.mithras.events.InputEvent;
 import floppacoding.mithras.events.MouseScrollEvent;
 import floppacoding.mithras.module.impl.misc.KeepMousePosition;
+import floppacoding.mithras.module.impl.player.DisableHotbarScroll;
 import net.minecraft.client.Mouse;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
@@ -44,6 +45,15 @@ public abstract class MouseMixin {
     @Inject(method = "onMouseScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isSpectator()Z"), cancellable = true)
     private void mithras$onScroll(long window, double horizontal, double vertical, CallbackInfo ci) {
         if (Mithras.EVENT_BUS.post(new MouseScrollEvent(vertical)).isCancelled())
+            ci.cancel();
+    }
+
+    /**
+     * Prevents hotbar scrolling.
+     */
+    @Inject(method = "onMouseScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;setSelectedSlot(I)V"), cancellable = true)
+    private void onHotbarSroll(long window, double horizontal, double vertical, CallbackInfo ci) {
+        if (DisableHotbarScroll.INSTANCE.shouldDisableHotbarScroll())
             ci.cancel();
     }
 

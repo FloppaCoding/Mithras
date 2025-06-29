@@ -45,7 +45,7 @@ interface FontRender2D {
         font: Font = defaultFont,
         textAlign: TextAlign = TextAlign.LEFT_TOP,
         splitWidth: Float? = null
-    )
+    ) : BoundingBox
 
     /**
      * Renders a single line of text.

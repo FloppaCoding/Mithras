@@ -24,7 +24,7 @@ import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockStateRaycastContext
 import net.minecraft.world.BlockView
 import java.awt.Color
-
+// TODO readd rendering
 /**
  * A solver for the Dungeons Teleport Maze puzzle.
  *
@@ -36,8 +36,8 @@ object TeleportSolver : Module (
     Category.DUNGEON,
     "Assists you with solving the teleport maze puzzle."
 ){
-    private val visitedColor by ColorSetting("Visited Color", Color(255,50,10,150), description = "Color with which the visited pads will be highlighted")
-    private val solutionColor by ColorSetting("Solution Color", Color(20,255,40,150), description = "Color with which solution will be highlighted.")
+    private val visitedColor by ColorSetting("Visited Color", Color(255,50,10,150), description = "Color with which the visited pads will be highlighted.")
+    private val solutionColor by ColorSetting("Solution Color", Color(20,255,40,150), description = "Color with which the solution will be highlighted.")
     private val uncertainColor by ColorSetting("Uncertain Color", Color(255,255,10,150), description = "Color with which uncertain solutions will be highlighted before sufficient data is available.")
     private val phase by BooleanSetting("Phase Solutions", false, description = "Shows the solution highlight through walls.")
 
@@ -52,7 +52,7 @@ object TeleportSolver : Module (
         if (!inDungeons || !inTpMaze) return
         val startPad = mc.player!!.blockPos
         if(mc.world!!.getBlockState(startPad).block !== Blocks.END_PORTAL_FRAME) return
-        val target = Vec3d(event.packet.x, event.packet.y, event.packet.z)
+        val target = Vec3d(event.packet.change.position.x, event.packet.change.position.y, event.packet.change.position.z)
         val targetPos = BlockPos.ofFloored(target)
 
         var endPad: BlockPos? = null
@@ -69,7 +69,7 @@ object TeleportSolver : Module (
 
         // If already certain about the solution don't search for it
         if (possibleSolutions.size == 1) return
-        val foundTargets = raycastPads(target, event.packet.yaw)
+        val foundTargets = raycastPads(target, event.packet.change.yaw)
 
         if (possibleSolutions.isEmpty()) {
             possibleSolutions.addAll(foundTargets)

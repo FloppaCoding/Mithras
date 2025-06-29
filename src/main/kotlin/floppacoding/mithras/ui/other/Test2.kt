@@ -1,4 +1,4 @@
-package floppacoding.mithras.ui.hud
+package floppacoding.mithras.ui.other
 
 import floppacoding.aurora.core.Aurora
 import floppacoding.aurora.core.CapStyle
@@ -6,12 +6,12 @@ import floppacoding.aurora.core.Renderer2D
 import floppacoding.aurora.mc_modern.AuroraMC
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
+import net.minecraft.text.PlainTextContent.Literal
 import org.joml.Vector2f
 import java.awt.Color
 
-object Test2 : Screen(MutableText.of(LiteralTextContent("Test Screen")))  {
+object Test2 : Screen(MutableText.of(Literal("Test Screen")))  {
 
     val t0 = System.currentTimeMillis()
 

@@ -23,7 +23,7 @@ import net.minecraft.util.Identifier
  */
 object RoomUtils {
     val roomList: Set<RoomConfigData> = try {
-        val resource = mc.resourceManager.getResource(Identifier(Mithras.RESOURCE_DOMAIN, "dungeonmap/rooms.json"))
+        val resource = mc.resourceManager.getResource(Identifier.of(Mithras.RESOURCE_DOMAIN, "dungeonmap/rooms.json"))
         val stream = resource.get().inputStream
         Gson().fromJson(
             stream.bufferedReader(),
@@ -49,7 +49,7 @@ object RoomUtils {
 
     fun getRoomScoreboardID(): String? {
         val id = try {
-            ScoreboardUtils.sidebarLines.last().trim().split(" ").last()
+            ScoreboardUtils.sidebarLines.find { it.contains(Regex("\\d{2}/\\d{2}/\\d{2}")) }?.trim()?.split(" ")?.last()
         } catch (_: NoSuchElementException) {
             null
         }

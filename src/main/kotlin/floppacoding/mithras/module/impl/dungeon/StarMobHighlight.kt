@@ -28,7 +28,7 @@ import java.awt.Color
  */
 object StarMobHighlight : Module(
     "Star Mob Highlights",
-    category = Category.RENDER,
+    category = Category.DUNGEON,
     description = "Draws a box around relevant dungeon mobs."
 ){
     private val defaultLineWidth by NumberSetting("Default LW",1.0f,0.1,10.0,0.1, description = "Default line width of the box.")
@@ -105,11 +105,12 @@ object StarMobHighlight : Module(
     fun onRenderWorld(event: RenderWorldOverlayEvent) {
         if (!inDungeons) return
         entityList.forEach {
-            val dx: Double = (event.context.tickDelta()-1) * (it.entity.x - it.entity.lastRenderX)
-            val dy: Double = (event.context.tickDelta()-1) * (it.entity.y - it.entity.lastRenderY)
-            val dz: Double = (event.context.tickDelta()-1) * (it.entity.z - it.entity.lastRenderZ)
+            val dx: Double = (event.context.tickCounter().getTickProgress(true)-1) * (it.entity.x - it.entity.lastRenderX)
+            val dy: Double = (event.context.tickCounter().getTickProgress(true)-1) * (it.entity.y - it.entity.lastRenderY)
+            val dz: Double = (event.context.tickCounter().getTickProgress(true)-1) * (it.entity.z - it.entity.lastRenderZ)
             Renderer3D.drawBox(event.context, it.box.offset(dx,dy,dz), it.color, null, it.lineWidth)
-//            Renderer3D.drawBox(event.context, it.box, it.color, null, it.lineWidth)
+
+            Renderer3D.drawBox(event.context, it.box, it.color, null, it.lineWidth)
         }
     }
 

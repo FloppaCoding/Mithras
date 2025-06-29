@@ -1,0 +1,11 @@
+{
+  "required": false,
+  "package": "floppacoding.mithras.mixin.sodium",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "RenderSectionManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

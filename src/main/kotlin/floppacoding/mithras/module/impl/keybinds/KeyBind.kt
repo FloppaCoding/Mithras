@@ -12,7 +12,7 @@ import floppacoding.mithras.utils.ChatUtils
 class KeyBind(name: String) : Module(name, category = Category.KEY_BIND){
 
     val bindName = StringSetting("Name", this.name, description = "The name of this Key Bind that will be shown on the toggle button in the GUI.")
-    private val message = StringSetting("Message","",50, description = "Message to be sent. For commands start the message with \"/\".")
+    private val message = StringSetting("Message","",100, description = "Message to be sent. For commands start the message with \"/\".")
     private val removeButton = ActionSetting("Remove Key Bind", visibility = Visibility.ADVANCED_ONLY, description = "Removes the Key Bind."){
         ModuleManager.removeKeyBind(this@KeyBind)
     }

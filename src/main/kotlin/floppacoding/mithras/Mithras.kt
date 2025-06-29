@@ -1,7 +1,8 @@
 package floppacoding.mithras
 
-import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.core.Aurora
 import floppacoding.aurora.mc_modern.AuroraMC
+import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.commands.MithrasCommandManager
 import floppacoding.mithras.config.ModuleConfig
 import floppacoding.mithras.events.ClientTickEvent
@@ -32,14 +33,16 @@ import kotlin.concurrent.timer
 
 object Mithras : ModInitializer {
 
+	@JvmStatic
     val logger: Logger = LoggerFactory.getLogger("mithras")
 	const val MOD_ID = "mithras"
-	const val MOD_NAME = "Project Mithras"
+	const val MOD_NAME = "Mithras"
 	const val MOD_VERSION = "0.0.1"
-	const val CHAT_PREFIX = "§6§lProject §r§eMithras §6§l»§r"
+	const val CHAT_PREFIX = "§r§eMithras §6§l»§r"
 	const val SHORT_PREFIX = "§6§lF§r§eC §6§l»§r"
 	const val RESOURCE_DOMAIN = "mithras"
 	const val CONFIG_DOMAIN = "mithras"
+	val DEBUG: Boolean = System.getProperty("mithras.debug") == "true"
 
 	@JvmField
 	val mc: MinecraftClient = MinecraftClient.getInstance()
@@ -58,7 +61,9 @@ object Mithras : ModInitializer {
 	val scope = CoroutineScope(Dispatchers.Default + handler + CoroutineName("mithras"))
 
 	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
-	lateinit var renderer2D: Renderer2D
+	@JvmStatic
+	lateinit var renderer2D: Renderer2DMC
+		private set
 	lateinit var clickGUI: ClickGUI
 		private set
 	/**
@@ -78,7 +83,7 @@ object Mithras : ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
-		logger.info("Initializing Project Mithras")
+		logger.info("Initializing Mithras")
 
 		// Important for orbit, I don't yet know why
 		EVENT_BUS.registerLambdaFactory("floppacoding.mithras") { lookupInMethod, klass ->
@@ -103,6 +108,7 @@ object Mithras : ModInitializer {
 	@EventHandler
 	fun onGameStart(event: GameStartEvent) {
 		renderer2D = AuroraMC
+		Aurora.runDirectory = mc.runDirectory.path
 
 		// Load and generate fonts.
 		FontManager

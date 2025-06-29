@@ -7,7 +7,7 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.commands.CmdSource
 import floppacoding.mithras.commands.Command
-import floppacoding.mithras.mixin.PlayerSkinAccessor
+import floppacoding.mithras.module.impl.dungeon.BlazeSolver
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.ConfigRoom
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.Dungeon
@@ -16,32 +16,34 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformatio
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
 import floppacoding.mithras.shaders.Shaders
-import floppacoding.mithras.ui.hud.Test
-import floppacoding.mithras.ui.hud.Test2
+import floppacoding.mithras.ui.other.Test
+import floppacoding.mithras.ui.other.Test2
+import floppacoding.mithras.ui.other.Test3
 import floppacoding.mithras.utils.*
+import floppacoding.mithras.utils.inventory.InventoryUtils.isHoldingInMainHand
+import floppacoding.mithras.utils.inventory.ItemUtils.extraAttributes
 import floppacoding.mithras.utils.inventory.ItemUtils.formattedLore
 import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
 import floppacoding.mithras.utils.inventory.ItemValueCalculator
 import floppacoding.mithras.utils.inventory.NBTStringWriter
+import floppacoding.mithras.utils.inventory.SkyblockItem
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
-import floppacoding.mithras.utils.render.ImageManager
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
-import net.minecraft.client.texture.PlayerSkinTexture
 import net.minecraft.entity.Entity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.decoration.ItemFrameEntity
 import net.minecraft.item.FilledMapItem
+import net.minecraft.scoreboard.ScoreboardDisplaySlot
+import net.minecraft.sound.SoundCategory
 import net.minecraft.text.HoverEvent
+import net.minecraft.text.HoverEvent.ShowEntity
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.math.Box
 import java.awt.Font
-import java.io.IOException
-import java.io.InputStream
-import java.nio.file.Files
 import kotlin.experimental.and
 
 object DebugCommand : Command() {
@@ -58,15 +60,15 @@ object DebugCommand : Command() {
                     literal("1") {
                         execute {
                             val scoreboard = mc.world?.scoreboard ?: return@execute
-                            val objective = scoreboard.getObjectiveForSlot(1) ?: return@execute
-                            var scores = scoreboard.getAllPlayerScores(objective)
+                            val objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR) ?: return@execute
+                            var scores = scoreboard.getScoreboardEntries(objective)
                             scores = scores.filter {
-                                it?.playerName?.startsWith("#") == false
+                                it?.hidden() == false
                             }.let {
                                 if (it.size > 15) it.drop(15) else it
                             }
                             scores.forEach {
-                                ChatUtils.chatMessage(it.playerName)
+                                ChatUtils.chatMessage(it.name())
                             }
                         }
                     }
@@ -76,18 +78,57 @@ object DebugCommand : Command() {
                         ChatUtils.chatMessage("Printing tab list to logs.")
                         val tablist = TabListUtils.tabList
                         tablist.forEach {
-                            Mithras.logger.info("${it.second}; skin path: ${it.first.skinTexture.path}")
+                            Mithras.logger.info("${it.second}; skin path: ${it.first.skinTextures.texture.path}")
                         }
                     }
                 }
                 literal("where") {
                     execute { ChatUtils.chatMessage(
                         "in Dungeon: ${LocationManager.inDungeons}, on Hypixel: ${LocationManager.onHypixel}, " +
-                                "in skyblock: ${LocationManager.inSkyblock}"
+                                "in Skyblock: ${LocationManager.inSkyblock}, area: ${LocationManager.currentArea?.areaName}"
                     ) }
                 }
             }
+            literal("sound") {
+                literal("log") {
+                    execute {
+                        logSounds = !logSounds
+                        ChatUtils.chatMessage("Sound logging ${if(logSounds) "enabled" else "disabled"}")
+                        if (logSounds) logCategory = null
+                    }
+                    string("category") { execute { context ->
+                        if (logSounds) {
+                            logSounds = false
+                            ChatUtils.chatMessage("Sound logging disabled")
+                            return@execute
+                        }
+                        val categoryName = context.getString("category")
+                        logCategory = SoundCategory.entries.find { it.name.equals(categoryName, true) }
+                        if (logCategory == null) {
+                            ChatUtils.chatMessage("Category not found, avaliable: ${SoundCategory.entries}")
+                        }
+                        logSounds = true
+                        ChatUtils.chatMessage("Sound logging enabled${if (logCategory != null) " for category $categoryName" else ""}")
+                    }}
+                }
+
+            }
             literal("dungeon") {
+                literal("blaze") {
+                    literal("order") { execute {
+                        ChatUtils.chatMessage("Top down: " + BlazeSolver.topDown.toString())
+                    }}
+                    literal("healthOrder") { execute {
+                        val blazes = BlazeSolver.getOrderedBlazes()
+                        if(blazes.isEmpty()) {
+                            ChatUtils.chatMessage("empty")
+                            return@execute
+                        }
+                        blazes.forEach {
+                            ChatUtils.chatMessage(it.health.toString())
+                        }
+                    }}
+                }
                 literal("currentRoom") {
                     execute {
                         val room = Dungeon.currentRoom
@@ -209,7 +250,7 @@ object DebugCommand : Command() {
                 literal("teammates") {
                     execute {
                         Dungeon.dungeonTeammates.forEach {
-                            ChatUtils.chatMessage("${it.name}; is fake: ${it.fakeEntity}; is the player: ${it.player == mc.player}; skin path: ${it.player.skinTexture.path}")
+                            ChatUtils.chatMessage("${it.name}; is fake: ${it.fakeEntity}; is the player: ${it.player == mc.player}; skin path: ${it.player.skinTextures.texture.path}")
                         }
                     }
                 }
@@ -280,67 +321,67 @@ object DebugCommand : Command() {
             literal("player") {
                 literal("loadskin") {
                     execute {
-                        val skin = mc.networkHandler?.getPlayerListEntry(mc.player?.uuid)?.skinTexture ?: return@execute
-                        try {
-                            val skinImage =  ImageManager.createImage(skin)
-                            ChatUtils.chatMessage(skinImage.glID.toString())
-                        }catch (e: IOException) {
-                            ChatUtils.chatMessage("failed creating image")
-                        }
+//                        val skin = mc.networkHandler?.getPlayerListEntry(mc.player?.uuid)?.skinTexture ?: return@execute
+//                        try {
+//                            val skinImage =  ImageManager.createImage(skin)
+//                            ChatUtils.chatMessage(skinImage.glID.toString())
+//                        }catch (e: IOException) {
+//                            ChatUtils.chatMessage("failed creating image")
+//                        }
 
                     }
                 }
                 literal("checkskin") {
                     string("name") {
                         execute { context ->
-                            val tabEntries = TabListUtils.tabList
-                            val player = tabEntries.find { it.second.contains(StringArgumentType.getString(context, "name")) }
-                            if (player == null) {
-                                ChatUtils.chatMessage("No player matching \"${StringArgumentType.getString(context, "name")}\" found.")
-                                return@execute
-                            }
-                            val name = (player.first.displayName?.string ?: "null") + " - " + player.second
-                            var texture = player.first.skinTexture
-                            if (texture == null) {
-                                ChatUtils.chatMessage("Skin texture not found for ${name}!")
-                                return@execute
-                            }
-                            var resource = mc.resourceManager.getResource(texture)
-                            if (resource.isEmpty) {
-                                ChatUtils.chatMessage("No resource present for ${name}, path:  ${texture.namespace}:${texture.path}. Trying to reload.")
-                                texture = mc.skinProvider.loadSkin(player.first.profile)
-                                resource = mc.resourceManager.getResource(texture)
-                                if (resource.isEmpty) {
-                                    ChatUtils.chatMessage("Reloading resource failed for ${texture.namespace}:${texture.path}. Trying to create from texture.")
-//                                val profileTexture = mc.sessionService.getTextures(player.first.profile, false)
-//                                    .get(MinecraftProfileTexture.Type.SKIN) as MinecraftProfileTexture
-//                                val string = Hashing.sha1().hashUnencodedChars(profileTexture.hash).toString()
-//                                val identifier = Identifier("skins/$string")
-                                    val newTexture = mc.textureManager.getTexture(texture)
-                                    val cacheFile = ((newTexture as PlayerSkinTexture) as PlayerSkinAccessor).cacheFile
-                                    ChatUtils.chatMessage("Cache file ${if (cacheFile == null) "does not exist." else "exists."}")
-                                    if (cacheFile != null) {
-                                        ChatUtils.chatMessage("path: ${cacheFile.path}")
-                                        ChatUtils.chatMessage("absolute path: ${cacheFile.absolutePath}")
-                                        try {
-                                            var stream: InputStream? = null
-                                            if (cacheFile.exists() && cacheFile.isFile()) {
-                                                stream = Files.newInputStream(cacheFile.toPath())
-                                                ChatUtils.chatMessage("created input stream")
-                                            }else {
-                                                ChatUtils.chatMessage("cache file is not file ?!")
-                                            }
-                                            stream?.close()
-                                        }catch (_: Exception){
-                                            ChatUtils.chatMessage("Error loading resource")
-                                        }
-                                    }
-                                    return@execute
-                                }
-
-                            }
-                            ChatUtils.chatMessage("Resource present for ${texture.path}")
-                            resource.get().inputStream.close()
+//                            val tabEntries = TabListUtils.tabList
+//                            val player = tabEntries.find { it.second.contains(StringArgumentType.getString(context, "name")) }
+//                            if (player == null) {
+//                                ChatUtils.chatMessage("No player matching \"${StringArgumentType.getString(context, "name")}\" found.")
+//                                return@execute
+//                            }
+//                            val name = (player.first.displayName?.string ?: "null") + " - " + player.second
+//                            var texture = player.first.skinTexture
+//                            if (texture == null) {
+//                                ChatUtils.chatMessage("Skin texture not found for ${name}!")
+//                                return@execute
+//                            }
+//                            var resource = mc.resourceManager.getResource(texture)
+//                            if (resource.isEmpty) {
+//                                ChatUtils.chatMessage("No resource present for ${name}, path:  ${texture.namespace}:${texture.path}. Trying to reload.")
+//                                texture = mc.skinProvider.loadSkin(player.first.profile)
+//                                resource = mc.resourceManager.getResource(texture)
+//                                if (resource.isEmpty) {
+//                                    ChatUtils.chatMessage("Reloading resource failed for ${texture.namespace}:${texture.path}. Trying to create from texture.")
+////                                val profileTexture = mc.sessionService.getTextures(player.first.profile, false)
+////                                    .get(MinecraftProfileTexture.Type.SKIN) as MinecraftProfileTexture
+////                                val string = Hashing.sha1().hashUnencodedChars(profileTexture.hash).toString()
+////                                val identifier = Identifier("skins/$string")
+//                                    val newTexture = mc.textureManager.getTexture(texture)
+//                                    val cacheFile = ((newTexture as PlayerSkinTexture) as PlayerSkinAccessor).cacheFile
+//                                    ChatUtils.chatMessage("Cache file ${if (cacheFile == null) "does not exist." else "exists."}")
+//                                    if (cacheFile != null) {
+//                                        ChatUtils.chatMessage("path: ${cacheFile.path}")
+//                                        ChatUtils.chatMessage("absolute path: ${cacheFile.absolutePath}")
+//                                        try {
+//                                            var stream: InputStream? = null
+//                                            if (cacheFile.exists() && cacheFile.isFile()) {
+//                                                stream = Files.newInputStream(cacheFile.toPath())
+//                                                ChatUtils.chatMessage("created input stream")
+//                                            }else {
+//                                                ChatUtils.chatMessage("cache file is not file ?!")
+//                                            }
+//                                            stream?.close()
+//                                        }catch (_: Exception){
+//                                            ChatUtils.chatMessage("Error loading resource")
+//                                        }
+//                                    }
+//                                    return@execute
+//                                }
+//
+//                            }
+//                            ChatUtils.chatMessage("Resource present for ${texture.path}")
+//                            resource.get().inputStream.close()
                         }
                     }
                 }
@@ -365,9 +406,21 @@ object DebugCommand : Command() {
                 }
             }
             literal("item") {
+                literal("customName") { execute {
+                    ChatUtils.chatMessage(mc.player?.mainHandStack?.customName ?: Text.literal("Not found"))
+                }}
+                literal("name") { execute {
+                    ChatUtils.chatMessage(mc.player?.mainHandStack?.name ?: Text.literal("Not found"))
+                }}
+                literal("itemName") { execute {
+                    ChatUtils.chatMessage(mc.player?.mainHandStack?.itemName ?: Text.literal("Not found"))
+                }}
+                literal("vanillaEnchantments") { execute {
+                    ChatUtils.chatMessage(mc.player?.mainHandStack?.enchantments.toString())
+                }}
                 literal("heldnbt") {
                     execute {
-                        val stack = mc.player?.inventory?.mainHandStack
+                        val stack = mc.player?.inventory?.selectedStack
                         if (stack == null) {
                             ChatUtils.chatMessage("No item in hand!")
                             return@execute
@@ -379,7 +432,7 @@ object DebugCommand : Command() {
                 }
                 literal("value") {
                     execute {
-                        val stack = mc.player?.inventory?.mainHandStack
+                        val stack = mc.player?.inventory?.selectedStack
                         if (stack == null) {
                             ChatUtils.chatMessage("No item in hand!")
                             return@execute
@@ -390,7 +443,7 @@ object DebugCommand : Command() {
                 }
                 literal("lore") {
                     execute {
-                        val stack = mc.player?.inventory?.mainHandStack
+                        val stack = mc.player?.inventory?.selectedStack
                         if (stack == null) {
                             ChatUtils.chatMessage("No item in hand!")
                             return@execute
@@ -402,7 +455,7 @@ object DebugCommand : Command() {
                 }
                 literal("formatted-lore") {
                     execute {
-                        val stack = mc.player?.inventory?.mainHandStack
+                        val stack = mc.player?.inventory?.selectedStack
                         if (stack == null) {
                             ChatUtils.chatMessage("No item in hand!")
                             return@execute
@@ -412,9 +465,29 @@ object DebugCommand : Command() {
                         ChatUtils.chatMessage("Copied held item lore to clipboard.")
                     }
                 }
+                literal("extraAttributes") {
+                    execute {
+                        val stack = mc.player?.mainHandStack ?: run {
+                            ChatUtils.chatMessage("No item in hand!")
+                            return@execute
+                        }
+                        val attributes = stack.extraAttributes ?: run {
+                            ChatUtils.chatMessage("No attributes found!")
+                            return@execute
+                        }
+
+                        mc.keyboard.clipboard = NBTStringWriter().apply(attributes)
+                        ChatUtils.chatMessage("Copied held item attributes to clipboard.")
+                    }
+                }
+                literal("hasEthermerge") {
+                    execute{
+                        ChatUtils.chatMessage(mc.player?.mainHandStack?.extraAttributes?.getBoolean("ethermerge",false).toString())
+                    }
+                }
                 literal("rarity") {
                     execute {
-                        val stack = mc.player?.inventory?.mainHandStack
+                        val stack = mc.player?.inventory?.selectedStack
                         if (stack == null) {
                             ChatUtils.chatMessage("No item in hand!")
                             return@execute
@@ -433,6 +506,11 @@ object DebugCommand : Command() {
                         ChatUtils.chatMessage(item.translationKey)
                     }
                 }
+                literal("isHoldingAotve") {
+                    execute {
+                        ChatUtils.chatMessage(mc.player?.isHoldingInMainHand(SkyblockItem.AOTV,SkyblockItem.AOTE).toString())
+                    }
+                }
             }
             literal("world") {
                 literal("block") {
@@ -445,7 +523,7 @@ object DebugCommand : Command() {
                             ChatUtils.chatMessage("${ChatUtils.RED}State${ChatUtils.RESET}: ${ChatUtils.GRAY}$state")
                             val blockEntity = mc.world!!.getBlockEntity(pos) ?: return@execute
                             ChatUtils.chatMessage("Block has ${ChatUtils.RED}Block Entity${ChatUtils.RESET} of type: ${ChatUtils.GRAY}${BlockEntityType.getId(blockEntity.type)}${ChatUtils.RESET}, class: ${ChatUtils.GRAY}${blockEntity::class.java}")
-                            val nbt = blockEntity.createNbt()
+                            val nbt = blockEntity.createNbt(mc.world!!.registryManager)
                             val nbtString = NBTStringWriter.creatNbtString(nbt)
                             mc.keyboard.clipboard = nbtString
                             ChatUtils.chatMessage("Copied Block Entity NBT to clipboard")
@@ -463,10 +541,36 @@ object DebugCommand : Command() {
                                 entity.hasCustomName()
                             }?.forEach { entity ->
                                 ChatUtils.chatMessage(entity.name)
+                                Mithras.logger.info("name Text: ${entity.name.toString()}")
+                                Mithras.logger.info("display Name: ${entity.displayName?.string}")
                             }
                         }
                     }
                 }
+                literal("testTreeGift") { double("range") { execute {
+                    val range = it.getDouble("range")
+                    val box = it.source.player.boundingBox.expand(range)
+                    mc.world?.getEntitiesByClass(ArmorStandEntity::class.java, box) { entity ->
+                        entity.customName?.string?.matches(Regex("by (?:[\\w\\[\\]+]* )?${mc.player?.name?.string}")) == true
+                    }?.forEach { entity ->
+
+
+                        val searchBox = Box(
+                            entity.x - 0.5,
+                            entity.y - 2,
+                            entity.z - 0.5,
+                            entity.x + 0.5,
+                            entity.y,
+                            entity.z + 0.5
+                        )
+                        val stands = mc.world!!.getEntitiesByClass(
+                            ArmorStandEntity::class.java, searchBox
+                        ) {entity.hasCustomName()}
+                        ChatUtils.chatMessage(entity.name)
+                        if (stands.isEmpty()) return@forEach
+                        ChatUtils.chatMessage(stands[0].name)
+                    }
+                }}}
                 literal("entities") {
                     double("range") {
                         execute {
@@ -482,7 +586,17 @@ object DebugCommand : Command() {
                     }
                 }
             }
-            literal("test") {
+            literal("render") {
+                literal("displayPerformance") {
+                    execute {
+                        Mithras.clickGUI.displayPerformance = !Mithras.clickGUI.displayPerformance
+                    }
+                }
+                literal("screen3") {
+                    execute {
+                        Extensions.setScreen(Test3)
+                    }
+                }
                 literal("screen2") {
                     execute {
                         Extensions.setScreen(Test2)
@@ -497,11 +611,11 @@ object DebugCommand : Command() {
                     execute {
                         val text = Text.literal("12")
                         val hoverText = Text.literal("Hover §ctext\nline two")
-                        val hoverEvent = HoverEvent(HoverEvent.Action.SHOW_ENTITY, HoverEvent.EntityContent(mc.player!!.getType(), mc.player!!.getUuid(), mc.player!!.getName()))
+                        val hoverEvent = ShowEntity(HoverEvent.EntityContent(mc.player!!.type, mc.player!!.uuid, mc.player!!.name))
                         text.style = text.style.withHoverEvent(hoverEvent).withInsertion("insertion")
                         ChatUtils.chatMessage(text)
                         mc.player?.mainHandStack?.let{ChatUtils.modMessage(it.toHoverableText()) }
-                        mc.player?.let { ChatUtils.modMessage(it.displayName) }
+                        mc.player?.let { it.displayName?.let { it1 -> ChatUtils.modMessage(it1) } }
                     }
                 }
                 literal("reloadShader") {
@@ -551,4 +665,16 @@ object DebugCommand : Command() {
                 }
             }
         }
+
+    private var logSounds = false
+
+    @JvmStatic
+    var logCategory: SoundCategory? = null
+        private set
+
+    /**
+     * @see floppacoding.mithras.mixin.SoundSystemMixin.onPlaySound
+     */
+    @JvmStatic
+    fun shouldLogShounds() = logSounds
 }

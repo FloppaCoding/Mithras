@@ -9,7 +9,7 @@ import meteordevelopment.orbit.ICancellable
  * You can still override the methods to have custom functionality when an event is cancelled.
  * @author Aton
  */
-open class Cancellable: ICancellable {
+abstract class Cancellable: ICancellable {
     private var cancelled: Boolean = false
     override fun setCancelled(cancelled: Boolean) {
         this.cancelled = cancelled
@@ -18,5 +18,4 @@ open class Cancellable: ICancellable {
     override fun isCancelled(): Boolean {
         return cancelled
     }
-
 }

@@ -32,7 +32,7 @@ object Zoom : Module(
     private const val BASE_FOV: Int = 50
     private const val MIN_FOV: Int = 2 // THIS VALUE MUST BE GREATER THAN 1 OR THE GAME CAN CRASH!
 
-    private var zoomState by NumberSetting("State", 5, MIN_FOV, BASE_FOV, visibility = Visibility.HIDDEN)
+    private var zoomState by NumberSetting<Int>("State", 5, MIN_FOV, BASE_FOV, visibility = Visibility.HIDDEN)
 
     /**
      * Used as a stand in for the games fov setting when zoomed in.

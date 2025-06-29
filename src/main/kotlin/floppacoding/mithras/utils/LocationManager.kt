@@ -1,27 +1,46 @@
 package floppacoding.mithras.utils
 
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
+import floppacoding.mithras.events.AreaChangeEvent
 import floppacoding.mithras.events.ClientTickEvent
 import floppacoding.mithras.events.ConnectionEvent
 import floppacoding.mithras.events.WorldChangeEvent
-import floppacoding.mithras.module.impl.dungeon.dungeonmap.core.Room
-import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
+import floppacoding.mithras.mixin.ClientCommonNetworkHandlerAccessor
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.network.ClientPlayNetworkHandler
+import net.minecraft.scoreboard.ScoreboardDisplaySlot
 import net.minecraft.util.Formatting
 
 object LocationManager {
 
     var onHypixel: Boolean = false
+        private set
     var inSkyblock: Boolean = false
+        private set
     var inDungeons = false
         get() = inSkyblock && field
-    var currentRegionPair: Pair<Room, Int>? = null
+        private set
+
+    /**
+     * The area, which the player is currently in.
+     *
+     * To check whether the player is in a specific area, use [inArea].
+     */
+    var currentArea: SkyblockArea? = null
+        private set(value) {
+            if (value != field) {
+                Mithras.EVENT_BUS.post(AreaChangeEvent(field, value))
+                field = value
+            }
+        }
 
     /**
      * Keeps track of elapsed ticks, gets reset at 20
      */
     private var tickRamp = 0
+
+    fun inArea(area: SkyblockArea): Boolean = currentArea === area
 
     @EventHandler
     fun onTick(event: ClientTickEvent) {
@@ -32,7 +51,7 @@ object LocationManager {
             if (mc.player != null) {
 
                 if (!inSkyblock) {
-                    inSkyblock = onHypixel && mc.world?.scoreboard?.getObjectiveForSlot(1)
+                    inSkyblock = onHypixel && mc.world?.scoreboard?.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR)
                         ?.let { ScoreboardUtils.cleanSB(it.displayName.string).contains("SKYBLOCK") } ?: false
                 }
 
@@ -44,12 +63,12 @@ object LocationManager {
                         }
                     }
                 }
+                if (inSkyblock && currentArea == null) {
+                    currentArea = getArea()
+                }
+
             }
             tickRamp = 0
-        }
-        val newRegion = getArea()
-        if (currentRegionPair?.first?.data?.name != newRegion){
-            currentRegionPair = newRegion?.let { Pair( RoomUtils.instanceRegionRoom(it) , 0) }
         }
     }
 
@@ -58,13 +77,14 @@ object LocationManager {
         onHypixel = false
         inSkyblock = false
         inDungeons = false
+        currentArea = null
     }
 
     @EventHandler
     fun onWorldChange(@Suppress("UNUSED_PARAMETER") event: WorldChangeEvent) {
         inDungeons = false
         inSkyblock = false
-        currentRegionPair = null
+        currentArea = null
         tickRamp = 18
     }
 
@@ -74,7 +94,7 @@ object LocationManager {
     @EventHandler
     fun onConnect(event: ConnectionEvent.Join) {
         onHypixel = mc.runCatching {
-            ((mc.player?.serverBrand?.lowercase()?.contains("hypixel")
+            (((mc.player?.networkHandler as? ClientCommonNetworkHandlerAccessor)?.brand?.lowercase()?.contains("hypixel")
                 ?: mc.currentServerEntry?.address?.lowercase()?.contains("hypixel")) == true)
         }.getOrDefault(false)
     }
@@ -84,12 +104,12 @@ object LocationManager {
      * Returns the current area from the tab list info.
      * If no info can be found return null.
      */
-    private fun getArea(): String? {
+    private fun getArea(): SkyblockArea? {
         if (!inSkyblock) return null
         val netHandlerPlayClient: ClientPlayNetworkHandler = mc.player?.networkHandler ?: return null
         val list = netHandlerPlayClient.playerList ?: return null
         var area: String? = null
-        var extraInfo: String? = null
+        var owner: String? = null
         for (entry in list) {
             //  "Area: Hub"
             val areaText = Formatting.strip(entry?.displayName?.string) ?: continue
@@ -98,13 +118,14 @@ object LocationManager {
                 if (!area.contains("Private Island")) break
             }
             if (areaText.contains("Owner:")){
-                extraInfo = areaText.substringAfter("Owner:")
+                owner = areaText.substringAfter("Owner: ")
+                break
             }
-
         }
-        return if (area == null)
-            null
-        else
-            area + (extraInfo ?: "")
+        if (area == null) return null
+        if (area.contains("Private Island")) {
+            return SkyblockArea.PrivateIsland(owner)
+        }
+        return SkyblockArea.entries.find { it.areaName == area } ?: SkyblockArea.Unknown(area)
     }
 }

@@ -1,10 +1,11 @@
 package floppacoding.mithras.utils
 
 import floppacoding.mithras.Mithras.mc
-import net.minecraft.scoreboard.ScoreboardPlayerScore
+import net.minecraft.scoreboard.ScoreboardDisplaySlot
+import net.minecraft.scoreboard.ScoreboardEntry
 import net.minecraft.scoreboard.Team
-import net.minecraft.text.LiteralTextContent
 import net.minecraft.text.MutableText
+import net.minecraft.text.PlainTextContent
 import net.minecraft.util.Formatting
 
 object ScoreboardUtils {
@@ -29,15 +30,15 @@ object ScoreboardUtils {
     val sidebarLines: List<String>
         get() {
             val scoreboard = mc.world?.scoreboard ?: return emptyList()
-            val objective = scoreboard.getObjectiveForSlot(1) ?: return emptyList()
-            var scores = scoreboard.getAllPlayerScores(objective)
+            val objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR) ?: return emptyList()
+            var scores = scoreboard.getScoreboardEntries(objective)
             scores = scores.filter {
-                it?.playerName?.startsWith("#") == false
+                it?.hidden() == false
             }.let {
                 if (it.size > 15) it.drop(15) else it
             }
             return scores.map {
-                Team.decorateName(scoreboard.getPlayerTeam(it.playerName), MutableText.of(LiteralTextContent( ""))).string
+                Team.decorateName(scoreboard.getScoreHolderTeam(it.owner), MutableText.of(PlainTextContent.Literal( ""))).string
                 // it.playerName // This would work on some other servers instead.
             }
         }
@@ -47,10 +48,10 @@ object ScoreboardUtils {
      *
      * @see sidebarLines
      */
-    val scores: List<ScoreboardPlayerScore>
+    val scores: List<ScoreboardEntry>
         get() {
             val scoreboard = mc.world?.scoreboard ?: return emptyList()
-            val objective = scoreboard.getObjectiveForSlot(1) ?: return emptyList()
-            return scoreboard.getAllPlayerScores(objective).toList()
+            val objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR) ?: return emptyList()
+            return scoreboard.getScoreboardEntries(objective).toList()
         }
 }

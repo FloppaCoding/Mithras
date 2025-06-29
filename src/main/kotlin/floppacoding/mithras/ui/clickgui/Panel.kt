@@ -1,5 +1,7 @@
 package floppacoding.mithras.ui.clickgui
 
+import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.core.TextAlign
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.impl.render.GUIDesign
@@ -8,8 +10,6 @@ import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementKeyBind
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.ui.clickgui.util.FontUtil.capitalizeOnlyFirst
-import floppacoding.aurora.core.Renderer2D
-import floppacoding.aurora.core.TextAlign
 
 /**
  * Provides a category panel for the click gui.
@@ -68,7 +68,7 @@ class Panel(
         renderer.translate(x, y)
 
         // Set up the Scissor Box
-        renderer.scissor(1f, height, width + 2f, 4000f)
+        renderer.scissor(1f, height, width - 2f, 4000f)
 
         /** Render the module buttons and the Settings elements */
         var startY = height

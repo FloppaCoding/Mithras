@@ -62,7 +62,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         }
     }
 
-    @Inject(method = "drawMouseoverTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;II)V"), cancellable = true)
+    @Inject(method = "drawMouseoverTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/util/Identifier;)V"), cancellable = true)
     private void onItemTooltip(DrawContext context, int x, int y, CallbackInfo ci) {
         assert this.focusedSlot != null;
         ItemStack itemStack = this.focusedSlot.getStack();

@@ -1,11 +1,14 @@
 package floppacoding.mithras.utils.inventory
 
+import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.powerAbilityScroll
+import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.LoreComponent
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.AbstractNbtNumber
 import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
-import net.minecraft.text.Text
+import net.minecraft.nbt.NbtString
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * ## A collection of methods for accessing NBT data of Skyblock items.
@@ -18,8 +21,10 @@ import net.minecraft.text.Text
  */
 @Suppress("unused")
 object ItemUtils {
+    //TODO redo all the item stack stuff as it no longer uses nbt as runtime data storage
+
     val ItemStack.extraAttributes: NbtCompound?
-        get() = this.getSubNbt("ExtraAttributes")
+        get () = this.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()
 
     val ItemStack.isDungeonMobDrop: Boolean
         get() {
@@ -40,7 +45,7 @@ object ItemUtils {
      */
     val ItemStack.isRarityUpgraded: Boolean
         get() {
-            return (this.extraAttributes?.getInt("rarity_upgrades") ?: 0) > 0
+            return (this.extraAttributes?.getInt("rarity_upgrades",0) ?: 0) > 0
         }
 
     /**
@@ -48,7 +53,7 @@ object ItemUtils {
      */
     val ItemStack.hasArtOfWar: Boolean
         get() {
-            return (this.extraAttributes?.getInt("art_of_war_count") ?: 0) > 0
+            return (this.extraAttributes?.getInt("art_of_war_count",0) ?: 0) > 0
         }
 
     val ItemStack.stars: Int
@@ -79,7 +84,7 @@ object ItemUtils {
 
     val ItemStack.hotPotatoBooks: Int
         get() {
-            return this.extraAttributes?.getInt("hot_potato_count") ?: 0
+            return this.extraAttributes?.getInt("hot_potato_count", 0) ?: 0
         }
 
     /**
@@ -89,7 +94,7 @@ object ItemUtils {
      */
     val ItemStack.itemID: String
         get() {
-            return this.extraAttributes?.getString("id") ?: ""
+            return this.extraAttributes?.getString("id", "") ?: ""
         }
 
     val ItemStack.reforge : String?
@@ -98,7 +103,7 @@ object ItemUtils {
         }
 
     val ItemStack.hasEtherwarp : Boolean
-        get() = this.extraAttributes?.getBoolean("ethermerge") ?: false
+        get() = this.extraAttributes?.getBoolean("ethermerge")?.getOrNull() ?: false
 
     val ItemStack.transmissionTuners : Int?
         get() = this.extraAttributes?.getInteger("tuned_transmission")?.div(2)
@@ -118,11 +123,15 @@ object ItemUtils {
      */
     val ItemStack.abilityScrolls: List<String>?
         get() {
-            return this.extraAttributes?.getList("ability_scroll", NbtElement.STRING_TYPE.toInt())?.map { it.asString() }
+            return this.extraAttributes?.getList("ability_scroll")?.getOrNull()?.map { it.asString().getOrNull() ?: return null }
         }
 
 
     // TODO implement text lore.
+    val ItemStack.loreComponent: LoreComponent?
+        get() = this.get(DataComponentTypes.LORE)
+
+
     /**
      * Gets the lore attribute of the item.
      * The strings will **NOT** contain formatting codes.
@@ -133,24 +142,7 @@ object ItemUtils {
      */
     val ItemStack.lore: List<String>
         get() {
-            val display = this.getSubNbt("display") ?: return emptyList()
-            if (display.contains("Lore", NbtElement.LIST_TYPE.toInt())) {
-                val nbtList = display.getList("Lore", NbtElement.STRING_TYPE.toInt())
-                val lore = ArrayList<String>()
-                for (ii in 0 until nbtList.size) {
-                    // Use the following line instead of the try catch to get the formatting. That formatting will look
-                    // according to MutableText.toString(), which is very unreadable, but might be required for more
-                    // information in the future.
-                    // lore.add(nbtList.getString(ii))
-                    try {
-                        lore.add(Text.Serializer.fromJson(nbtList.getString((ii)))?.string ?: "")
-                    } catch (_: Exception) {
-                        lore.add(nbtList.getString(ii))
-                    }
-                }
-                return lore
-            }
-            return emptyList()
+            return this.loreComponent?.lines?.map { it.string } ?: emptyList()
         }
 
     /**
@@ -163,16 +155,7 @@ object ItemUtils {
      */
     val ItemStack.formattedLore: List<String>
         get() {
-            val display = this.getSubNbt("display") ?: return emptyList()
-            if (display.contains("Lore", NbtElement.LIST_TYPE.toInt())) {
-                val nbtList = display.getList("Lore", NbtElement.STRING_TYPE.toInt())
-                val lore = ArrayList<String>()
-                for (ii in 0 until nbtList.size) {
-                     lore.add(nbtList.getString(ii))
-                }
-                return lore
-            }
-            return emptyList()
+            return this.loreComponent?.styledLines?.map { it.string } ?: emptyList()
         }
 
     /**
@@ -185,9 +168,8 @@ object ItemUtils {
     val ItemStack.skyblockEnchantments: Map<String, Int>
         get() {
             val attributes = this.extraAttributes ?: return emptyMap()
-            if (!attributes.contains("enchantments", NbtElement.COMPOUND_TYPE.toInt())) return emptyMap()
-            val enchants = attributes.getCompound("enchantments")
-            return enchants.keys.associateWith { enchants.getInt(it) }
+            val enchants = attributes.getCompound("enchantments").getOrNull() ?: return emptyMap()
+            return enchants.keys.associateWith { enchants.getInt(it,0) }
         }
 
     /**
@@ -207,25 +189,16 @@ object ItemUtils {
     val ItemStack.gems: Map<Gemstone, Int>
         get() {
             val attributes = this.extraAttributes ?: return emptyMap()
-            if (!attributes.contains("gems", NbtElement.COMPOUND_TYPE.toInt())) return emptyMap()
-            val gems = attributes.getCompound("gems")
+            val gems = attributes.getCompound("gems").getOrNull() ?: return emptyMap()
             val gemMap = mutableMapOf<Gemstone, Int>()
             for (slot in gems.keys) {
                 val matcher = gemSlotRegex.matchEntire(slot) ?: continue
                 val slotName = matcher.groups["slot"]?.value ?: continue
                 val gemInfoName = slot + "_gem"
-                val gemType: String = if (gems.contains(gemInfoName, NbtElement.STRING_TYPE.toInt())) {
-                    gems.getString(gemInfoName)
-                } else {
-                    slotName
-                }
-                val qualityname = if (gems.contains(slot, NbtElement.COMPOUND_TYPE.toInt())) {
-                    gems.getCompound(slot).getString("quality")
-                } else {
-                    gems.getString(slot)
-                }
+                val gemType: String = gems.getString(gemInfoName, slotName)
+                val qualityName = gems.getCompoundOrEmpty(slot).getString("quality", gems.getString(slot, ""))
                 val quality = try {
-                    Gemstone.Quality.valueOf(qualityname)
+                    Gemstone.Quality.valueOf(qualityName)
                 } catch (_: Exception) {
                     continue
                 }
@@ -246,9 +219,8 @@ object ItemUtils {
     val ItemStack.runes: Map<String, Int>
         get() {
             val attributes = this.extraAttributes ?: return emptyMap()
-            if (!attributes.contains("runes", NbtElement.COMPOUND_TYPE.toInt())) return emptyMap()
-            val runes = attributes.getCompound("runes")
-            return runes.keys.associateWith { runes.getInt(it) }
+            val runes = attributes.getCompound("runes").getOrNull() ?: return emptyMap()
+            return runes.keys.associateWith { runes.getInt(it, 0) }
         }
 
     /**
@@ -312,8 +284,8 @@ object ItemUtils {
      */
     private fun NbtCompound.getInteger(key: String): Int? {
         try {
-            if (this.contains(key, NbtElement.NUMBER_TYPE.toInt())) {
-                return (this.get(key) as AbstractNbtNumber).intValue()
+            if (this.contains(key)) {
+                return (this.get(key) as? AbstractNbtNumber)?.intValue()
             }
         } catch (_: ClassCastException) { }
         return null
@@ -326,8 +298,8 @@ object ItemUtils {
      * This behaves differently than [NbtCompound.getString]
      */
     private fun NbtCompound.getStringOrNull(key: String) : String? {
-        return if (this.contains(key, NbtElement.STRING_TYPE.toInt())) {
-            this.getString(key)
+        return if (this.contains(key)) {
+            (this.get(key) as? NbtString)?.value
         }else null
     }
 

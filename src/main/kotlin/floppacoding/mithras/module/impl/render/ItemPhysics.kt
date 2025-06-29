@@ -1,17 +1,18 @@
 package floppacoding.mithras.module.impl.render
 
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.Module
 import net.minecraft.block.Blocks
 import net.minecraft.client.render.OverlayTexture
 import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.item.ItemRenderer
-import net.minecraft.client.render.model.json.ModelTransformationMode
+import net.minecraft.client.render.entity.ItemEntityRenderer
+import net.minecraft.client.render.entity.state.ItemEntityRenderState
+import net.minecraft.client.render.entity.state.ItemStackEntityRenderState
+import net.minecraft.client.render.item.ItemRenderState
 import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.entity.ItemEntity
-import net.minecraft.entity.LivingEntity
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import net.minecraft.util.math.RotationAxis
 import net.minecraft.util.math.random.Random
 
@@ -38,46 +39,37 @@ object ItemPhysics : Module(
      * @see floppacoding.mithras.mixin.render.ItemEntityRendererMixin.onRender
      */
     fun render(
-        itemEntity: ItemEntity?,
-        partialTicks: Float,
+        itemEntityRenderState: ItemEntityRenderState?,
         matrixStack: MatrixStack,
         vertexConsumerProvider: VertexConsumerProvider?,
         i: Int,
-        itemRenderer: ItemRenderer,
-        random: Random,
-        getRenderedAmount: (ItemStack) -> Int
+        box: Box,
+        random: Random
     ): Boolean {
-        if (!this.enabled || itemEntity == null) return false
+        if (!this.enabled || itemEntityRenderState?.itemRenderState?.isEmpty != false) return false
+
         matrixStack.push()
-        val itemStack: ItemStack = itemEntity.stack
-        val seed = if (itemStack.isEmpty) 187 else Item.getRawId(itemStack.item) + itemStack.damage
-        random.setSeed(seed.toLong())
-        val bakedModel = itemRenderer.getModel(itemStack, itemEntity.world, null as LivingEntity?, itemEntity.id)
-        val hasDepth = bakedModel.hasDepth()
-        val renderedAmount: Int = getRenderedAmount(itemStack)
+        val f = -(box.minY.toFloat()) + 0.0625f
 
-        val o = bakedModel.transformation.ground.scale.x()
-        val p = bakedModel.transformation.ground.scale.y()
-        val q = bakedModel.transformation.ground.scale.z()
-        var s: Float
-        var t: Float
+        // Make the item flush with the ground
+        matrixStack.translate(0.0f, -0.175f + f, 0.0f)
 
-        // Make the item flush with the ground.
-        matrixStack.translate(0f,  0.125f * 0.25f * p, 0f)
-
-        if (!itemEntity.isOnGround) {
+        if (!isOnGround(itemEntityRenderState)) {
             // Makes the item spin while in the air.
-            matrixStack.multiply(RotationAxis.POSITIVE_X.rotation((itemEntity.itemAge.toFloat() + partialTicks) *(itemEntity.uniqueOffset - 3.1415927f) * 0.2f ))
+            val partialTicks = Mithras.mc.renderTickCounter.getTickProgress(true)
+            matrixStack.multiply(RotationAxis.POSITIVE_X.rotation((itemEntityRenderState.age + partialTicks) *(itemEntityRenderState.uniqueOffset - 3.1415927f) * 0.2f ))
 
         }else {
             // Prevent items from sinking in snow layers / soul sand.
-            if (isItemSunken(itemEntity)) {
+            if (isItemSunken(itemEntityRenderState)) {
                 matrixStack.translate(0.0f, 0.125f, 0.0f)
             }
         }
-        // Give the item an item specific random rotation. Instead of the yaw itemEntity.uniqueOffset can also be used.
-        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotation(itemEntity.yaw))
 
+        // Give the item an item specific random rotation. Instead of the yaw itemEntity.uniqueOffset can also be used.
+        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotation(itemEntityRenderState.uniqueOffset))
+
+        val hasDepth = box.lengthZ > 0.0625f
         // Make the items lie on the side.
         if (!hasDepth) {
             matrixStack.multiply(RotationAxis.POSITIVE_X.rotation(-Math.PI.toFloat() / 2))
@@ -87,32 +79,62 @@ object ItemPhysics : Module(
             matrixStack.translate(0f, -0.125f, 0f)
         }
 
-        for (u in 0 until renderedAmount) {
-            matrixStack.push()
-            if (u > 0) {
-                if (hasDepth) {
-                    s = (random.nextFloat() * 2.0f - 1.0f) * 0.15f
-                    t = (random.nextFloat() * 2.0f - 1.0f) * 0.15f
-                    val v: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.7f // *0.7f to slightly reduce how high the items stack in y direction.
-                    matrixStack.translate(s, t, v)
-                } else {
-                    s = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.5f
-                    t = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.5f
-                    matrixStack.translate(s, t, 0.0f)
-                }
-            }
-            itemRenderer.renderItem(itemStack, ModelTransformationMode.GROUND, false, matrixStack, vertexConsumerProvider, i, OverlayTexture.DEFAULT_UV, bakedModel)
-            matrixStack.pop()
-            if (!hasDepth) {
-                matrixStack.translate(0.0f * o, 0.0f * p, 0.05f * q) // original value is 0.09375f. With 0.5f the items lie right ontop of each other.
-            }
-        }
+        ItemEntityRenderer.renderStack(
+            matrixStack, vertexConsumerProvider, i, itemEntityRenderState,
+            random, box
+        )
         matrixStack.pop()
+
         return true
     }
 
-    private fun isItemSunken(itemEntity: ItemEntity) : Boolean {
-        val block = itemEntity.world.getBlockState(itemEntity.blockPos).block
+    fun renderStack(matrices: MatrixStack, vertexConsumers: VertexConsumerProvider, light: Int, state: ItemStackEntityRenderState, random: Random, box: Box) : Boolean{
+        if (!this.enabled || state.itemRenderState?.isEmpty != false) return false
+        val i: Int = state.renderedAmount
+        if (i != 0) {
+            random.setSeed(state.seed.toLong())
+            val itemRenderState: ItemRenderState = state.itemRenderState
+            val f: Float = box.lengthZ.toFloat()
+            if (f > 0.0625f) {
+                itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV)
+
+                for (j in 1..<i) {
+                    matrices.push()
+                    val g: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f
+                    val h: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f
+                    val k: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.7f // *0.7f to slightly reduce how high the items stack in y direction.
+                    matrices.translate(g, h, k)
+                    itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV)
+                    matrices.pop()
+                }
+            } else {
+                val l = f * 1.0f // original value is 1.5f. With 0.5f the items lie right ontop of each other.
+                //matrices.translate(0.0f, 0.0f, -(l * (i - 1) / 2.0f)) // this would make the items sink into the ground
+                itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV)
+                matrices.translate(0.0f, 0.0f, l)
+
+                for (m in 1..<i) {
+                    matrices.push()
+                    val h: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.5f
+                    val k: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.5f
+                    matrices.translate(h, k, 0.0f)
+                    itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV)
+                    matrices.pop()
+                    matrices.translate(0.0f, 0.0f, l)
+                }
+            }
+        }
+        return true
+    }
+
+    private fun isOnGround(renderState: ItemEntityRenderState): Boolean {
+        val pos = BlockPos.ofFloored(renderState.x, renderState.y-0.1, renderState.z)
+        return Mithras.mc.world?.getBlockState(pos)?.isSolid ?: true
+    }
+
+    private fun isItemSunken(renderState: ItemEntityRenderState) : Boolean {
+        val pos = BlockPos.ofFloored(renderState.x, renderState.y, renderState.z)
+        val block = Mithras.mc.world?.getBlockState(pos)?.block
         return block == Blocks.SNOW || block == Blocks.SOUL_SAND
     }
 }

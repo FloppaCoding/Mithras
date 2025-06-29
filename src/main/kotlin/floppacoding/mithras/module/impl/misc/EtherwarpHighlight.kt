@@ -49,8 +49,8 @@ object EtherwarpHighlight : Module(
         // The is holding check is not strictly required since the check for the ethermerge attribute will already cover that
 //        if (mc.player?.isHoldingInMainHand(SkyblockItem.AOTV,SkyblockItem.AOTE) != true) return
         val attributes = mc.player?.mainHandStack?.extraAttributes ?: return
-        if (!attributes.getBoolean("ethermerge")) return
-        val distance = 57.0 + attributes.getInt("tuned_transmission")
+        if (!attributes.getBoolean("ethermerge",false)) return
+        val distance = 57.0 + attributes.getInt("tuned_transmission", 0)
         val hitResult = raycastEtherwarp(distance) ?: return
         val targetState = mc.world?.getBlockState(hitResult.blockPos) ?: return
         val isValid =

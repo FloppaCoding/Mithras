@@ -40,13 +40,16 @@ object BlazeSolver : Module(
     /**
      * Determines the order in which the blazes have to be sorted.
      */
-    private var topDown: Boolean? = null
+    var topDown: Boolean? = null
+        private set
 
 
-    private var orderedBlazes = ArrayList<ShootableBlaze>()
+    private val orderedBlazes = ArrayList<ShootableBlaze>()
     private var impossible = false
 
     private var inBlazeRoom = false
+
+    fun getOrderedBlazes() = orderedBlazes.toList()
 
     /**
      * Finds and sorts the blazes to solve the puzzle.
@@ -76,7 +79,7 @@ object BlazeSolver : Module(
             val blazeName = entity.name.string.stripControlCodes()
             try {
                 val health =
-                    blazeName.substringAfter("/").dropLast(1).toInt()
+                    blazeName.substringAfter("/").filter { it.isDigit() }.toInt()
                 val blazeBox = Box(
                     entity.x - 0.5,
                     entity.y - 2,
@@ -126,6 +129,7 @@ object BlazeSolver : Module(
                 secondNext = orderedBlazes.getOrNull(2)
             }
         }
+
         Renderer3D.drawEntityBoundingBox(event.context, target.blaze, outlineColor = targetColor, lineWidth = 4f)
         if (next != null && lineColor.alpha != 0) {
             Renderer3D.drawLine(event.context, target.blaze.pos.add(0.0,1.0,0.0), next.blaze.pos.add(0.0,1.0,0.0), lineColor, 4f)

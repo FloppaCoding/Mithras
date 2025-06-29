@@ -130,6 +130,13 @@ abstract class Command {
         return StringArgumentType.getString(this, name)
     }
 
+    fun ArgBuilder.stringSelection(name: String, selections: StringSelectionSuggester, tasks: Task ) =
+        argument(name, StringSelectionArgumentType(selections), tasks)
+
+    fun CommandContext<*>.getStringSelection(name: String): String {
+        return StringSelectionArgumentType.getString(this, name)
+    }
+
     @JvmOverloads
     fun ArgBuilder.double(name: String, min: Double = Double.MIN_VALUE, max: Double = Double.MAX_VALUE, tasks: Task) =
         argument(name, DoubleArgumentType.doubleArg(min, max), tasks)
@@ -164,7 +171,7 @@ abstract class Command {
 
     fun CommandContext<*>.getBlockPos(name: String): BlockPos {
         return (this.getArgument(name, PosArgument::class.java) as PosArgument)
-            .toAbsoluteBlockPos(MinecraftClient.getInstance().player!!.commandSource)
+            .toAbsoluteBlockPos(MinecraftClient.getInstance().player!!.getCommandSource(null))
     }
 
     @JvmOverloads
@@ -172,8 +179,8 @@ abstract class Command {
         argument(name, Vec3ArgumentType.vec3(centerIntegers), tasks)
 
     fun CommandContext<*>.getVec3(name: String): Vec3d {
-            return (this.getArgument(name, PosArgument::class.java) as PosArgument)
-                .toAbsolutePos(MinecraftClient.getInstance().player!!.commandSource)
+        return (this.getArgument(name, PosArgument::class.java) as PosArgument)
+            .getPos(MinecraftClient.getInstance().player!!.getCommandSource(null))
         }
 
 }

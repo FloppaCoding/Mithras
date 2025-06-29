@@ -1,21 +1,19 @@
 package floppacoding.mithras.utils.render
 
-import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.VertexFormat
 import floppacoding.mithras.Mithras
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.block.BlockState
 import net.minecraft.block.ShapeContext
-import net.minecraft.client.render.GameRenderer
 import net.minecraft.client.render.Tessellator
-import net.minecraft.client.render.VertexFormat
 import net.minecraft.client.render.VertexFormats
+import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.entity.Entity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.RotationAxis
 import net.minecraft.util.math.Vec3d
-import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import java.awt.Color
@@ -41,8 +39,7 @@ object Renderer3D {
     // And the DEBUG_LINE_STRIP layer technically should support custom line widths, however that does not seem to work.
     // And even if it did, it still does not support transparency.
     //
-    // Creating custom rendering layers is also not that good of an option because it is awkward with relevant
-    // methods and classes being private.
+    // This is now implemented however line widths are for now no longer supported.
     //
     // Possible improvements for the future to this could be to either make a custom RenderLayer and properly disptach everything for it.
     // Or otherwise code a custom system similar to the render layers. */
@@ -78,50 +75,29 @@ object Renderer3D {
         RenderSystem.assertOnRenderThread()
 
         val vec3d: Vec3d = context.camera().pos
-        val cameraX = vec3d.getX()
-        val cameraY = vec3d.getY()
-        val cameraZ = vec3d.getZ()
-
-        val matrices = context.matrixStack()
+        val matrices = context.matrixStack() ?: return
         matrices.push()
-        matrices.translate(-cameraX, -cameraY, -cameraZ)
+        matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
+
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
-        val normalMatrix = matrices.peek().normalMatrix
-
-        RenderSystem.depthMask(true)
-        RenderSystem.disableCull()
-        if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
-        RenderSystem.lineWidth(lineWidth)
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(
-            GlStateManager.SrcFactor.SRC_ALPHA,
-            GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA,
-            GlStateManager.SrcFactor.ONE,
-            GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA
-        )
-
+        val normalMatrix = matrices.peek()
         val rgba = color.rgb
 
-        val tessellator = RenderSystem.renderThreadTesselator()
-
-        RenderSystem.setShader { GameRenderer.getRenderTypeLinesProgram() }
-        val bufferBuilder = tessellator.buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES)
+        val tessellator = Tessellator.getInstance()
+        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL)
 
         val lineNormal = Vector3f(x2-x1, y2-y1, z2-z1).normalize()
 
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(rgba).normal(normalMatrix, lineNormal.x, lineNormal.y, lineNormal.z).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(rgba).normal(normalMatrix, lineNormal.x, lineNormal.y, lineNormal.z).next()
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(rgba).normal(normalMatrix, lineNormal.x, lineNormal.y, lineNormal.z)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(rgba).normal(normalMatrix, lineNormal.x, lineNormal.y, lineNormal.z)
 
-        tessellator.draw()
+
+        val builtBuffer = bufferBuilder.end()
+        val layer = if (phase) RenderLayers.LINES_PHASE else RenderLayers.LINES
+        layer.draw(builtBuffer)
 
 
         matrices.pop()
-        RenderSystem.lineWidth(1.0f)
-        RenderSystem.enableCull()
-        RenderSystem.depthMask(false)
-        RenderSystem.disableBlend()
-        RenderSystem.defaultBlendFunc()
     }
 
     /**
@@ -198,21 +174,10 @@ object Renderer3D {
         if (fillColor?.isVisible() != true && outlineColor?.isVisible() != true) return
         RenderSystem.assertOnRenderThread()
 
-        RenderSystem.depthMask(true)
-        RenderSystem.disableCull()
-        if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
-        RenderSystem.lineWidth(lineWidth)
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA)
-
-        val cameraPosition: Vec3d = context.camera().pos
-        val cameraX = cameraPosition.getX()
-        val cameraY = cameraPosition.getY()
-        val cameraZ = cameraPosition.getZ()
-
-        val matrices = context.matrixStack()
+        val vec3d: Vec3d = context.camera().pos
+        val matrices = context.matrixStack() ?: return
         matrices.push()
-        matrices.translate(-cameraX, -cameraY, -cameraZ)
+        matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
 
         // Translate to circle corresponding coordinate
         matrices.translate(xCenter,yCenter,zCenter)
@@ -228,23 +193,19 @@ object Renderer3D {
         // After this the z-axis is orthogonal to the ellipse.
 
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
-        val normalMatrix = matrices.peek().normalMatrix
-        val tessellator = RenderSystem.renderThreadTesselator()
+        val normalMatrix = matrices.peek()
+        val tessellator = Tessellator.getInstance()
 
         if (fillColor?.isVisible() == true) {
-            fillEllipse(tessellator, positionMatrix, majorSemiaxis, minor, fillColor.rgb, segments)
+            fillEllipse(tessellator, positionMatrix, majorSemiaxis, minor, fillColor.rgb, segments, phase)
         }
 
         if (outlineColor?.isVisible() == true) {
-            outlineEllipse(tessellator, positionMatrix, normalMatrix, majorSemiaxis, minor, outlineColor.rgb, segments)
+            outlineEllipse(tessellator, positionMatrix, normalMatrix, majorSemiaxis, minor, outlineColor.rgb, segments, phase)
         }
 
+
         matrices.pop()
-        RenderSystem.lineWidth(1.0f)
-        RenderSystem.enableCull()
-        RenderSystem.depthMask(false)
-        RenderSystem.disableBlend()
-        RenderSystem.defaultBlendFunc()
     }
 
     /**
@@ -361,39 +322,18 @@ object Renderer3D {
         RenderSystem.assertOnRenderThread()
 
         val vec3d: Vec3d = context.camera().pos
-        val cameraX = vec3d.getX()
-        val cameraY = vec3d.getY()
-        val cameraZ = vec3d.getZ()
-
-        val matrices = context.matrixStack()
+        val matrices = context.matrixStack() ?: return
         matrices.push()
-        matrices.translate(-cameraX, -cameraY, -cameraZ)
+        matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
+
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
-        val normalMatrix = matrices.peek().normalMatrix
+        val normalMatrix = matrices.peek()
 
-        RenderSystem.depthMask(true)
-        RenderSystem.disableCull()
-        if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
-        RenderSystem.lineWidth(lineWidth)
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(
-            GlStateManager.SrcFactor.SRC_ALPHA,
-            GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA,
-            GlStateManager.SrcFactor.ONE,
-            GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA
-        )
+        val tessellator = Tessellator.getInstance()
 
-        val tessellator = RenderSystem.renderThreadTesselator()
-
-        outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, color.rgb)
+        outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, color.rgb, phase)
 
         matrices.pop()
-        RenderSystem.lineWidth(1.0f)
-        RenderSystem.enableCull()
-        RenderSystem.depthMask(false)
-        RenderSystem.disableBlend()
-        RenderSystem.defaultBlendFunc()
-
     }
 
     /**
@@ -429,35 +369,16 @@ object Renderer3D {
         RenderSystem.assertOnRenderThread()
 
         val vec3d: Vec3d = context.camera().pos
-        val cameraX = vec3d.getX()
-        val cameraY = vec3d.getY()
-        val cameraZ = vec3d.getZ()
-
-        val matrices = context.matrixStack()
+        val matrices = context.matrixStack() ?: return
         matrices.push()
-        matrices.translate(-cameraX, -cameraY, -cameraZ)
+        matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
         val matrix4f: Matrix4f = matrices.peek().positionMatrix
 
-        RenderSystem.depthMask(true)
-        RenderSystem.disableCull()
-        if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(
-            GlStateManager.SrcFactor.SRC_ALPHA,
-            GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA,
-            GlStateManager.SrcFactor.ONE,
-            GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA
-        )
+        val tessellator = Tessellator.getInstance()
 
-        val tessellator = RenderSystem.renderThreadTesselator()
-
-        fillSides(tessellator, matrix4f, x1, y1, z1, x2, y2, z2, fillColor.rgb)
+        fillSides(tessellator, matrix4f, x1, y1, z1, x2, y2, z2, fillColor.rgb, phase)
 
         matrices.pop()
-        RenderSystem.enableCull()
-        RenderSystem.depthMask(false)
-        RenderSystem.disableBlend()
-        RenderSystem.defaultBlendFunc()
     }
 
     /**
@@ -499,138 +420,108 @@ object Renderer3D {
         RenderSystem.assertOnRenderThread()
 
         val vec3d: Vec3d = context.camera().pos
-        val cameraX = vec3d.getX()
-        val cameraY = vec3d.getY()
-        val cameraZ = vec3d.getZ()
-
-        val matrices = context.matrixStack()
+        val matrices = context.matrixStack() ?: return
         matrices.push()
-        matrices.translate(-cameraX, -cameraY, -cameraZ)
+        matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
-        val normalMatrix: Matrix3f = matrices.peek().normalMatrix
+        val normalMatrix = matrices.peek()
 
-        RenderSystem.depthMask(true)
-        RenderSystem.disableCull()
-        if (phase) RenderSystem.disableDepthTest() else RenderSystem.enableDepthTest()
-        RenderSystem.lineWidth(lineWidth)
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(
-            GlStateManager.SrcFactor.SRC_ALPHA,
-            GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA,
-            GlStateManager.SrcFactor.ONE,
-            GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA
-        )
-
-        val tessellator = RenderSystem.renderThreadTesselator()
+        val tessellator = Tessellator.getInstance()
 
         if (fillColor.isVisible())
-            fillSides(tessellator, positionMatrix, x1, y1, z1, x2, y2, z2, fillColor.rgb)
+            fillSides(tessellator, positionMatrix, x1, y1, z1, x2, y2, z2, fillColor.rgb, phase)
         if (outlineColor.isVisible())
-            outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, outlineColor.rgb)
-
+            outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, outlineColor.rgb, phase)
 
         matrices.pop()
-        RenderSystem.lineWidth(1.0f)
-        RenderSystem.enableCull()
-        RenderSystem.depthMask(false)
-        RenderSystem.disableBlend()
-        RenderSystem.defaultBlendFunc()
     }
 
-    private fun fillSides(tessellator: Tessellator, positionMatrix: Matrix4f, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int) {
-        RenderSystem.setShader { GameRenderer.getPositionColorProgram() }
-        // This polygon offset takes care of the Z-fighting that would otherwise happen when one of the planes coincides
-        // with the side of a block. The block texture and the quad here drawn would clash in the depth test and
-        // rounding errors would determine which end up on top for every pixel individually.
-        RenderSystem.enablePolygonOffset()
-        RenderSystem.polygonOffset(-1f, -1f)
-        val bufferBuilder = tessellator.buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+    private fun fillSides(tessellator: Tessellator, positionMatrix: Matrix4f, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int, phase: Boolean) {
+        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
 
         // Bottom side
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color)
 
         // Top side
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color)
 
         // West (-X) side
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color)
 
         // East (+X) side
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color)
 
         // North (-Z) side
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color)
 
         // South (+Z) side
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).next()
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color)
 
-        tessellator.draw()
-        RenderSystem.disablePolygonOffset()
+        val builtBuffer = bufferBuilder.end()
+        val layer = if (phase) RenderLayers.QUADS_PHASE else RenderLayers.QUADS
+        layer.draw(builtBuffer)
     }
 
-    private fun outlineBox(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: Matrix3f, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int) {
-        RenderSystem.setShader { GameRenderer.getRenderTypeLinesProgram() }
-        val bufferBuilder = tessellator.buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES)
+    private fun outlineBox(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int, phase: Boolean) {
+        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL)
         // This rendering works by using 2 vertices per line, one for the start point and one for the end.
         // The normal goes along the line and is used for properly displaying the line width.
 
         // Bottom 4 edges
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,1f,0f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,1f,0f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,0f,0f,1f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,0f,1f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,-1f,0f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,-1f,0f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,0f,0f,-1f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,0f,0f,-1f).next()
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,1f,0f,0f)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,1f,0f,0f)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,0f,0f,1f)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,0f,1f)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,-1f,0f,0f)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,-1f,0f,0f)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,0f,0f,-1f)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,0f,0f,-1f)
 
         // Top 4 edges
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,1f,0f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,1f,0f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,0f,0f,1f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,0f,1f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,-1f,0f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,-1f,0f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,0f,-1f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,0f,0f,-1f).next()
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,1f,0f,0f)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,1f,0f,0f)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,0f,0f,1f)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,0f,1f)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,-1f,0f,0f)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,-1f,0f,0f)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,0f,-1f)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,0f,0f,-1f)
 
         // 4 Side edges
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,0f,1f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,0f,1f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,0f,1f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,0f,1f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,0f,1f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,1f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,1f,0f).next()
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,1f,0f).next()
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,0f,1f,0f)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,0f,1f,0f)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,0f,1f,0f)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,0f,1f,0f)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,0f,1f,0f)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,1f,0f)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,1f,0f)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,1f,0f)
 
-        tessellator.draw()
+        val builtBuffer = bufferBuilder.end()
+        val layer = if(phase) RenderLayers.LINES_PHASE else RenderLayers.LINES
+        layer.draw(builtBuffer)
     }
 
-    private fun outlineEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: Matrix3f, xRadius: Float, yRadius: Float, color: Int, segments: Int) {
-        RenderSystem.setShader { GameRenderer.getRenderTypeLinesProgram() }
-        val bufferBuilder = tessellator.buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.LINE_STRIP, VertexFormats.LINES)
+    private fun outlineEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, xRadius: Float, yRadius: Float, color: Int, segments: Int, phase: Boolean) {
+        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINE_STRIP, VertexFormats.POSITION_COLOR_NORMAL)
 
         // Entries of the rotation matrix
         val segmentAngle = 2f * 3.1415925f / segments
@@ -643,7 +534,7 @@ object Renderer3D {
         var y = 0f
 
         for (ii in 0..segments) {
-            bufferBuilder.vertex(positionMatrix, x * xRadius, 0f, y * yRadius).color(color).normal(normalMatrix, -y*xRadius, 0f, x * yRadius).next()
+            bufferBuilder.vertex(positionMatrix, x * xRadius, 0f, y * yRadius).color(color).normal(normalMatrix, -y, 0f, x )
 
             // Matrix multiplication
             t = x
@@ -651,18 +542,13 @@ object Renderer3D {
             y = s * t + c * y
         }
 
-        tessellator.draw()
+        val builtBuffer = bufferBuilder.end()
+        val layer = if(phase) RenderLayers.LINE_STRIP_PHASE else RenderLayers.LINE_STRIP
+        layer.draw(builtBuffer)
     }
 
-    private fun fillEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, xRadius: Float, yRadius: Float, color: Int, segments: Int) {
-        RenderSystem.setShader { GameRenderer.getPositionColorProgram() }
-        // This polygon offset takes care of the Z-fighting that would otherwise happen when one of the planes coincides
-        // with the side of a block. The block texture and the quad here drawn would clash in the depth test and
-        // rounding errors would determine which end up on top for every pixel individually.
-        RenderSystem.enablePolygonOffset()
-        RenderSystem.polygonOffset(-1f, -1f)
-        val bufferBuilder = tessellator.buffer
-        bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR)
+    private fun fillEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, xRadius: Float, yRadius: Float, color: Int, segments: Int, phase: Boolean) {
+        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR)
 
         // Entries of the rotation matrix
         val segmentAngle = 2f * 3.1415925f / segments
@@ -675,10 +561,10 @@ object Renderer3D {
         var y = 0f
 
         // Center point of the fan
-        bufferBuilder.vertex(positionMatrix, 0f, 0f, 0f).color(color).next()
+        bufferBuilder.vertex(positionMatrix, 0f, 0f, 0f).color(color)
 
         for (ii in 0..segments) {
-            bufferBuilder.vertex(positionMatrix, x * xRadius, 0f, y * yRadius).color(color).next()
+            bufferBuilder.vertex(positionMatrix, x * xRadius, 0f, y * yRadius).color(color)
 
             // Matrix multiplication
             t = x
@@ -686,11 +572,16 @@ object Renderer3D {
             y = s * t + c * y
         }
 
-        tessellator.draw()
+        val builtBuffer = bufferBuilder.end()
+        val layer = if (phase) RenderLayers.TRIANGLE_FAN_PHASE else RenderLayers.TRIANGLE_FAN
+        layer.draw(builtBuffer)
     }
 
     /**
      * Checks whether the alpha value of this color is not 0.
      */
     private fun Color.isVisible(): Boolean = this.alpha != 0
+
+
+
 }

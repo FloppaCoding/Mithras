@@ -1,5 +1,7 @@
 package floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon
 
+import floppacoding.aurora.core.TextAlign
+import floppacoding.aurora.core.images.Image
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.dungeon.DungeonMap
 import floppacoding.mithras.module.impl.dungeon.MapRooms
@@ -13,11 +15,9 @@ import floppacoding.mithras.utils.Extensions.withAlpha
 import floppacoding.mithras.utils.LocationManager.inDungeons
 import floppacoding.mithras.utils.inventory.InventoryUtils.isHoldingInMainHand
 import floppacoding.mithras.utils.inventory.SkyblockItem
-import floppacoding.aurora.core.images.Image
 import floppacoding.mithras.utils.render.ImageManager
-import floppacoding.aurora.core.TextAlign
 import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.entity.PlayerModelPart
+import net.minecraft.entity.player.PlayerModelPart
 import java.awt.Color
 
 object MapRender: HudElement(
@@ -215,7 +215,7 @@ object MapRender: HudElement(
 
                     // Offset + half of roomsize
                     renderer.text(name.joinToString(separator = " "),
-                        xOffset.toFloat()- roomSize *0.15f, yOffset.toFloat() + roomSize*0.1f, color,
+                        xOffset.toFloat() + roomSize *0.4f, yOffset.toFloat() + roomSize*0.1f, color,
                         renderer.defaultFontHeight*DungeonMap.textScale.value,
                         textAlign = TextAlign.CENTER_TOP,
                         splitWidth = roomSize.toFloat() * 1.3f

@@ -1,19 +1,11 @@
 package floppacoding.aurora.core
 
-import floppacoding.aurora.core.Aurora.beginFrame
-import floppacoding.aurora.core.Aurora.endFrame
-import floppacoding.aurora.core.Aurora.setDimensions
-import floppacoding.aurora.core.Aurora.setMSAASamples
-import floppacoding.aurora.core.Aurora.setMainBuffer
-import floppacoding.aurora.core.Aurora.setMainBufferId
-import floppacoding.aurora.core.Aurora.setMainBufferReference
-import floppacoding.aurora.core.Aurora.useMSAA
 import floppacoding.aurora.core.font.AuroraFontRenderer
 import floppacoding.aurora.core.font.FontRender2D
 import floppacoding.aurora.core.images.Image
 import floppacoding.aurora.core.shader.impl.MainShader
 import org.joml.*
-import org.lwjgl.opengl.GL45.*
+import org.lwjgl.opengl.GL46.*
 import org.lwjgl.system.MemoryStack
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,50 +15,15 @@ import kotlin.math.*
  * # Aurora - 2D Rendering Library Implementation with OpenGL
  *
  * This is the OpenGl 4.5 implementation of the [Renderer2D] interface.
- * It is meant to be used as a (secondary) rendering system in your LWJGL project.
- * A window needs to be already set up.
- *
- * ## Setup
- * For the rendering to work correctly Aurora needs to know the size of the window it is rendering to.
- * Unless antialiasing is explicitly disabled Aurora also needs to know which framebuffer
- * to render to. Refer to the Antialiasing section for more information.
- * By default, Aurora will use VGA resolution and the default framebuffer.
- *
- * The recommended way to set all of that up is through [setMainBufferReference].
- * That method takes a reference to the desired FBO as well as function handles for retrieving the current window size.
- * By setting it up this way the window dimensions don't have to be updated manually to Aurora.
- *
- * Alternatively [setMainBuffer] or [setMainBufferId] together with [setDimensions] van be used.
- * Check the documentation of the individual methods for more information.
- *
- *
- * ## Usage
- * All rendering calls have to be wrapped in [beginFrame] and [endFrame] calls.
- * After the call to [beginFrame] the desired rendering calls can be set up. They will all be buffered and only drawn
- * once [endFrame] is called.
- *
- * ## Antialiasing
- * The Antialiasing technique used by Aurora is
- * [Multi-Sample-Antialiasing (MSAA)](https://www.khronos.org/opengl/wiki/Multisampling).
- * It is enabled and set to 8 samples per pixel by default.
- * Both can be changed through [useMSAA] and [setMSAASamples] respectively.
- *
- * To allow for multisampling a framebuffer with the desired samples is required. Aurora employs its own framebuffer
- * for this, so that it can be used in any setting with an arbitrary amount of samples in the framebuffer.
- * For this to work as expected Aurora first copies the current texture from the main framebuffer to its own.
- * Then the scene is rendered to that framebuffer and in the has to be copied back to the main framebuffer.
- * To do this Aurora needs to know which framebuffer read from and write to.
- *
- * Aurora also needs to know the dimensions of the main framebuffer, so that it can copy the texture correctly.
- * **It is therefore crucial to set up the window dimensions correctly**
  *
  * @author Aton
  */
 object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
-    internal var matrices: MatrixStack2D = MatrixStack2D()
+    var runDirectory: String? = null
+    override var matrices: MatrixStack2D = MatrixStack2D()
         private set
-    internal val vaoBuilder = VAOBuilder2D()
-    val projectionMatrix: Matrix4f = Matrix4f()
+    override val vaoBuilder = VAOBuilder2D()
+    internal val projectionMatrix: Matrix4f = Matrix4f()
     internal var mainBuffer: FrameBuffer = ResizableFrameBufferReference(0, 640, 480)
     private var msaaBuffer = MSAAFrameBuffer(8, mainBuffer.width, mainBuffer.height)
 
@@ -76,93 +33,46 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
      * Use [addDrawCall] or [getLastDrawCall] instead.
      */
     private val drawCalls: MutableList<RenderCall> = mutableListOf()
-    private var requiredPrecision = 3f
+    private var requiredPrecision = 4f
     var useMSAA = true
         private set
     private var scissorBox: BoundingBox? = null
+    private var pausedScissorBox: BoundingBox? = null
 
-    /**
-     * Circles are approximated through polygons in this library. This method sets the maximum allowed
-     * deviation of such a polygon from a true circle in pixels. The default value is 0.33.
-     */
-    fun setMaxDeviation(deviation: Float) {
+    override fun setMaxDeviation(deviation: Float) {
         requiredPrecision = abs(1/deviation)
     }
 
-    /**
-     * Determines whether to use Multi-Sample-Antialiasing (MSAA).
-     * MSAA is enabled by default.
-     */
-    fun useMSAA(use: Boolean) {
+    override fun useMSAA(use: Boolean) {
         useMSAA = use
     }
 
-    /**
-     * Sets the number of samples used for Multi-Sample-Antialiasing (MSAA).
-     */
-    fun setMSAASamples(samples: Int) {
+    override fun setMSAASamples(samples: Int) {
         if (samples == msaaBuffer.samples) return
         msaaBuffer.delete()
         msaaBuffer = MSAAFrameBuffer(samples, mainBuffer.width, mainBuffer.height)
     }
 
-    /**
-     * Adds the given [call] to the list of draw calls which will be executed on [endFrame].
-     *
-     * Only use this if you know what you are doing!
-     *
-     * Unless stated otherwise all draw methods will handle this internally.
-     */
-    fun addDrawCall(call: RenderCall) {
+    override fun addDrawCall(call: RenderCall): RenderCall {
+        if (call.indexRange.isEmpty()) return call
         scissorBox?.let { call.scissorBox = scissorBox }
         drawCalls.add(call)
+        return call
     }
 
-    /**
-     * Returns the last added draw call or null if the list is empty.
-     *
-     * This method is very useful as it allows you to modify the coloring behavior of any element constructed by this
-     * library.
-     * The following example shows how you can use this to draw a chroma rectangle.
-     *
-     *      Aurora.rect(0f, 0f, 100f, 100f, -1)
-     *      Aurora.getLastDrawCall()?.enableChroma()
-     * This will tell Aurora to color the rectangle with the chroma effect. If you want it to still use the alpha value
-     * passed with the color argument, you can chain [enableChroma][RenderCall.enableChroma] with
-     * [enableAlpha][RenderCall.enableAlpha].
-     */
-    fun getLastDrawCall(): RenderCall? {
+    override fun getLastDrawCall(): RenderCall? {
         return drawCalls.lastOrNull()
     }
 
-    /**
-     * Sets up the main framebuffer as well as getters for the window dimensions.
-     * [fbo] is expected to be a reference to the FBO that the frame should be rendered to.
-     * The getters for the window dimensions will be used to automatically set up the coordinate space.
-     *
-     * **It is crucial that these return the exact dimensions of the FBO [fbo] is referring to.**
-     *
-     * Example usage:
-     *
-     *      Aurora.setMainBufferReference(fbo, window::getWidth, window::getHeight)
-     */
-    fun setMainBufferReference(fbo: Int, widthGetter: () -> Int, heightGetter: () -> Int) {
+    override fun setMainBufferReference(fbo: Int, widthGetter: () -> Int, heightGetter: () -> Int) {
         setMainBuffer( FrameBufferReference(fbo, widthGetter, heightGetter))
     }
 
-    /**
-     * Sets the main framebuffer that will be rendered to through its open gl reference [fbo].
-     * When this is used it is crucial that you also set the dimensions through [setDimensions].
-     * These will have to be updated whenever the framebuffer [fbo] is resized.
-     */
-    fun setMainBufferId(fbo: Int) {
+    override fun setMainBufferId(fbo: Int) {
         setMainBuffer(ResizableFrameBufferReference(fbo, mainBuffer.width, mainBuffer.height))
     }
 
-    /**
-     * It is not recommended to use this unless you know what you are doing.
-     */
-    fun setMainBuffer(buffer: FrameBuffer) {
+    override fun setMainBuffer(buffer: FrameBuffer) {
         mainBuffer = buffer
     }
 
@@ -175,7 +85,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
     }
 
     override fun beginFrame() {
-        matrices = MatrixStack2D()
+        matrices.clear()
         drawCalls.clear()
         vaoBuilder.reset()
     }
@@ -184,7 +94,10 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         super.endFrame()
         if(drawCalls.isEmpty()) return
 
-        if(useMSAA) msaaBuffer.useAndCopyFrom(mainBuffer)
+        if(useMSAA)
+            msaaBuffer.useAndCopyFrom(mainBuffer)
+        else
+            mainBuffer.use()
         flushDraw()
         if(useMSAA) msaaBuffer.copyBackTo(mainBuffer)
     }
@@ -197,11 +110,15 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         GLStateTracker.setupState()
         var scissoring = false
 
+        // OpenGL4 should support at least 80 texture units. This should be sufficient for now.
+        val avaliableUnits = 32
+        val unitShift = 10 // This prevents already bound textures from being affected. Only works if no more than 10 are in use. But easier fix than restoring them all.
+
         MemoryStack.stackPush().use { stack ->
             var unit: Int; var id: Int; var firstInBatch = 0; var lastInBatch: Int = drawCalls.size - 1; var call: RenderCall
             val textures: LinkedHashMap<Int, Int> = linkedMapOf()
 
-            val textureBuffer = stack.mallocInt(32)
+            val textureBuffer = stack.mallocInt(avaliableUnits)
             do {
                 //Bind as many of the required textures as possible
                 unit = 0
@@ -209,9 +126,8 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
                     call = drawCalls[ii]
                     id = call.texture ?: continue
 
-                    call.textureUnit = textures.getOrPut(id) { unit++ }
-
-                    if (unit > 31) {
+                    call.textureUnit = textures.getOrPut(id) { unitShift + unit++ }
+                    if (unit > avaliableUnits-1) {
                         lastInBatch = ii
                         break
                     }
@@ -219,20 +135,18 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
                 if (textures.isNotEmpty()) {
                     textureBuffer.limit(textures.keys.size)
                     textureBuffer.put(0, textures.keys.toIntArray())
-                    glBindTextures(0, textureBuffer)
+                    glBindTextures(unitShift, textureBuffer)
                 }
 
                 // Group consecutive render calls together when no state change is required.
                 var startCall: RenderCall = drawCalls[firstInBatch]; var count: Int
                 for (ii in firstInBatch .. lastInBatch) {
                     call = drawCalls[ii]
-                    if( ii < lastInBatch && call.combinable(drawCalls[ii+1])) {
+                    if( ii < lastInBatch && call.isCombinable(drawCalls[ii+1])) {
                         continue
                     }
-                    MainShader.setColorMode(call.colorModeId)
-                    MainShader.uploadColorMode()
-                    call.textureUnit?.let { MainShader.setTextureUnit(it); MainShader.uploadTextureUnit() }
-                    call.textScale?.let { MainShader.setAAwidth(it); MainShader.uploadAAwidth() }
+
+                    call.uploadUniforms()
                     val scissorBox = call.scissorBox
                     if (scissorBox!= null) {
                         if (!scissoring) {
@@ -285,7 +199,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
 
     override fun pop() = matrices.pop()
 
-    override fun line(x0: Float, y0: Float, x1: Float, y1: Float, width: Float, color: Int, capStyle: CapStyle) {
+    override fun line(x0: Float, y0: Float, x1: Float, y1: Float, width: Float, color: Int, capStyle: CapStyle): RenderCall {
         var n0 = y1 - y0
         var n1 = x0 - x1
         val scale = width / (2*sqrt(Math.fma(n0,n0, n1*n1)))
@@ -293,7 +207,6 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         n1 *= scale
 
         val positionMatrix = matrices.peek()
-
 
         val range: IntRange = when(capStyle) {
             CapStyle.FLAT -> {
@@ -326,44 +239,60 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
                 vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
             }
         }
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    override fun rect(x: Float, y: Float, width: Float, height: Float, color: Int) {
+    override fun rect(x: Float, y: Float, width: Float, height: Float, color: Int): RenderCall {
         val positionMatrix = matrices.peek()
         vaoBuilder.begin()
         val x1 = x + width; val y1 = y+height
 
-        vaoBuilder.vertex(positionMatrix,  x,  y).color(color).next()
-        vaoBuilder.vertex(positionMatrix,  x, y1).color(color).next()
-        vaoBuilder.vertex(positionMatrix, x1, y1).color(color).next()
-        vaoBuilder.vertex(positionMatrix, x1,  y).color(color).next()
+        vaoBuilder.vertex(positionMatrix,  x,  y).color(color).texture(0f, 0f).next()
+        vaoBuilder.vertex(positionMatrix,  x, y1).color(color).texture(0f, 1f).next()
+        vaoBuilder.vertex(positionMatrix, x1, y1).color(color).texture(1f, 1f).next()
+        vaoBuilder.vertex(positionMatrix, x1,  y).color(color).texture(0f, 0f).next()
 
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int) {
+    override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int): RenderCall {
         val positionMatrix = matrices.peek()
+
+        val uv0 = Vector2f(0f, 0f)
+        val uv1 = Vector2f(1f, 1f)
+        val r0 = Vector2f(x,y)
+        val dimensions = Vector2f(width, height)
+        val tex = Vector2f()
+
         vaoBuilder.begin()
         iterateRoundedRect(positionMatrix, x, y, x+width, y+height, radius) { position, _, _ ->
-            vaoBuilder.vertex(positionMatrix, position).color(color).next()
+            interpolateRectangleTex(r0, dimensions, position, uv0, uv1, tex)
+            vaoBuilder.vertex(positionMatrix, position).color(color).texture(tex).next()
         }
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int) {
+    override fun roundedRect(x: Float, y: Float, width: Float, height: Float, radii: Vector4f, color: Int): RenderCall {
         val positionMatrix = matrices.peek()
+
+        val uv0 = Vector2f(0f, 0f)
+        val uv1 = Vector2f(1f, 1f)
+        val r0 = Vector2f(x,y)
+        val dimensions = Vector2f(width, height)
+        val tex = Vector2f()
+
         vaoBuilder.begin()
         iterateRoundedRect(matrices.peek(), x, y, x+width, y+height, radii) { position, _, _ ->
-            vaoBuilder.vertex(positionMatrix, position).color(color).next()
+            interpolateRectangleTex(r0, dimensions, position, uv0, uv1, tex)
+            vaoBuilder.vertex(positionMatrix, position).color(color).texture(tex).next()
         }
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    override fun image(image: Image, x: Float, y: Float, width: Float, height: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
+    override fun image(image: Image, x: Float, y: Float, width: Float, height: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float): RenderCall {
         val (u0, v0, u1, v1) = getTextureUVs(image, imageX, imageY, imageWidth, imageHeight)
         val x1 = x + width; val y1 = y+height; val a = (alpha * 255).toInt()
         val positionMatrix = matrices.peek()
@@ -375,10 +304,10 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         vaoBuilder.vertex(positionMatrix, x1,  y).alpha(a).texture(u1, v0).next()
 
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.QUADS)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.glID))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.glID))
     }
 
-    override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float) {
+    override fun roundedImage(image: Image, x: Float, y: Float, width: Float, height: Float, radius: Float, imageX: Float, imageY: Float, imageWidth: Float, imageHeight: Float, alpha: Float): RenderCall {
         val texCoords = getTextureUVs(image, imageX, imageY, imageWidth, imageHeight)
         val uv0 = texCoords.uv0
         val uv1 = texCoords.uv1
@@ -395,43 +324,41 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
             vaoBuilder.vertex(positionMatrix, position).alpha(a).texture(tex).next()
         }
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.glID))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.TEXTURE_ALPHA, image.glID))
     }
 
-    override fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
-        border(x, y, width, height, lineWidth, radius, color)
-        getLastDrawCall()?.setColorMode(RenderCall.ColorMode.CHROMA_ALPHA)
+    override fun chromaBorder(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int): RenderCall {
+        return border(x, y, width, height, lineWidth, radius, color).setColorMode(RenderCall.ColorMode.CHROMA_ALPHA)
     }
 
-    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, color: Int) {
+    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, color: Int): RenderCall {
         val positionMatrix = matrices.peek()
         val x1 = x + width; val y1 = y+height
         val hw = lineWidth / 2
         vaoBuilder.begin()
         // top left
-        vaoBuilder.vertex(positionMatrix,  x+hw,  y+hw).color(color).next()
-        vaoBuilder.vertex(positionMatrix,  x-hw,  y-hw).color(color).next()
+        vaoBuilder.vertex(positionMatrix,  x+hw,  y+hw).color(color).texture(0f, 0f).next()
+        vaoBuilder.vertex(positionMatrix,  x-hw,  y-hw).color(color).texture(1f, 0f).next()
         // bottom left
-        vaoBuilder.vertex(positionMatrix,  x+hw, y1-hw).color(color).next()
-        vaoBuilder.vertex(positionMatrix,  x-hw, y1+hw).color(color).next()
+        vaoBuilder.vertex(positionMatrix,  x+hw, y1-hw).color(color).texture(0f, 0f).next()
+        vaoBuilder.vertex(positionMatrix,  x-hw, y1+hw).color(color).texture(1f, 0f).next()
         // bottom right
-        vaoBuilder.vertex(positionMatrix, x1-hw, y1-hw).color(color).next()
-        vaoBuilder.vertex(positionMatrix, x1+hw, y1+hw).color(color).next()
+        vaoBuilder.vertex(positionMatrix, x1-hw, y1-hw).color(color).texture(0f, 0f).next()
+        vaoBuilder.vertex(positionMatrix, x1+hw, y1+hw).color(color).texture(1f, 0f).next()
         // top right
-        vaoBuilder.vertex(positionMatrix, x1-hw,  y+hw).color(color).next()
-        vaoBuilder.vertex(positionMatrix, x1+hw,  y-hw).color(color).next()
+        vaoBuilder.vertex(positionMatrix, x1-hw,  y+hw).color(color).texture(0f, 0f).next()
+        vaoBuilder.vertex(positionMatrix, x1+hw,  y-hw).color(color).texture(1f, 0f).next()
         // top left
-        vaoBuilder.vertex(positionMatrix,  x+hw,  y+hw).color(color).next()
-        vaoBuilder.vertex(positionMatrix,  x-hw,  y-hw).color(color).next()
+        vaoBuilder.vertex(positionMatrix,  x+hw,  y+hw).color(color).texture(0f, 0f).next()
+        vaoBuilder.vertex(positionMatrix,  x-hw,  y-hw).color(color).texture(1f, 0f).next()
 
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_STRIP)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int) {
+    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radius: Float, color: Int): RenderCall {
         if (radius == 0f) {
-            border(x, y, width, height, lineWidth, color)
-            return
+            return border(x, y, width, height, lineWidth, color)
         }
         val positionMatrix = matrices.peek()
         val hw = lineWidth / 2
@@ -445,32 +372,34 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         }else emptyList()
         var first = true; val firstPos = Vector2f(); val firstNormal = Vector2f()
         vaoBuilder.begin()
+        // iterates over the outer points of the border.
         iterateRoundedRect(positionMatrix, x-hw, y-hw, x+width+hw, y+height+hw, radius + hw) { position, normal, corner ->
             if (first) {
                 firstPos.set(position); firstNormal.set(normal); first = false
             }
+            // inner point
             if (hw > radius) {
-                vaoBuilder.vertex(positionMatrix, midPoints[corner]).color(color).next()
+                vaoBuilder.vertex(positionMatrix, midPoints[corner]).color(color).texture(0f, 0f).next()
             } else {
-                vaoBuilder.vertex(positionMatrix, Math.fma(normal.x, -lineWidth, position.x), Math.fma(normal.y, -lineWidth, position.y)).color(color).next()
+                vaoBuilder.vertex(positionMatrix, Math.fma(normal.x, -lineWidth, position.x), Math.fma(normal.y, -lineWidth, position.y)).color(color).texture(0f, 0f).next()
             }
-            vaoBuilder.vertex(positionMatrix, position).color(color).next()
+            // outer point
+            vaoBuilder.vertex(positionMatrix, position).color(color).texture(1f, 0f).next()
         }
         // Close loop, by going back to first.
         if (hw > radius) {
-            vaoBuilder.vertex(positionMatrix, midPoints[0]).color(color).next()
+            vaoBuilder.vertex(positionMatrix, midPoints[0]).color(color).texture(0f, 0f).next()
         } else {
-            vaoBuilder.vertex(positionMatrix, Math.fma(firstNormal.x, -lineWidth, firstPos.x), Math.fma(firstNormal.y, -lineWidth, firstPos.y)).color(color).next()
+            vaoBuilder.vertex(positionMatrix, Math.fma(firstNormal.x, -lineWidth, firstPos.x), Math.fma(firstNormal.y, -lineWidth, firstPos.y)).color(color).texture(0f, 0f).next()
         }
-        vaoBuilder.vertex(positionMatrix, firstPos).color(color).next()
+        vaoBuilder.vertex(positionMatrix, firstPos).color(color).texture(1f, 0f).next()
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_STRIP)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radii: Vector4f?, color: Int) {
+    override fun border(x: Float, y: Float, width: Float, height: Float, lineWidth: Float, radii: Vector4f?, color: Int): RenderCall {
         if (radii == null || radii.x == 0f && radii.y == 0f && radii.z == 0f && radii.w == 0f) {
-            border(x, y, width, height, lineWidth, color)
-            return
+            return border(x, y, width, height, lineWidth, color)
         }
         val positionMatrix = matrices.peek()
         val hw = lineWidth / 2
@@ -488,79 +417,79 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
                 firstPos.set(position); firstNormal.set(normal); first = false
             }
             if (hw > radii[corner]) {
-                vaoBuilder.vertex(positionMatrix, midPoints[corner]).color(color).next()
+                vaoBuilder.vertex(positionMatrix, midPoints[corner]).color(color).texture(0f, 0f).next()
             } else {
-                vaoBuilder.vertex(positionMatrix, Math.fma(normal.x, -lineWidth, position.x), Math.fma(normal.y, -lineWidth, position.y)).color(color).next()
+                vaoBuilder.vertex(positionMatrix, Math.fma(normal.x, -lineWidth, position.x), Math.fma(normal.y, -lineWidth, position.y)).color(color).texture(0f, 0f).next()
             }
-            vaoBuilder.vertex(positionMatrix, position).color(color).next()
+            vaoBuilder.vertex(positionMatrix, position).color(color).texture(1f, 0f).next()
         }
         // Close loop, by going back to first.
         if (hw > radii[0]) {
-            vaoBuilder.vertex(positionMatrix, midPoints[0]).color(color).next()
+            vaoBuilder.vertex(positionMatrix, midPoints[0]).color(color).texture(0f, 0f).next()
         } else {
-            vaoBuilder.vertex(positionMatrix, Math.fma(firstNormal.x, -lineWidth, firstPos.x), Math.fma(firstNormal.y, -lineWidth, firstPos.y)).color(color).next()
+            vaoBuilder.vertex(positionMatrix, Math.fma(firstNormal.x, -lineWidth, firstPos.x), Math.fma(firstNormal.y, -lineWidth, firstPos.y)).color(color).texture(0f, 0f).next()
         }
-        vaoBuilder.vertex(positionMatrix, firstPos).color(color).next()
+        vaoBuilder.vertex(positionMatrix, firstPos).color(color).texture(1f, 0f).next()
         val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_STRIP)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    override fun circle(x: Float, y: Float, radius: Float, color: Int) {
+    override fun circle(x: Float, y: Float, radius: Float, color: Int): RenderCall {
         val segments = circleSegments(getScale(matrices.peek()) * radius)
         val segmentAngle = TWO_PI / segments
         val c = cos(segmentAngle)
         val s = sin(segmentAngle)
         val rotationMatrix = Matrix2f(c, -s, s, c)
         val position = Vector2f(radius, 0f)
+
+        val uv0 = Vector2f(0f, 0f)
+        val uv1 = Vector2f(1f, 1f)
+        val r0 = Vector2f(-radius,-radius)
+        val dimensions = Vector2f(2*radius, 2*radius)
+        val tex = Vector2f()
+
         push()
         translate(x,y)
         val posMat = matrices.peek()
         vaoBuilder.begin()
         for (ii in 0 until segments) {
-            vaoBuilder.vertex(posMat, position).color(color).next()
+            interpolateRectangleTex(r0, dimensions, position, uv0, uv1, tex)
+            vaoBuilder.vertex(posMat, position).color(color).texture(tex).next()
             position.mul(rotationMatrix)
         }
-        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
-        addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
         pop()
+        val range = vaoBuilder.generateIndices(VAOBuilder2D.Mode.TRIANGLE_FAN)
+        return addDrawCall(RenderCall(range, RenderCall.ColorMode.COLOR))
     }
 
-    override fun ellipse(x: Float, y: Float, a: Vector2f, b: Float, color: Int) {
+    override fun ellipse(x: Float, y: Float, a: Vector2f, b: Float, color: Int): RenderCall {
         push()
         translate(x,y)
         rotateRadians(atan2(a.y, a.x))
         scale(a.length(), b)
 
-        circle(0f,0f, 1f, color)
+        val call = circle(0f,0f, 1f, color)
 
         pop()
+        return call
     }
 
-    /**
-     * Sets up a scissor rectangle.
-     *
-     * The coordinates are assumed to be in the current coordinate space and are transformed accordingly.
-     * The scissor rectangle will be aligned with the screen coordinate system and will be the bounding box of the given possibly
-     * rotated rectangle. If the axis of the current coordinate system are not aligned with screen coordinates the scissor
-     * will set up a rectangle *ABCD* as shown in the following example.
-     *
-     *         A      (x+width,y)  B
-     *          ┌─────────────╳───┐
-     *          │      __──‾‾  ╲  │
-     *    (x,y) │__──‾‾          ╲│ (x+width,y+height)
-     *          │╲          __──‾‾│
-     *          │  ╲  __──‾‾      │
-     *          └───╳─────────────┘
-     *         D    (x,y+height)   C
-     *
-     *
-     */
     override fun scissor(x: Float, y: Float, width: Float, height: Float) {
         scissorBox = getAbsoluteBoundingBox(x, y, width, height)
     }
 
     override fun endScissor() {
         scissorBox = null
+    }
+
+    override fun pauseScissor() {
+        pausedScissorBox = scissorBox
+        scissorBox = null
+    }
+
+    override fun resumeScissor() {
+        scissorBox = pausedScissorBox
+        pausedScissorBox = null
     }
 
     /**
@@ -712,7 +641,8 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
      */
     private fun getAbsoluteBoundingBox(x: Float, y: Float, width: Float, height: Float): BoundingBox {
         val mat = matrices.peek()
-        val transform = Matrix3x2f(mat)
+        val scissorTransform = Matrix3x2f(1f, 0f, 0f, -1f, 0f, mainBuffer.height.toFloat())
+        val transform = Matrix3x2f(mat).mulLocal(scissorTransform)
 
         val corner = Vector2f()
 
@@ -778,11 +708,14 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
         private var blend: Boolean = false
         private var cullFace: Boolean = false
         private var depthTest: Boolean = false
+        private var activeTexture: Int = 0
 
         fun setupState() {
             cullFace = glGetBoolean(GL_CULL_FACE)
             blend = glGetBoolean(GL_BLEND)
             depthTest = glGetBoolean(GL_DEPTH_TEST)
+
+            activeTexture = glGetInteger(GL_ACTIVE_TEXTURE)
 
             if (cullFace) glDisable(GL_CULL_FACE)
             if (!blend) glEnable(GL_BLEND)
@@ -793,6 +726,8 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
             if (cullFace) glEnable(GL_CULL_FACE)
             if (!blend) glDisable(GL_BLEND)
             if (depthTest) glEnable(GL_DEPTH_TEST)
+
+            glActiveTexture(activeTexture)
         }
     }
     private data class TextureCoordinates(val u0: Float, val v0: Float, val u1: Float, val v1: Float) {
@@ -836,4 +771,5 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
     )
     internal const val RESOURCE_DOMAIN: String = "aurora"
     internal val logger: Logger = LoggerFactory.getLogger("aurora")
+    internal val DEBUG: Boolean = System.getProperty("aurora.debug") == "true"
 }

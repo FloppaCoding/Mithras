@@ -4,6 +4,7 @@ import floppacoding.mithras.Mithras;
 import floppacoding.mithras.events.HudRenderEvent;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,11 +14,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(InGameHud.class)
 public abstract class InGameHudMixin {
     @Inject(method = "render", at = @At(value = "HEAD"))
-    public void onRenderHUD(DrawContext context, float tickDelta, CallbackInfo ci) {
+    public void onRenderHUD(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         // This point should not be reached when the hud is hidden, if it does uncomment this.
         //        if (this.client.options.hudHidden) return;
 
-        Mithras.EVENT_BUS.post(new HudRenderEvent(context, tickDelta));
+        // TODO maybe change from partial ticks to tick counter in the event?
+        Mithras.EVENT_BUS.post(new HudRenderEvent(context, tickCounter.getTickProgress(true)));
     }
 
     /**

@@ -4,12 +4,11 @@ import floppacoding.aurora.core.shader.Shader
 import floppacoding.aurora.core.shader.uniforms.impl.Uniform1f
 import floppacoding.aurora.core.shader.uniforms.impl.Uniform2f
 import floppacoding.mithras.Mithras
-import net.minecraft.client.render.VertexFormats
 import org.joml.Vector2f
 
 object FractalShader : Shader(
-    VertexFormats.POSITION_COLOR_TEXTURE.attributeNames,
-    "/assets/${Mithras.RESOURCE_DOMAIN}/",
+    listOf("Position", "Color", "UV0"),
+    "/assets/${Mithras.RESOURCE_DOMAIN}/shaders/",
     "fractal/fractal.vert",
     "fractal/fractal.frag"
 ) {

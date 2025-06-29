@@ -6,6 +6,8 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.client.gui.tooltip.TooltipPositioner;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2ic;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,11 +24,11 @@ public abstract class DrawContextMixin {
     @Shadow @Final private MatrixStack matrices;
 
     @Inject(
-        method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V",
+        method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;Lnet/minecraft/util/Identifier;)V",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;push()V", shift = At.Shift.AFTER),
         locals = LocalCapture.CAPTURE_FAILHARD
     )
-    private void positionTooltip(TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, CallbackInfo ci, int i, int j, int l, int m, Vector2ic vector2ic, int n, int o) {
+    private void positionTooltip(TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, @Nullable Identifier texture, CallbackInfo ci, int i, int j, int l, int m, Vector2ic vector2ic, int n, int o) {
         if (!ScrollableTooltips.INSTANCE.getEnabled()) return;
         ScrollableTooltips.INSTANCE.scaleTooltip(this.matrices, n, o);
     }

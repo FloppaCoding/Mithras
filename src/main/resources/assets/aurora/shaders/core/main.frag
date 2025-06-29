@@ -5,7 +5,7 @@
 const int COLOR_ALPHA_BIT = 0x10;
 const int TEXT_BIT = 0x20;
 const int COLOR_BIT = 0x0;
-const int COLOR_SOURCE_HEX = 0xf;
+const int COLOR_SOURCE_MASK = 0xff;
 
 in VERTEX_DATA {
     vec4 vertexColor;
@@ -15,6 +15,10 @@ in VERTEX_DATA {
 uniform sampler2D Sampler0;
 uniform float AAWidth;
 uniform int Mode;
+uniform vec4 TopLeftColor;
+uniform vec4 TopRightColor;
+uniform vec4 BottomLeftColor;
+uniform vec4 BottomRightColor;
 
 out vec4 fragColor;
 
@@ -27,7 +31,7 @@ void main() {
         return;
     }
     // Color Source
-    switch( (Mode >> COLOR_SOURCE_BIT_SHIFT) & COLOR_SOURCE_HEX ) {
+    switch( (Mode >> COLOR_SOURCE_BIT_SHIFT) & COLOR_SOURCE_MASK) {
         case 0: // Vertex Color determines color.
             color = fs_in.vertexColor;
             break;
@@ -36,6 +40,19 @@ void main() {
             break;
         case 2: // Chroma determines color.
             color = vec4(chroma_color(), 1.0);
+            break;
+        case 3: // Horizontal fade determines color.
+            color = vec4(mix(TopLeftColor, TopRightColor, fs_in.texCoord0.s));
+            break;
+        case 4: // Vertical fade determines color.
+            color = vec4(mix(TopLeftColor, BottomLeftColor, fs_in.texCoord0.t));
+            break;
+        case 5: // Four color fade determines color.
+            color = vec4(mix(
+                mix(TopLeftColor, TopRightColor, fs_in.texCoord0.s),
+                mix(BottomLeftColor, BottomRightColor, fs_in.texCoord0.s),
+                fs_in.texCoord0.t)
+            );
             break;
     }
 

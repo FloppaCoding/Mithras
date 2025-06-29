@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	id 'fabric-loom' version '1.3-SNAPSHOT'
+	id 'fabric-loom' version '1.10-SNAPSHOT'
 //	id 'maven-publish'
-    id "org.jetbrains.kotlin.jvm" version "1.9.0"
+    id "org.jetbrains.kotlin.jvm" version "2.1.21"
 	id "com.github.johnrengelman.shadow" version "7.1.0"
 	id("org.jetbrains.dokka") version "1.9.10"
 }
@@ -42,6 +42,18 @@ repositories {
 //		}
 //	}
 
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "modrinth"
+				url = "https://api.modrinth.com/maven"
+			}
+		}
+		filter {
+			includeGroup("maven.modrinth")
+		}
+	}
+
 	maven { url "https://repo.hypixel.net/repository/Hypixel/" }
 }
 
@@ -76,14 +88,9 @@ dependencies {
 	// meteor orbit event bus
 	include(implementation("meteordevelopment:orbit:0.2.3"))
 
-//	include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
 
-	// NanoVG for rendering
-	include(implementation("org.lwjgl:lwjgl-nanovg:3.3.1"))
-	def classifiers = ["natives-windows", "natives-linux", "natives-macos"]
-	for (classifier in classifiers) {
-		include("org.lwjgl:lwjgl-nanovg:3.3.1:${classifier}")
-	}
+	// For mixin into other mods
+	modCompileOnly("maven.modrinth:sodium:${project.sodium_version}") { transitive = false }
 }
 
 processResources {
@@ -95,12 +102,12 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release.set(17)
+	it.options.release.set(21)
 }
 
-tasks.withType(KotlinCompile).all {
+tasks.withType(KotlinCompile).configureEach {
 	kotlinOptions {
-		jvmTarget = 17
+		jvmTarget = 21
 	}
 }
 
@@ -110,8 +117,8 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {

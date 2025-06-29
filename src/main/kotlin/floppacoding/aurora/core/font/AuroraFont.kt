@@ -1,13 +1,21 @@
 package floppacoding.aurora.core.font
 
+import floppacoding.aurora.core.Aurora
 import floppacoding.aurora.core.data.OffHeapMemoryConsumer
 import floppacoding.aurora.core.data.ResourceLoader
 import org.lwjgl.opengl.GL46
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTruetype
 import org.lwjgl.system.MemoryUtil
+import java.awt.Point
+import java.awt.image.BufferedImage
+import java.awt.image.DataBufferByte
+import java.awt.image.Raster
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
+import java.nio.file.Paths
+import javax.imageio.ImageIO
+
 
 /**
  * Font for Aurora Font Rendering.
@@ -166,8 +174,15 @@ class AuroraFont(val name: String, val path: String, symbols: CharSequence) : Fo
 
         bitmap.position(0)
 
+        if (Aurora.DEBUG) saveBitmapToFile(bitmap)
+
+        val activeTexture = GL46.glGetInteger(GL46.GL_ACTIVE_TEXTURE)
+        GL46.glActiveTexture(GL46.GL_TEXTURE0 + 30)
+
         val texId: Int = GL46.glGenTextures()
         GL46.glBindTexture(GL46.GL_TEXTURE_2D, texId)
+        GL46.glPixelStorei(GL46.GL_UNPACK_ROW_LENGTH, 0)
+        GL46.glPixelStorei(GL46.GL_UNPACK_IMAGE_HEIGHT, 0)
         GL46.glTexImage2D(
             GL46.GL_TEXTURE_2D,
             0,
@@ -182,6 +197,8 @@ class AuroraFont(val name: String, val path: String, symbols: CharSequence) : Fo
         GL46.glTexParameteri(GL46.GL_TEXTURE_2D, GL46.GL_TEXTURE_MIN_FILTER, GL46.GL_LINEAR)
         GL46.glTexParameteri(GL46.GL_TEXTURE_2D, GL46.GL_TEXTURE_MAG_FILTER, GL46.GL_LINEAR)
         MemoryUtil.memFree(bitmap)
+        GL46.glBindTexture(GL46.GL_TEXTURE_2D, 0)
+        GL46.glActiveTexture(activeTexture)
 
         return Return(texId, fontMetrics, glyphs)
     }
@@ -211,6 +228,18 @@ class AuroraFont(val name: String, val path: String, symbols: CharSequence) : Fo
     }
 
     private data class Return(val id: Int, val metrics: FontMetrics, val glyphMetrics: Map<Char, GlyphMetrics>)
+
+    private fun saveBitmapToFile(bitmap: ByteBuffer) {
+        if (Aurora.runDirectory == null) return
+        val img = BufferedImage(BMP_WIDTH, BMP_HEIGHT, BufferedImage.TYPE_BYTE_GRAY)
+        val srcbuf = ByteArray(bitmap.capacity())
+        bitmap.get(srcbuf, 0, srcbuf.size)
+        img.data = Raster.createRaster(img.sampleModel, DataBufferByte(srcbuf, srcbuf.size), Point())
+
+        ImageIO.write(img, "png", Paths.get(Aurora.runDirectory!!, "debug/fontAtlas_$name.png").toFile())
+
+        bitmap.position(0)
+    }
 
     companion object {
         const val BMP_WIDTH = 1024

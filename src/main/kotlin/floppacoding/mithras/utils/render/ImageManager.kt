@@ -3,6 +3,7 @@ package floppacoding.mithras.utils.render
 import floppacoding.aurora.core.images.AuroraImage
 import floppacoding.aurora.core.images.Image
 import floppacoding.aurora.mc_modern.AuroraImageMC
+import floppacoding.aurora.mc_modern.AuroraSkinImage
 import floppacoding.mithras.Mithras
 import net.minecraft.util.Identifier
 import java.io.IOException
@@ -53,5 +54,10 @@ object ImageManager {
         val newImage = AuroraImageMC(identifier, *imageFlags)
         bufferedImagesMC[identifier] = newImage
         return newImage
+    }
+
+    @Throws(ClassCastException::class)
+    fun createSkinImage(identifier: Identifier): Image {
+        return AuroraSkinImage(identifier)
     }
 }

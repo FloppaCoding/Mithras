@@ -1,10 +1,12 @@
 package floppacoding.mithras.mixin;
 
 import floppacoding.mithras.Mithras;
+import floppacoding.mithras.events.GameStartEvent;
 import floppacoding.mithras.events.GuiOpenEvent;
 import floppacoding.mithras.events.WorldChangeEvent;
 import floppacoding.mithras.module.impl.render.Camera;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.RunArgs;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
@@ -17,8 +19,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MinecraftClient.class)
 abstract class MinecraftClientMixin {
 
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/QuickPlayLogger;create(Ljava/lang/String;)Lnet/minecraft/client/QuickPlayLogger;", shift = At.Shift.AFTER))
+    private void onGameStart(RunArgs args, CallbackInfo ci) {
+        Mithras.EVENT_BUS.post(new GameStartEvent());
+    }
+
     @Inject(at = @At("HEAD"), method = "setWorld")
-    private void mithras$onSetWorld(ClientWorld world, CallbackInfo ci) {
+    private void onSetWorld(ClientWorld world, CallbackInfo ci) {
         Mithras.EVENT_BUS.post(new WorldChangeEvent(world));
     }
 
@@ -26,7 +33,7 @@ abstract class MinecraftClientMixin {
      * Allows for skipping the front view perspective.
      */
     @ModifyArg(method = "handleInputEvents", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/GameOptions;setPerspective(Lnet/minecraft/client/option/Perspective;)V"))
-    private Perspective mithras$modifyPerspective(Perspective perspective) {
+    private Perspective modifyPerspective(Perspective perspective) {
         if(Camera.INSTANCE.shouldSkipPerspective(perspective))
             return perspective.next();
         return perspective;

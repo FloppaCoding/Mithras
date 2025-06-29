@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "mithras",
 	"version": "${version}",
-	"name": "Project Mithras",
+	"name": "Mithras",
 	"description": "Floppa is best!",
 	"authors": [
 		"Aton",
@@ -24,14 +24,15 @@
 		]
 	},
 	"mixins": [
-		"mithras.mixins.json"
+		"mithras.mixins.json",
+		"mithras-sodium.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.14.22",
-		"minecraft": "~1.20.1",
-		"java": ">=17",
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.5",
+		"java": ">=21",
 		"fabric-api": "*",
-		"fabric-language-kotlin": ">=1.9.0"
+		"fabric-language-kotlin": "*"
 	},
 	"suggests": {
 		"another-mod": "*"

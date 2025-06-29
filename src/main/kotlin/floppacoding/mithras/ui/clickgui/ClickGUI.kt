@@ -1,15 +1,16 @@
 package floppacoding.mithras.ui.clickgui
 
+import floppacoding.aurora.core.TextAlign
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.moduleConfig
 import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.impl.render.MainSettings
+import floppacoding.mithras.ui.GuiScreen
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementColor
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementSlider
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.mithras.ui.GuiScreen
 import floppacoding.mithras.utils.render.ImageManager
-import floppacoding.aurora.core.TextAlign
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import java.io.IOException
@@ -40,6 +41,10 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
      * Used to create the advanced menu for modules
      */
     var advancedMenu: AdvancedMenu? = null
+
+    override var blur: Boolean
+        get() = MainSettings.blur.enabled
+        set(value) {}
 
     init {
         setUpPanels()
@@ -254,7 +259,7 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
         }
     }
 
-    override val displayPerformance: Boolean = true
+    override var displayPerformance: Boolean = Mithras.DEBUG
 
     companion object {
         var panels: ArrayList<Panel> = arrayListOf()

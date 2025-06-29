@@ -2,9 +2,7 @@ package floppacoding.aurora.mc_modern
 
 import floppacoding.aurora.core.images.AuroraImage
 import floppacoding.aurora.core.images.Image
-import floppacoding.mithras.mixin.PlayerSkinAccessor
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.texture.PlayerSkinTexture
 import net.minecraft.util.Identifier
 import org.apache.commons.io.IOUtils
 import java.io.FileNotFoundException
@@ -12,7 +10,6 @@ import java.io.IOException
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.file.Files
 
 /**
  * Extension of [AuroraImage] with extra functionality for Minecraft.
@@ -43,12 +40,13 @@ class AuroraImageMC
             val resource = mc.resourceManager.getResource(identifier)
             val inputStream = if (resource.isPresent) {
                 resource.get().inputStream
-            } else { // try to get from skin cache
-                val texture = mc.textureManager.getTexture(identifier)
-                val cacheFile = ((texture as? PlayerSkinTexture) as? PlayerSkinAccessor)?.cacheFile
-                if (cacheFile != null) {
-                    Files.newInputStream(cacheFile.toPath())
-                } else throw FileNotFoundException(identifier.namespace + ":" + identifier.path)
+            } else { // try to get from skin cache TODO fix this for new version
+//                val texture = mc.textureManager.getTexture(identifier)
+//                val cacheFile = ((texture as? PlayerSkinTextureDownloader) as? PlayerSkinAccessor)?.cacheFile
+//                if (cacheFile != null) {
+//                    Files.newInputStream(cacheFile.toPath())
+//                } else
+                    throw FileNotFoundException(identifier.namespace + ":" + identifier.path)
             }
             val bytes = IOUtils.toByteArray(inputStream)
             val data = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder())
