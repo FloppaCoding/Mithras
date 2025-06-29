@@ -84,6 +84,8 @@ object ModuleManager {
         EtherwarpHighlight,
         ChatCleaner,
         ItemProtection,
+        TreeGiftHud,
+        BeaconSolver,
 
 
         //KEYBIND

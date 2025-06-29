@@ -1,10 +1,12 @@
 package floppacoding.mithras.events
 
+import floppacoding.mithras.utils.SkyblockArea
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.block.BlockState
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
+import net.minecraft.client.sound.SoundInstance
 import net.minecraft.client.util.InputUtil.Key
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.item.ItemStack
@@ -54,9 +56,25 @@ class ConnectionEvent {
 
 /**
  * Fired when a new world is loaded.
+ * @see [AreaChangeEvent]
  * @see floppacoding.mithras.mixin.MinecraftClientMixin
  */
 class WorldChangeEvent(val newWorld: ClientWorld?)
+
+/**
+ * Fired whenever the Skyblock area changes.
+ * May be preferable to [WorldChangeEvent] in some cases.
+ * @see floppacoding.mithras.utils.LocationManager.currentArea
+ */
+class AreaChangeEvent(val oldArea: SkyblockArea?, val newArea: SkyblockArea?)
+
+
+/**
+ * Fired when a sound is about to play.
+ *
+ * @see floppacoding.mithras.mixin.SoundSystemMixin.onPlaySound
+ */
+class PlaySoundEvent(val sound: SoundInstance) : Cancellable()
 
 
 /**

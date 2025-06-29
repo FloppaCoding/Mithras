@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(RenderSectionManager.class)
 public abstract class RenderSectionManagerMixin {
 
-    @Shadow protected abstract float getRenderDistance();
+    @Shadow(remap = false) protected abstract float getRenderDistance();
 
-    @Inject(method = "getSearchDistance", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getSearchDistance", at = @At("HEAD"), cancellable = true, remap = false)
     private void preventFogOcclusion(Fog fogParameters, CallbackInfoReturnable<Float> cir) {
         if (Camera.shouldPreventFogOcclusion()) {
             cir.setReturnValue(this.getRenderDistance());

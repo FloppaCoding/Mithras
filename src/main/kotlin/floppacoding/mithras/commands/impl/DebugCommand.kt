@@ -37,6 +37,7 @@ import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.decoration.ItemFrameEntity
 import net.minecraft.item.FilledMapItem
 import net.minecraft.scoreboard.ScoreboardDisplaySlot
+import net.minecraft.sound.SoundCategory
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.HoverEvent.ShowEntity
 import net.minecraft.text.MutableText
@@ -84,9 +85,33 @@ object DebugCommand : Command() {
                 literal("where") {
                     execute { ChatUtils.chatMessage(
                         "in Dungeon: ${LocationManager.inDungeons}, on Hypixel: ${LocationManager.onHypixel}, " +
-                                "in Skyblock: ${LocationManager.inSkyblock}"
+                                "in Skyblock: ${LocationManager.inSkyblock}, area: ${LocationManager.currentArea?.areaName}"
                     ) }
                 }
+            }
+            literal("sound") {
+                literal("log") {
+                    execute {
+                        logSounds = !logSounds
+                        ChatUtils.chatMessage("Sound logging ${if(logSounds) "enabled" else "disabled"}")
+                        if (logSounds) logCategory = null
+                    }
+                    string("category") { execute { context ->
+                        if (logSounds) {
+                            logSounds = false
+                            ChatUtils.chatMessage("Sound logging disabled")
+                            return@execute
+                        }
+                        val categoryName = context.getString("category")
+                        logCategory = SoundCategory.entries.find { it.name.equals(categoryName, true) }
+                        if (logCategory == null) {
+                            ChatUtils.chatMessage("Category not found, avaliable: ${SoundCategory.entries}")
+                        }
+                        logSounds = true
+                        ChatUtils.chatMessage("Sound logging enabled${if (logCategory != null) " for category $categoryName" else ""}")
+                    }}
+                }
+
             }
             literal("dungeon") {
                 literal("blaze") {
@@ -516,10 +541,36 @@ object DebugCommand : Command() {
                                 entity.hasCustomName()
                             }?.forEach { entity ->
                                 ChatUtils.chatMessage(entity.name)
+                                Mithras.logger.info("name Text: ${entity.name.toString()}")
+                                Mithras.logger.info("display Name: ${entity.displayName?.string}")
                             }
                         }
                     }
                 }
+                literal("testTreeGift") { double("range") { execute {
+                    val range = it.getDouble("range")
+                    val box = it.source.player.boundingBox.expand(range)
+                    mc.world?.getEntitiesByClass(ArmorStandEntity::class.java, box) { entity ->
+                        entity.customName?.string?.matches(Regex("by (?:[\\w\\[\\]+]* )?${mc.player?.name?.string}")) == true
+                    }?.forEach { entity ->
+
+
+                        val searchBox = Box(
+                            entity.x - 0.5,
+                            entity.y - 2,
+                            entity.z - 0.5,
+                            entity.x + 0.5,
+                            entity.y,
+                            entity.z + 0.5
+                        )
+                        val stands = mc.world!!.getEntitiesByClass(
+                            ArmorStandEntity::class.java, searchBox
+                        ) {entity.hasCustomName()}
+                        ChatUtils.chatMessage(entity.name)
+                        if (stands.isEmpty()) return@forEach
+                        ChatUtils.chatMessage(stands[0].name)
+                    }
+                }}}
                 literal("entities") {
                     double("range") {
                         execute {
@@ -614,4 +665,16 @@ object DebugCommand : Command() {
                 }
             }
         }
+
+    private var logSounds = false
+
+    @JvmStatic
+    var logCategory: SoundCategory? = null
+        private set
+
+    /**
+     * @see floppacoding.mithras.mixin.SoundSystemMixin.onPlaySound
+     */
+    @JvmStatic
+    fun shouldLogShounds() = logSounds
 }

@@ -1,7 +1,11 @@
 package floppacoding.aurora.mc_modern
 
+import floppacoding.aurora.core.BoundingBox
 import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.core.TextAlign
+import floppacoding.aurora.core.font.Font
 import net.minecraft.client.gui.DrawContext
+import net.minecraft.text.Text
 
 interface Renderer2DMC : Renderer2D {
 
@@ -50,4 +54,31 @@ interface Renderer2DMC : Renderer2D {
      *      context.fill(0,0,100,50,-1)
      */
     fun setTransform(context: DrawContext)
+
+    /**
+     * Renders text. This supports both line-breaks '\n' and a maximum line width.
+     * The vertical alignment will always be done for the top line, with all further lines being positioned below it.
+     * @param text The text to be rendered.
+     * @param x Yhe text x-coordinate.
+     * @param y Yhe text y-coordinate.
+     * @param color The text color.
+     * @param fontSize Height for the letters.
+     * @param font Font to use.
+     * @param textAlign The align type for the text.
+     * @param splitWidth The width at which the test will be split into a new line. If this value is null, the text will
+     * not be split. If this value is set, the alignment will be relative to a box from [x],[y] to [x]+[splitWidth],[y]+hieght.
+     */
+    fun text(
+        text: Text,
+        x: Float,
+        y: Float,
+        color: Int,
+        fontSize: Float = defaultFontHeight,
+        font: Font = defaultFont,
+        textAlign: TextAlign = TextAlign.LEFT_TOP,
+        splitWidth: Float? = null
+    ) : BoundingBox {
+        // TODO properly implement this to support all of Texts features
+        return text(text.string, x, y, color, fontSize, font, textAlign, splitWidth)
+    }
 }

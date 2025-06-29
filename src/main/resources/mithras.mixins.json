@@ -19,6 +19,7 @@
     "MinecraftClientMixin",
     "MouseMixin",
     "ParticleManagerMixin",
+    "SoundSystemMixin",
     "gui.DrawContextMixin",
     "gui.HandledScreenAccessor",
     "gui.HandledScreenMixin",
