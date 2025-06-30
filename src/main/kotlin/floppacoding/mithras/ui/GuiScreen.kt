@@ -40,7 +40,7 @@ abstract class GuiScreen(
 
     constructor(title: String, scale: Float = 1f) : this(MutableText.of(Literal(title)), scale)
 
-    open var blur: Boolean = false
+    open var blurBackground: Boolean = false
 
     open val renderer: Renderer2DMC
         get() = Mithras.renderer2D
@@ -74,16 +74,16 @@ abstract class GuiScreen(
      * Sets up the frame and scaling.
      */
     final override fun render(context: DrawContext, mouseX: Int, mouseY: Int, partialTicks: Float) {
-        if (blur) applyBlur()
-        for (drawable in (this as ScreenMixinDuck).mithras_getDrawables()) {
-            drawable.render(context, mouseX, mouseY, partialTicks)
-        }
-        clock.update()
+//        if (blurBackground) applyBlur()
+//        for (drawable in (this as ScreenMixinDuck).mithras_getDrawables()) {
+//            drawable.render(context, mouseX, mouseY, partialTicks)
+//        }
         renderer.beginFrame()
         renderer.scale(scale, scale)
+        clock.update()
+        super.render(context, mouseX, mouseY, partialTicks)
         renderer.push()
         render(getMouseX(), getMouseY(), partialTicks)
-//        super.render(context, mouseX, mouseY, partialTicks)
         renderer.pop()
         if (displayPerformance) {
             displayPerformance()

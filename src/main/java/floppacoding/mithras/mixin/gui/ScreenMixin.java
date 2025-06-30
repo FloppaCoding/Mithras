@@ -1,10 +1,12 @@
 package floppacoding.mithras.mixin.gui;
 
-import floppacoding.aurora.core.Renderer2D;
+import floppacoding.aurora.mc_modern.Renderer2DMC;
 import floppacoding.mithras.Mithras;
 import floppacoding.mithras.events.GuiBackgroundDrawnEvent;
+import floppacoding.mithras.ui.GuiScreen;
 import floppacoding.mithras.ui.core.elements.GuiElement;
 import floppacoding.mithras.utils.ScreenMixinDuck;
+import kotlin.jvm.functions.Function0;
 import net.minecraft.client.gui.AbstractParentElement;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
@@ -30,10 +32,30 @@ import static floppacoding.mithras.Mithras.mc;
 @Mixin(Screen.class)
 public abstract class ScreenMixin extends AbstractParentElement implements ScreenMixinDuck {
     @Shadow @Final private List<Drawable> drawables;
+
+    @Shadow public abstract void render(DrawContext context, int mouseX, int mouseY, float deltaTicks);
+
     @Unique private final ArrayList<GuiElement> elements = new ArrayList<>();
     @Unique private float elementScale = (float) mc.getWindow().getScaleFactor();
     @Unique private boolean isVanillaGui = true;
-    @Unique private Renderer2D renderer() {return  Mithras.getRenderer2D(); }
+    @Unique private Renderer2DMC renderer() {return  Mithras.getRenderer2D(); }
+    @Unique private Boolean shouldBlur()  {
+        try {
+            return ((GuiScreen) (Object) this).getBlurBackground();
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    @Inject(method = "applyBlur", at = @At("HEAD"), cancellable = true)
+    private void onApplyBlur(CallbackInfo ci) {
+        if (!isVanillaGui && !shouldBlur()) {ci.cancel();}
+    }
+
+    @Inject(method = "renderDarkening(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("HEAD"), cancellable = true)
+    private void onRenderDarkening(DrawContext dc, CallbackInfo ci) {
+        if (!isVanillaGui) {ci.cancel();}
+    }
 
     @Override
     public float mithras_getElementScale() {
@@ -72,7 +94,8 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderElements(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        Renderer2D renderer = renderer();
+
+        Renderer2DMC renderer = renderer();
         if (isVanillaGui) {
             renderer.beginFrame();
             renderer.scale(elementScale, elementScale);

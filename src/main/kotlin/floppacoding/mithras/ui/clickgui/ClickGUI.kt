@@ -42,7 +42,7 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
      */
     var advancedMenu: AdvancedMenu? = null
 
-    override var blur: Boolean
+    override var blurBackground: Boolean
         get() = MainSettings.blur.enabled
         set(value) {}
 
