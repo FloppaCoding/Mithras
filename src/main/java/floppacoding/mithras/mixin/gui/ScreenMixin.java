@@ -6,7 +6,6 @@ import floppacoding.mithras.events.GuiBackgroundDrawnEvent;
 import floppacoding.mithras.ui.GuiScreen;
 import floppacoding.mithras.ui.core.elements.GuiElement;
 import floppacoding.mithras.utils.ScreenMixinDuck;
-import kotlin.jvm.functions.Function0;
 import net.minecraft.client.gui.AbstractParentElement;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
@@ -38,6 +37,7 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
     @Unique private final ArrayList<GuiElement> elements = new ArrayList<>();
     @Unique private float elementScale = (float) mc.getWindow().getScaleFactor();
     @Unique private boolean isVanillaGui = true;
+    @Unique private boolean reinitDrawables = false;
     @Unique private Renderer2DMC renderer() {return  Mithras.getRenderer2D(); }
     @Unique private Boolean shouldBlur()  {
         try {
@@ -47,14 +47,9 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
         }
     }
 
-    @Inject(method = "applyBlur", at = @At("HEAD"), cancellable = true)
-    private void onApplyBlur(CallbackInfo ci) {
-        if (!isVanillaGui && !shouldBlur()) {ci.cancel();}
-    }
-
-    @Inject(method = "renderDarkening(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("HEAD"), cancellable = true)
-    private void onRenderDarkening(DrawContext dc, CallbackInfo ci) {
-        if (!isVanillaGui) {ci.cancel();}
+    @Override
+    public void mithras_setReinitDrawables(boolean state) {
+        this.reinitDrawables = state;
     }
 
     @Override
@@ -87,6 +82,23 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
         return this.drawables;
     }
 
+    @Inject(method = "applyBlur", at = @At("HEAD"), cancellable = true)
+    private void onApplyBlur(CallbackInfo ci) {
+        if (!isVanillaGui && !shouldBlur()) {ci.cancel();}
+    }
+
+    @Inject(method = "renderDarkening(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("HEAD"), cancellable = true)
+    private void onRenderDarkening(DrawContext dc, CallbackInfo ci) {
+        if (!isVanillaGui) {ci.cancel();}
+    }
+
+    @Inject(method = "clearAndInit", at = @At("HEAD"))
+    private void onClearAndInit(CallbackInfo ci) {
+        if (reinitDrawables) {
+            drawables.clear();
+        }
+    }
+
     @Inject(method = "init()V", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
         // TODO any initialization / resizing goes here
@@ -98,7 +110,8 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
         Renderer2DMC renderer = renderer();
         if (isVanillaGui) {
             renderer.beginFrame();
-            renderer.scale(elementScale, elementScale);
+            // TODO implement gui scale affecting these elements?
+//            renderer.scale(elementScale, elementScale); // This should not come before the positioning of the elements
         }
         renderer.push();
         for (GuiElement element : elements) {
@@ -193,8 +206,8 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
         return false;
     }
 
-    @Unique private float scaledMouseX() { return (float) (mc.mouse.getX() / elementScale); }
-    @Unique private float scaledMouseY() { return (float) (mc.mouse.getY() / elementScale); }
+    @Unique private float scaledMouseX() { return (float) (mc.mouse.getX() /* TODO fix scale / elementScale*/); }
+    @Unique private float scaledMouseY() { return (float) (mc.mouse.getY() /*TODO fix scale / elementScale*/); }
 
     /**
      * Dispatches the BackgroundDrawEvent

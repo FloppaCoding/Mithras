@@ -5,7 +5,9 @@ import floppacoding.mithras.commands.impl.MainCommand;
 import floppacoding.mithras.events.DrawItemTooltopEvent;
 import floppacoding.mithras.events.DrawSlotEvent;
 import floppacoding.mithras.events.GuiSlotClickEvent;
+import floppacoding.mithras.module.impl.player.InventoryTweaks;
 import floppacoding.mithras.utils.ChatUtils;
+import floppacoding.mithras.utils.ScreenMixinDuck;
 import floppacoding.mithras.utils.inventory.NBTStringWriter;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -44,6 +46,18 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
      */
     @SuppressWarnings("unchecked")
     @Unique private final HandledScreen<T> handledScreen = (HandledScreen<T>) (Object) this;
+
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void onInstance(CallbackInfo ci) {
+        ((ScreenMixinDuck) handledScreen).mithras_setReinitDrawables(true);
+    }
+
+    @Inject(method = "init", at = @At("TAIL"))
+    private void onInit(CallbackInfo ci) {
+        if (InventoryTweaks.isInventorySearchEnabled()) {
+            ((ScreenMixinDuck) handledScreen).mithras_addElement(InventoryTweaks.getAndRepositionSearchFiled());
+        }
+    }
 
     /**
      * Posts a {@link GuiSlotClickEvent} when a slot is click in an inventory screen.

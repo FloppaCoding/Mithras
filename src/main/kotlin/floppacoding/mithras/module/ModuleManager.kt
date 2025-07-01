@@ -12,6 +12,7 @@ import floppacoding.mithras.module.impl.keybinds.KeyBind
 import floppacoding.mithras.module.impl.misc.*
 import floppacoding.mithras.module.impl.player.AutoSprint
 import floppacoding.mithras.module.impl.player.DisableHotbarScroll
+import floppacoding.mithras.module.impl.player.InventoryTweaks
 import floppacoding.mithras.module.impl.render.*
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.ui.clickgui.ClickGUI
@@ -75,6 +76,7 @@ object ModuleManager {
         //PLAYER
         AutoSprint,
         DisableHotbarScroll,
+        InventoryTweaks,
 
 
         //MISC

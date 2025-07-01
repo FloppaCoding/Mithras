@@ -122,6 +122,7 @@ object LocationManager {
                 break
             }
         }
+        // TODO tab list does not show owner like this anymore therefore owner will always be null, probably can just remove it, or maybe check for own island is sufficient
         if (area == null) return null
         if (area.contains("Private Island")) {
             return SkyblockArea.PrivateIsland(owner)

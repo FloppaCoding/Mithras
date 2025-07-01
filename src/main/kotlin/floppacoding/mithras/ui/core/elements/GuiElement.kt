@@ -1,11 +1,11 @@
 package floppacoding.mithras.ui.core.elements
 
-import floppacoding.aurora.core.Renderer2D
+import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.Mithras
 
 abstract class GuiElement {
     // TODO centralize this with the one in GuiScreen
-    protected val renderer: Renderer2D
+    protected val renderer: Renderer2DMC
         get() = Mithras.renderer2D
 
     private var _x = 0f

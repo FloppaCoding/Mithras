@@ -720,6 +720,7 @@ object Aurora: Renderer2D, FontRender2D by AuroraFontRenderer {
             if (cullFace) glDisable(GL_CULL_FACE)
             if (!blend) glEnable(GL_BLEND)
             if (depthTest) glDisable(GL_DEPTH_TEST)
+            glDisable(GL_SCISSOR_TEST)
         }
 
         fun restoreState() {
