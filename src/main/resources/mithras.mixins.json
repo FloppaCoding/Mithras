@@ -25,6 +25,7 @@
     "gui.HandledScreenMixin",
     "gui.InGameHudMixin",
     "gui.ScreenMixin",
+    "gui.StatusEffectsDisplayMixin",
     "network.ClientPlayNetworkHandlerMixin",
     "render.BackgroundRendererMixin",
     "render.DownloadingTerrainScreenMixin",

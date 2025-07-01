@@ -14,6 +14,11 @@ import meteordevelopment.orbit.EventHandler
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
+/**
+ * A collection of features concerning inventories.
+ *
+ * @author Aton
+ */
 object InventoryTweaks: Module(
     "Inventory Tweaks",
     category = Category.PLAYER,
@@ -22,7 +27,14 @@ object InventoryTweaks: Module(
     private val searchInventories by BooleanSetting("Inventory Search", true, description = "Allows you to search for Items in your inventory.")
     private val searchLore by BooleanSetting("Search Item Lore", true, description = "Also searches in the items lore.").
             withDependency { searchInventories }
+    private val hideStatusEffects by BooleanSetting("Hide Status Effects", true, description = "Prevents the rendering of status effects in the inventory.")
+    private val hideEffectsHud by BooleanSetting("Hide Effects HUD", true, description = "Prevents the rendering of the Status effects in game HUD.")
 
+    private val searchFiled: SearchFiled by lazy { SearchFiled() }
+
+    @JvmStatic fun isInventorySearchEnabled(): Boolean {return this.enabled && this.searchInventories}
+    @JvmStatic fun shouldHideStatusEffects(): Boolean {return this.enabled && this.hideStatusEffects}
+    @JvmStatic fun shouldHideEffectsHud(): Boolean {return this.enabled && this.hideEffectsHud}
 
 
     @EventHandler
@@ -41,10 +53,6 @@ object InventoryTweaks: Module(
             event.context.fill(event.slot.x, event.slot.y, event.slot.x + 16, event.slot.y + 16,Color(0,255,0).rgb)
         }
     }
-
-    @JvmStatic fun isInventorySearchEnabled(): Boolean {return this.enabled && this.searchInventories}
-
-    private val searchFiled: SearchFiled by lazy { SearchFiled() }
 
     @JvmStatic fun getAndRepositionSearchFiled() : SearchFiled {
         searchFiled.reposition()
