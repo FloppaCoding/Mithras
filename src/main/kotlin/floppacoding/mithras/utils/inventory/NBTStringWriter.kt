@@ -142,7 +142,7 @@ class NBTStringWriter : NbtElementVisitor {
          * Turns the nbt data into a readable string;
          */
         @JvmStatic
-        fun creatNbtString(nbt: NbtCompound): String {
+        fun creatNbtString(nbt: NbtElement): String {
             return NBTStringWriter().apply(nbt)
         }
 

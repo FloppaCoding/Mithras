@@ -2,6 +2,7 @@ package floppacoding.mithras.mixin;
 
 import floppacoding.mithras.Mithras;
 import floppacoding.mithras.events.GameStartEvent;
+import floppacoding.mithras.events.GuiCloseEvent;
 import floppacoding.mithras.events.GuiOpenEvent;
 import floppacoding.mithras.events.WorldChangeEvent;
 import floppacoding.mithras.module.impl.render.Camera;
@@ -43,6 +44,8 @@ abstract class MinecraftClientMixin {
     private void onSetScreen(Screen screen, CallbackInfo ci) {
         if (screen != null) {
             Mithras.EVENT_BUS.post(new GuiOpenEvent(screen));
+        }else {
+            Mithras.EVENT_BUS.post(new GuiCloseEvent());
         }
     }
 }

@@ -2,7 +2,7 @@ package floppacoding.mithras.mixin.gui;
 
 import floppacoding.mithras.Mithras;
 import floppacoding.mithras.commands.impl.MainCommand;
-import floppacoding.mithras.events.DrawItemTooltopEvent;
+import floppacoding.mithras.events.DrawItemTooltipEvent;
 import floppacoding.mithras.events.DrawSlotEvent;
 import floppacoding.mithras.events.GuiSlotClickEvent;
 import floppacoding.mithras.module.impl.player.InventoryTweaks;
@@ -80,7 +80,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     private void onItemTooltip(DrawContext context, int x, int y, CallbackInfo ci) {
         assert this.focusedSlot != null;
         ItemStack itemStack = this.focusedSlot.getStack();
-        if (Mithras.EVENT_BUS.post(new DrawItemTooltopEvent(handledScreen, itemStack)).isCancelled()) {
+        if (Mithras.EVENT_BUS.post(new DrawItemTooltipEvent(handledScreen, itemStack, context, x, y)).isCancelled()) {
             ci.cancel();
         }
     }

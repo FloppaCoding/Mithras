@@ -15,6 +15,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.DungeonScan
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
+import floppacoding.mithras.module.impl.player.InventoryTweaks
 import floppacoding.mithras.shaders.Shaders
 import floppacoding.mithras.ui.other.Test
 import floppacoding.mithras.ui.other.Test2
@@ -30,6 +31,7 @@ import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.inventory.SkyblockItem
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.entity.Entity
@@ -88,6 +90,12 @@ object DebugCommand : Command() {
                                 "in Skyblock: ${LocationManager.inSkyblock}, area: ${LocationManager.currentArea?.areaName}"
                     ) }
                 }
+                literal("loadStorageConfig"){ execute {
+                    Mithras.scope.launch(Dispatchers.IO) {
+                        InventoryTweaks.storageConfig.loadConfig()
+                        ChatUtils.chatMessage("Reloaded storage config")
+                    }
+                }}
             }
             literal("sound") {
                 literal("log") {

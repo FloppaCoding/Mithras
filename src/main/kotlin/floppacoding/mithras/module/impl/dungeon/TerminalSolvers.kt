@@ -125,7 +125,7 @@ object TerminalSolvers : Module(
     }
 
     @EventHandler
-    fun onTooltip(event: DrawItemTooltopEvent) {
+    fun onTooltip(event: DrawItemTooltipEvent) {
         if (currentTerminal == TerminalType.NUMBERS) return
     }
 
