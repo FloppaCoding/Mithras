@@ -52,9 +52,6 @@ object MainCommand : Command() {
                     moduleSetting()
                 }
             }
-            string("moduleName") {
-                moduleSetting()
-            }
         }
 
     var devMode = false

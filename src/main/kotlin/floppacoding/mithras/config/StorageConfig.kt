@@ -1,5 +1,6 @@
 package floppacoding.mithras.config
 
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.MOD_NAME
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.player.InventoryTweaks.storageConfig
@@ -8,10 +9,12 @@ import net.minecraft.inventory.SimpleInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtList
 import net.minecraft.nbt.NbtOps
+import net.minecraft.nbt.NbtString
 import net.minecraft.nbt.StringNbtReader
 import java.io.File
 import java.io.IOException
 import kotlin.jvm.optionals.getOrDefault
+import kotlin.jvm.optionals.getOrNull
 
 class StorageConfig(path: File) : Config {
     private val configFile = File(path, "storage.json")
@@ -43,7 +46,25 @@ class StorageConfig(path: File) : Config {
             val registries = mc.player!!.registryManager
             val nbtList = NbtList()
             for (inventory in inventories) {
-                nbtList.add(inventory.toNbtList(registries))
+//                 nbtList.add(inventory.toNbtList(registries))
+                nbtList.add(with(inventory) {
+                    val nbtList2 = NbtList()
+                    for (i in 0..<this.size()) {
+                        val itemStack = this.getStack(i)
+                        if (!itemStack.isEmpty) {
+                            try {
+                                nbtList2.add(itemStack.toNbt(registries))
+                            }catch (e: IllegalStateException) {
+                                nbtList.add(NbtString.of("empty"))
+                                Mithras.logger.warn("Mithras storage config: Error while encoding ${itemStack.name.string}: ${e.message}")
+                            }
+
+                        }else {
+                            nbtList2.add(NbtString.of("empty"))
+                        }
+                    }
+                    return@with nbtList2
+                })
             }
             val jsonString = NBTStringWriter.creatNbtString(nbtList)
             configFile.bufferedWriter().use {
@@ -67,7 +88,12 @@ class StorageConfig(path: File) : Config {
                 inventories[ii].let { inventory ->
                     inventory.clear()
                     for (jj in 0..<inventoryNbt.size) {
-                        inventory.setStack(jj, ItemStack.fromNbt(registries, inventoryNbt[jj]).getOrDefault(ItemStack.EMPTY))
+                        val nbt = inventoryNbt[jj]
+                        if (nbt.asString().getOrNull().equals("empty")) {
+                            inventory.setStack(jj, ItemStack.EMPTY)
+                        }else {
+                            inventory.setStack(jj, ItemStack.fromNbt(registries, nbt).getOrDefault(ItemStack.EMPTY))
+                        }
                     }
                     storageConfig.dirty = true
                 }

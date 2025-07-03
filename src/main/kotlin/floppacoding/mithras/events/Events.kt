@@ -184,7 +184,7 @@ class HotbarDropEvent(val stack: ItemStack): Cancellable()
  * @see GuiOpenEvent
  * @see GuiCloseEvent
  */
-open class GuiChangeEvent(open val screen: Screen?)
+open class GuiChangeEvent(open val oldScreen: Screen?, open val newScreen: Screen?)
 
 /**
  * Posted whenever a new screen is opened through [mc.setScreen][net.minecraft.client.MinecraftClient.setScreen].
@@ -193,14 +193,14 @@ open class GuiChangeEvent(open val screen: Screen?)
  *
  * @see floppacoding.mithras.mixin.MinecraftClientMixin.onSetScreen
  */
-class GuiOpenEvent(override val screen: Screen) : GuiChangeEvent(screen)
+class GuiOpenEvent(oldScreen: Screen?,override val newScreen: Screen) : GuiChangeEvent(oldScreen, newScreen)
 
 /**
  * Posted whenever a screen is closed, in particular this is when [mc.setScreen][net.minecraft.client.MinecraftClient.setScreen].
  * is invoked with the parameter *null* and sets the current screen to *null*.
  * @see floppacoding.mithras.mixin.MinecraftClientMixin.onSetScreen
  */
-class GuiCloseEvent : GuiChangeEvent(null)
+class GuiCloseEvent(oldScreen: Screen?) : GuiChangeEvent(oldScreen, null)
 
 /**
  * Posted whenever a SimpleInventory has had a change in its items.

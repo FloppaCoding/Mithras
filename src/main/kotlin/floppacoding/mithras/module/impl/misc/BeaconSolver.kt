@@ -113,8 +113,8 @@ object BeaconSolver : Module(
      */
     @EventHandler
     private fun onGuiOpen(event: GuiOpenEvent) {
-        if (event.screen !is GenericContainerScreen || inBeacon || !LocationManager.inArea(SkyblockArea.GALATEA)) return
-        val chestName = event.screen.title.string
+        if (event.newScreen !is GenericContainerScreen || inBeacon || !LocationManager.inArea(SkyblockArea.GALATEA)) return
+        val chestName = event.newScreen.title.string
         if (chestName == "Tune Frequency")  {
             inBeacon = true
         }

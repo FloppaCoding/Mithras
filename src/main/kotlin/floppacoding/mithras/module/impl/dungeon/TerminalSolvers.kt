@@ -58,8 +58,8 @@ object TerminalSolvers : Module(
 
     @EventHandler
     fun onGuiOpen(event: GuiOpenEvent) {
-        if (event.screen !is GenericContainerScreen || currentTerminal != TerminalType.NONE || !RunInformation.inF7Boss()) return
-        val chestName = event.screen.title.string
+        if (event.newScreen !is GenericContainerScreen || currentTerminal != TerminalType.NONE || !RunInformation.inF7Boss()) return
+        val chestName = event.newScreen.title.string
         currentTerminal = when {
             chestName == "Click in order!" -> TerminalType.NUMBERS
             chestName == "Correct all the panes!" -> TerminalType.CORRECT_ALL

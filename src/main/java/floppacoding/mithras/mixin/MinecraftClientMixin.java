@@ -11,7 +11,9 @@ import net.minecraft.client.RunArgs;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -19,6 +21,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MinecraftClient.class)
 abstract class MinecraftClientMixin {
+
+    @Shadow @Nullable public Screen currentScreen;
 
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/QuickPlayLogger;create(Ljava/lang/String;)Lnet/minecraft/client/QuickPlayLogger;", shift = At.Shift.AFTER))
     private void onGameStart(RunArgs args, CallbackInfo ci) {
@@ -43,9 +47,9 @@ abstract class MinecraftClientMixin {
     @Inject(method = "setScreen", at = @At("HEAD"))
     private void onSetScreen(Screen screen, CallbackInfo ci) {
         if (screen != null) {
-            Mithras.EVENT_BUS.post(new GuiOpenEvent(screen));
+            Mithras.EVENT_BUS.post(new GuiOpenEvent(this.currentScreen, screen));
         }else {
-            Mithras.EVENT_BUS.post(new GuiCloseEvent());
+            Mithras.EVENT_BUS.post(new GuiCloseEvent(this.currentScreen));
         }
     }
 }
