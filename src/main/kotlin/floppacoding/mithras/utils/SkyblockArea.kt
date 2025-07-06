@@ -41,4 +41,13 @@ sealed class SkyblockArea private constructor(val areaName: String) {
 
         @JvmStatic val entries: List<SkyblockArea> = SkyblockArea::class.sealedSubclasses.mapNotNull { it.objectInstance }
     }
+
+    /**
+     * Returns true if an island only supports modern minecraft versions
+     */
+    fun isIslandModern(): Boolean {
+        // if new islands come out, add to here,
+        // or  alternatively, could make an open/abstract function for this?
+        return this === Galatea || this === ThePark
+    }
 }
