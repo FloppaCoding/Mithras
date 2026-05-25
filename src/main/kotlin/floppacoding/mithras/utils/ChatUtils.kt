@@ -248,6 +248,8 @@ object ChatUtils {
             ClickEvent.Action.SUGGEST_COMMAND -> this.setClickEvent(ClickEvent.SuggestCommand(value))
             ClickEvent.Action.CHANGE_PAGE -> this.setClickEvent(ClickEvent.ChangePage(value.toInt()))
             ClickEvent.Action.COPY_TO_CLIPBOARD -> this.setClickEvent(ClickEvent.CopyToClipboard(value))
+            ClickEvent.Action.SHOW_DIALOG -> TODO()
+            ClickEvent.Action.CUSTOM -> TODO()
         }
     }
 

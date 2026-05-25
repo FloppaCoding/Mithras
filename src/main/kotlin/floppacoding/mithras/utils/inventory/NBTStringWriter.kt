@@ -1,13 +1,11 @@
 package floppacoding.mithras.utils.inventory
 
 import floppacoding.mithras.Mithras
+import floppacoding.mithras.utils.inventory.ItemUtils.toNbt
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.*
 import net.minecraft.nbt.visitor.NbtElementVisitor
-import net.minecraft.registry.DynamicRegistryManager
-import net.minecraft.text.Text
 import java.util.regex.Pattern
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * Class to create nicely readable strings from nbt data.
@@ -23,12 +21,12 @@ class NBTStringWriter : NbtElementVisitor {
         return result.toString()
     }
     override fun visitString(element: NbtString) {
-//        result.append(NbtString.escape(element.asString()))
-        try {
-            result.append(NbtString.escape(Text.Serialization.fromJson(element.asString().get(), DynamicRegistryManager.EMPTY)?.string))
-        } catch (_: Exception) {
-            result.append(NbtString.escape(element.asString().getOrNull()))
-        }
+        result.append(NbtString.escape(element.value()))
+//        try {
+//            result.append(NbtString.escape(Text.Serialization.fromJson(element.asString().get(), DynamicRegistryManager.EMPTY)?.string))
+//        } catch (_: Exception) {
+//            result.append(NbtString.escape(element.asString().getOrNull()))
+//        }
 
     }
 

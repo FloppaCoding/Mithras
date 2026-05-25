@@ -8,8 +8,8 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.impl.NumberSetting
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.item.ItemStack
+import org.joml.Matrix3x2fStack
 
 /**
  * A module to reposition and scale item tooltips.
@@ -26,14 +26,14 @@ object ScrollableTooltips : Module(
      * Hook to reposition the item tooltip.
      * @see floppacoding.mithras.mixin.gui.DrawContextMixin.positionTooltip
      */
-    fun scaleTooltip(matrices: MatrixStack, xOffs: Int, yOffs: Int) {
+    fun scaleTooltip(matrices: Matrix3x2fStack, xOffs: Int, yOffs: Int) {
         val stack = (mc.currentScreen as? HandledScreenAccessor)?.focussedSlot?.stack
         if (stack !== lastStack) {
             lastStack = stack
             scrollY = 0f
         }
-        matrices.translate((1- scale) * xOffs.toFloat(), (1- scale) * yOffs.toFloat() + scrollY, 0f)
-        matrices.scale(scale, scale, 1f)
+        matrices.translate((1- scale) * xOffs.toFloat(), (1- scale) * yOffs.toFloat() + scrollY)
+        matrices.scale(scale, scale)
     }
 
     @EventHandler

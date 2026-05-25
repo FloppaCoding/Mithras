@@ -18,9 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.font.TextRenderer
+import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.client.render.RenderLayer
 import net.minecraft.screen.slot.Slot
 import net.minecraft.util.Identifier
 import org.lwjgl.glfw.GLFW
@@ -139,11 +139,10 @@ object InventoryTweaks: Module(
         val inventory = storageConfig.inventories.getOrNull(page) ?: return
 
         val backgroundWidth = (event.screen as HandledScreenAccessor).backgroundWidth
-        event.context.matrices.push()
-        event.context.matrices.translate(0f, 0f, 310f)
-        event.context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, event.x, event.y, 0.0F, 0.0F, backgroundWidth, 7, 256, 256)
-        event.context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, event.x, event.y+7, 0.0F, 17.0F, backgroundWidth, this.ROWS * 18, 256, 256)
-        event.context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, event.x, event.y + this.ROWS * 18 + 7, 0.0F, 216.0F, backgroundWidth, 6, 256, 256)
+        event.context.matrices.pushMatrix()
+        event.context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, event.x, event.y, 0.0F, 0.0F, backgroundWidth, 7, 256, 256)
+        event.context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, event.x, event.y+7, 0.0F, 17.0F, backgroundWidth, this.ROWS * 18, 256, 256)
+        event.context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, event.x, event.y + this.ROWS * 18 + 7, 0.0F, 216.0F, backgroundWidth, 6, 256, 256)
 
 
         for (i in 0..< ROWS) {
@@ -152,7 +151,7 @@ object InventoryTweaks: Module(
                 drawSlot(event.context, slot, backgroundWidth, mc.textRenderer)
             }
         }
-        event.context.matrices.pop()
+        event.context.matrices.popMatrix()
         event.cancel()
     }
 
@@ -176,7 +175,7 @@ object InventoryTweaks: Module(
         }
     }
 
-    @JvmStatic fun getAndRepositionSearchFiled() : SearchFiled {
+    @JvmStatic fun getAndRepositionSearchFiled() : GuiElement {
         searchFiled.reposition()
         return searchFiled
     }
@@ -190,13 +189,12 @@ object InventoryTweaks: Module(
         val itemStack = slot.stack
         var bl2 = false
 
-        context.matrices.push()
-        context.matrices.translate(0.0f, 0.0f, 100.0f)
+        context.matrices.pushMatrix()
         if (itemStack.isEmpty && slot.isEnabled) {
             val identifier = slot.backgroundSprite
             if (identifier != null) {
                 context.drawGuiTexture(
-                    { texture: Identifier? -> RenderLayer.getGuiTextured(texture) },
+                    RenderPipelines.GUI_TEXTURED,
                     identifier,
                     i,
                     j,
@@ -240,7 +238,7 @@ object InventoryTweaks: Module(
             context.drawStackOverlay(textRenderer, itemStack, i, j, null)
         }
 
-        context.matrices.pop()
+        context.matrices.popMatrix()
     }
 
     /** Inventory name of the Skyblock Ender Chest */
@@ -255,7 +253,7 @@ object InventoryTweaks: Module(
     private val TEXTURE = Identifier.ofVanilla("textures/gui/container/generic_54.png")
     private const val ROWS = 5
 
-    class SearchFiled : GuiElement() {
+    private class SearchFiled : GuiElement() {
 
         private var listening = false
 
@@ -268,7 +266,7 @@ object InventoryTweaks: Module(
 
         fun reposition() {
             this.x = (mc.window.framebufferWidth - width) / 2f
-            this.y = mc.window.framebufferHeight - 35f
+            this.y = mc.window.framebufferHeight - 50f
         }
 
         override fun close() {

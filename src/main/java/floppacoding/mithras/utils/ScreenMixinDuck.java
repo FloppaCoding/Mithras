@@ -19,4 +19,6 @@ public interface ScreenMixinDuck {
     List<Drawable> mithras_getDrawables();
 
     void mithras_setReinitDrawables(boolean state);
+
+    void mithras_finishFrame();
 }

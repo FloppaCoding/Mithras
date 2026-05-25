@@ -8,11 +8,14 @@ import floppacoding.mithras.utils.Extensions.seconds
 import floppacoding.mithras.utils.ScreenMixinDuck
 import floppacoding.mithras.utils.clock.Clock
 import floppacoding.mithras.utils.clock.Executor
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.util.InputUtil
 import net.minecraft.text.MutableText
 import net.minecraft.text.PlainTextContent.Literal
 import net.minecraft.text.Text
+import org.lwjgl.glfw.GLFW
 
 /**
  * ### Parent class for GUI screens using the [NanoVG rendering library][renderer].
@@ -99,18 +102,18 @@ abstract class GuiScreen(
      */
     protected abstract fun render(mouseX: Float, mouseY: Float, delta: Float)
 
-    final override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (mouseClicked(getMouseX(), getMouseY(), button)) return true
+    final override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+        if (mouseClicked(getMouseX(), getMouseY(), click.button())) return true
 
-        return super.mouseClicked(mouseX, mouseY, button)
+        return super.mouseClicked(click, doubled)
     }
 
     protected open fun mouseClicked(mouseX: Float, mouseY: Float, button: Int) : Boolean { return false }
 
-    final override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (mouseReleased(getMouseX(), getMouseY(), button)) return true
+    final override fun mouseReleased(click: Click): Boolean {
+        if (mouseReleased(getMouseX(), getMouseY(), click.button())) return true
 
-        return super.mouseReleased(mouseX, mouseY, button)
+        return super.mouseReleased(click)
     }
 
     protected open fun mouseReleased(mouseX: Float, mouseY: Float, button: Int) : Boolean { return false }
@@ -123,14 +126,14 @@ abstract class GuiScreen(
 
     protected open fun mouseScrolled(mouseX: Float, mouseY: Float, amount: Float): Boolean { return false }
 
-    final override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
+    final override fun mouseDragged(click: Click, deltaX: Double, deltaY: Double): Boolean {
         val scaledDeltaX = (deltaX * client!!.window.width / client!!.window.scaledWidth / scale).toFloat()
         val scaledDeltaY = (deltaX * client!!.window.height / client!!.window.scaledHeight / scale).toFloat()
 
-        if (mouseDragged(getMouseX(), getMouseY(), button, scaledDeltaX, scaledDeltaY)) return true
+        if (mouseDragged(getMouseX(), getMouseY(), click.button(), scaledDeltaX, scaledDeltaY)) return true
 
 
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
+        return super.mouseDragged(click, deltaX, deltaY)
     }
 
     protected open fun mouseDragged(mouseX: Float, mouseY: Float, button: Int, deltaX: Float, deltaY: Float): Boolean { return false }
@@ -156,6 +159,11 @@ abstract class GuiScreen(
         renderer.reset()
         renderer.text(performance, mc.window.width - 2f, mc.window.height - 2f, -1, 16f, textAlign = TextAlign.RIGHT_BOTTOM)
         renderer.pop()
+    }
+
+    fun hasShiftDown(): Boolean {
+        return InputUtil.isKeyPressed(mc.window, GLFW.GLFW_KEY_LEFT_SHIFT)
+                || InputUtil.isKeyPressed(mc.window, GLFW.GLFW_KEY_RIGHT_SHIFT)
     }
 
     fun getMouseX(): Float = mc.mouse.x.toFloat() / scale

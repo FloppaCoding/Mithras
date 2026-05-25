@@ -6,8 +6,8 @@ import floppacoding.mithras.utils.ChatUtils
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents
 import net.fabricmc.fabric.api.networking.v1.PacketSender
@@ -67,7 +67,7 @@ object FabricEventMapper {
         }
 
         // Rendering
-        WorldRenderEvents.LAST.register {context: WorldRenderContext ->
+        WorldRenderEvents.END_MAIN.register { context: WorldRenderContext ->
             Mithras.EVENT_BUS.post(RenderWorldOverlayEvent(context))
         }
 

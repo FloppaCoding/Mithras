@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MinecraftClient.class)
-abstract class MinecraftClientMixin {
+public abstract class MinecraftClientMixin {
 
     @Shadow @Nullable public Screen currentScreen;
 
@@ -29,8 +29,8 @@ abstract class MinecraftClientMixin {
         Mithras.EVENT_BUS.post(new GameStartEvent());
     }
 
-    @Inject(at = @At("HEAD"), method = "setWorld")
-    private void onSetWorld(ClientWorld world, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), method = "setWorld(Lnet/minecraft/client/world/ClientWorld;Z)V")
+    private void onSetWorld(ClientWorld world, boolean stopSounds, CallbackInfo ci) {
         Mithras.EVENT_BUS.post(new WorldChangeEvent(world));
     }
 

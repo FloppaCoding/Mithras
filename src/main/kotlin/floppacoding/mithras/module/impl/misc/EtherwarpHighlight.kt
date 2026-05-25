@@ -74,9 +74,9 @@ object EtherwarpHighlight : Module(
     }
 
     private fun canEtherwarpTo(hitResult: BlockHitResult): Boolean {
-        val targettedPostion = hitResult.blockPos ?: return false
+        val targetedPostion = hitResult.blockPos ?: return false
         for (offset in 1..2) {
-            val state = mc.world!!.getBlockState(targettedPostion.up(offset))
+            val state = mc.world!!.getBlockState(targetedPostion.up(offset))
             if (isValidTarget(state)) {
                 return false
             }
@@ -118,12 +118,12 @@ object EtherwarpHighlight : Module(
     }
 
     private fun raycastEtherwarp(distance: Double) : BlockHitResult? {
-        // Crouching eye height is modern versions is 1.27F,
+        // Crouching eye height is modern versions is 1.27F, in old versions it is 1.54F. Standing is 1.64F.
         // this is used in areas that only support modern versions
         // however in servers that continue support for 1.8.9, eye height is the one in older versions, 1.54
-        val eyeHeight = if (LocationManager.currentArea?.isIslandModern() == true) 1.27 else 1.54
+        val eyeHeight = 1.27
 
-        val start = mc.player?.pos?.add(0.0,eyeHeight,0.0) ?: return null
+        val start = mc.player?.entityPos?.add(0.0,eyeHeight,0.0) ?: return null
         val direction = mc.player?.rotationVector ?: return null
         val end = start.add(direction.multiply(distance))
 

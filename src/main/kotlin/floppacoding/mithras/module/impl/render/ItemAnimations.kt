@@ -41,9 +41,9 @@ object ItemAnimations : Module(
         if (this.scaleSwing) {
             val bl3 = arm == Arm.RIGHT
             val i = if (bl3) 1 else -1
-            val f = -0.4f * MathHelper.sin(MathHelper.sqrt(swingProgress) * 3.1415927f) * (scale - 1)
-            val g = 0.2f * MathHelper.sin(MathHelper.sqrt(swingProgress) * 6.2831855f) * (scale - 1)
-            val h = -0.2f * MathHelper.sin(swingProgress * 3.1415927f) * (scale - 1)
+            val f = -0.4f * MathHelper.sin(MathHelper.sqrt(swingProgress) * 3.1415927) * (scale - 1)
+            val g = 0.2f * MathHelper.sin(MathHelper.sqrt(swingProgress) * 6.2831855) * (scale - 1)
+            val h = -0.2f * MathHelper.sin(swingProgress * 3.1415927) * (scale - 1)
             matrices.translate(i.toFloat() * f, g, h)
         }
         if (arm == Arm.RIGHT) {

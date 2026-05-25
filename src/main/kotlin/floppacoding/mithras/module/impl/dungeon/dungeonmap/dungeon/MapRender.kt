@@ -368,7 +368,7 @@ object MapRender: HudElement(
             renderer.border(-6.0f, -6.0f, 12.0f, 12.0f, 2.0f, 1f, Color(0, 0, 0, 255).rgb)
             val skinImage  = player.skinImage ?: return
             renderer.roundedImage(skinImage,-6f, -6f, 12f, 12f, 1f, 8f, 8f, 8f, 8f)
-            if (player.player.isPartVisible(PlayerModelPart.HAT)) {
+            if (player.player.isModelPartVisible(PlayerModelPart.HAT)) {
                 renderer.roundedImage(skinImage,-6f, -6f, 12f, 12f, 2f, 40f, 8f, 8f, 8f)
             }
         } catch (_: Exception) {

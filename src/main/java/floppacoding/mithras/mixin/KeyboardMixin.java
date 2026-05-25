@@ -4,6 +4,7 @@ import floppacoding.mithras.Mithras;
 import floppacoding.mithras.events.InputEvent;
 import floppacoding.mithras.utils.KeyStateTracker;
 import net.minecraft.client.Keyboard;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.util.InputUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,9 +21,9 @@ public abstract class KeyboardMixin {
      * Post a {@link InputEvent} when a mouse button is clicked.
      */
     @Inject(method = "onKey", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/KeyBinding;setKeyPressed(Lnet/minecraft/client/util/InputUtil$Key;Z)V"), cancellable = true)
-    public void onKeyPress(long window, int keyCode, int scancode, int action, int modifiers, CallbackInfo ci) {
+    public void onKeyPress(long window, int action, KeyInput input, CallbackInfo ci) {
         // action seems to determine press / release with 0 being release and 1 press.
-        InputUtil.Key key = InputUtil.fromKeyCode(keyCode, scancode);
+        InputUtil.Key key = InputUtil.fromKeyCode(input);
         Integer previousState = KeyStateTracker.keyStates.get(key);
         if (previousState == null || action != previousState) {
             KeyStateTracker.keyStates.put(key, action);

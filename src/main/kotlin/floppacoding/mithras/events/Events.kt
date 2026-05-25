@@ -1,7 +1,7 @@
 package floppacoding.mithras.events
 
 import floppacoding.mithras.utils.SkyblockArea
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.block.BlockState
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
@@ -221,11 +221,11 @@ class HudRenderEvent(val context: DrawContext, val partialTicks: Float)
 
 
 /**
- * Posted on [WorldRenderEvents.BEFORE_DEBUG_RENDER][net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BEFORE_DEBUG_RENDER]
+ * Posted on [WorldRenderEvents.BEFORE_DEBUG_RENDER][net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.BEFORE_DEBUG_RENDER]
  * after blocks and entities are drawn, but before the games debug rendering, player hand and hud are drawn.
  *
  * Use this for rendering things like wire frames or lines in the world.
- * @see net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BEFORE_DEBUG_RENDER
+ * @see net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.BEFORE_DEBUG_RENDER
  */
 class RenderWorldOverlayEvent(val context: WorldRenderContext)
 

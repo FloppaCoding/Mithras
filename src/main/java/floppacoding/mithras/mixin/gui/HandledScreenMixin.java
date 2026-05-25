@@ -11,6 +11,7 @@ import floppacoding.mithras.utils.ScreenMixinDuck;
 import floppacoding.mithras.utils.inventory.NBTStringWriter;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -70,7 +71,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     }
 
     @Inject(method = "drawSlot", at = @At("HEAD"), cancellable = true)
-    private void onDrawSlot(DrawContext context, Slot slot, CallbackInfo ci) {
+    private void onDrawSlot(DrawContext context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
         if (Mithras.EVENT_BUS.post(new DrawSlotEvent<>(context, slot, handledScreen)).isCancelled()) {
             ci.cancel();
         }
@@ -86,9 +87,9 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+    private void onKeyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
         if (!MainCommand.INSTANCE.getDevMode()) return;
-        if (keyCode == GLFW.GLFW_KEY_RIGHT_CONTROL && this.focusedSlot != null) {
+        if (input.getKeycode() == GLFW.GLFW_KEY_RIGHT_CONTROL && this.focusedSlot != null) {
             ItemStack stack = this.focusedSlot.getStack();
             if (stack == null) return;
             String nbtString = NBTStringWriter.creatNbtString(stack);

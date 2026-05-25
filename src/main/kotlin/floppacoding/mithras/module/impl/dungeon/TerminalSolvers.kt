@@ -115,10 +115,10 @@ object TerminalSolvers : Module(
                 val clicks = mapColorClicks( closestColorIndex - colorOrder.indexOf(colorId))
                 if (clicks == 0) return
                 val offs = (16 - mc.textRenderer.getWidth("$clicks")) / 2
-                event.context.matrices.push()
-                event.context.matrices.translate(0.0f, 0.0f, 1000.0f)
+                event.context.matrices.pushMatrix()
+                event.context.matrices.translate(0.0f, 0.0f)
                 event.context.drawText(mc.textRenderer, "$clicks", event.slot.x + offs, event.slot.y + 4, -1, false)
-                event.context.matrices.pop()
+                event.context.matrices.popMatrix()
             }
             TerminalType.NONE, TerminalType.TIMING, TerminalType.CORRECT_ALL -> {}
         }

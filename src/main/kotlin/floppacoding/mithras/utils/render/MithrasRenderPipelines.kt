@@ -9,25 +9,28 @@ import net.minecraft.client.render.VertexFormats
 object MithrasRenderPipelines {
 
     val LINES: RenderPipeline = RenderPipelines.register(
-        RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET).withLocation("pipeline/lines").build()
+        RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET).withLocation("pipeline/lines")
+            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.DrawMode.LINES)
+            .build()
     )
 
     val LINES_PHASE: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET).withLocation("pipeline/lines")
+            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.DrawMode.LINES)
             .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).build()
     )
 
     val LINE_STRIP: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
             .withLocation("pipeline/line_strip")
-            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL, VertexFormat.DrawMode.LINE_STRIP)
+            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL, VertexFormat.DrawMode.DEBUG_LINE_STRIP)
             .build()
     )
 
     val LINE_STRIP_PHASE: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
             .withLocation("pipeline/line_strip")
-            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL, VertexFormat.DrawMode.LINE_STRIP)
+            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL, VertexFormat.DrawMode.DEBUG_LINE_STRIP)
             .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
             .build()
     )

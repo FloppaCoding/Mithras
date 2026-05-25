@@ -4,6 +4,9 @@ import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.MOD_NAME
 import floppacoding.mithras.Mithras.mc
 import floppacoding.mithras.module.impl.player.InventoryTweaks.storageConfig
+import floppacoding.mithras.utils.inventory.ItemUtils.itemStackFromNbt
+import floppacoding.mithras.utils.inventory.ItemUtils.readNbtList
+import floppacoding.mithras.utils.inventory.ItemUtils.toNbt
 import floppacoding.mithras.utils.inventory.NBTStringWriter
 import net.minecraft.inventory.SimpleInventory
 import net.minecraft.item.ItemStack
@@ -92,7 +95,7 @@ class StorageConfig(path: File) : Config {
                         if (nbt.asString().getOrNull().equals("empty")) {
                             inventory.setStack(jj, ItemStack.EMPTY)
                         }else {
-                            inventory.setStack(jj, ItemStack.fromNbt(registries, nbt).getOrDefault(ItemStack.EMPTY))
+                            inventory.setStack(jj, itemStackFromNbt(registries, nbt).getOrDefault(ItemStack.EMPTY))
                         }
                     }
                     storageConfig.dirty = true

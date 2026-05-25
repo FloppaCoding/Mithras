@@ -49,6 +49,6 @@ object GeometryHelper {
         }
     }
 
-    private const val DEG_TO_RAD: Float = Math.PI.toFloat() / 180f
+    private const val DEG_TO_RAD: Double = Math.PI / 180
     private const val RAD_TO_DEG: Float = 180f / Math.PI.toFloat()
 }

@@ -1,13 +1,15 @@
 package floppacoding.mithras.utils.inventory
 
+import floppacoding.mithras.Mithras
 import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.powerAbilityScroll
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.component.type.LoreComponent
+import net.minecraft.inventory.SimpleInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.AbstractNbtNumber
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtString
+import net.minecraft.nbt.*
+import net.minecraft.registry.RegistryWrapper.WrapperLookup
+import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -262,6 +264,26 @@ object ItemUtils {
             val itemID = this.itemID
             return SkyblockItem.entries.find { it.itemID == itemID }
         }
+
+    fun ItemStack.toNbt(registries: WrapperLookup): NbtElement {
+        check(!this.isEmpty) { "Cannot encode empty ItemStack" }
+        return ItemStack.CODEC.encodeStart(registries.getOps(NbtOps.INSTANCE), this).getOrThrow()
+    }
+
+    fun itemStackFromNbt(registries: WrapperLookup, nbt: NbtElement?): Optional<ItemStack> {
+        return ItemStack.CODEC.parse(registries.getOps(NbtOps.INSTANCE), nbt).resultOrPartial { error: String? ->
+            Mithras.logger.error(
+                "Tried to load invalid item: '{}'",
+                error
+            )
+        }
+    }
+
+    fun SimpleInventory.readNbtList(list: NbtList, registries: WrapperLookup) {
+        this.clear()
+        list.streamCompounds().flatMap { nbt: NbtCompound? -> itemStackFromNbt(registries, nbt).stream() }
+            .forEach { stack: ItemStack -> this.addStack(stack) }
+    }
 
     /**
      * Maps the key and value of the enchantment in ExtraAttributes -> enchantments to the corresponding enchantment id,

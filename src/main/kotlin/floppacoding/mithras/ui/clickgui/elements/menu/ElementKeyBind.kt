@@ -1,12 +1,13 @@
 package floppacoding.mithras.ui.clickgui.elements.menu
 
+import floppacoding.aurora.core.TextAlign
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.impl.DummySetting
 import floppacoding.mithras.ui.clickgui.elements.Element
 import floppacoding.mithras.ui.clickgui.elements.ElementType
 import floppacoding.mithras.ui.clickgui.elements.ModuleButton
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.aurora.core.TextAlign
+import net.minecraft.client.input.KeyInput
 import net.minecraft.client.util.InputUtil
 import org.lwjgl.glfw.GLFW
 
@@ -57,7 +58,7 @@ class ElementKeyBind(parent: ModuleButton, val mod: Module) :
             } else if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
                 listening = false
             } else if (!keyBlackList.contains(keyCode)) {
-                mod.keyBind = InputUtil.fromKeyCode(keyCode, scanCode)
+                mod.keyBind = InputUtil.fromKeyCode(KeyInput( keyCode, scanCode, 0))
                 listening = false
             }
             return true
