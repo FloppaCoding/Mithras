@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "MapStateAccessor",
+    "SimpleInventoryMixin",
     "WorldChunkMixin",
     "network.ClientConnectionMixin"
   ],
@@ -25,14 +26,15 @@
     "gui.HandledScreenMixin",
     "gui.InGameHudMixin",
     "gui.ScreenMixin",
+    "gui.StatusEffectsDisplayMixin",
     "network.ClientPlayNetworkHandlerMixin",
-    "render.BackgroundRendererMixin",
-    "render.DownloadingTerrainScreenMixin",
-    "render.EntityRenderDispatcherMixin",
+    "render.EntityRenderManagerMixin",
+    "render.FogRendererMixin",
     "render.GameRendererMixin",
     "render.HeldItemRendererMixin",
     "render.InGameOverlayRendererMixin",
     "render.ItemEntityRendererMixin",
+    "render.LevelLoadingScreenMixin",
     "render.LightmapTextureManagerMixin",
     "render.ProgressScreenMixin"
   ]

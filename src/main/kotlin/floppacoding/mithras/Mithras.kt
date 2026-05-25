@@ -59,8 +59,8 @@ object Mithras : ModInitializer {
 		}
 	}
 	val scope = CoroutineScope(Dispatchers.Default + handler + CoroutineName("mithras"))
-
-	val moduleConfig = ModuleConfig(File(mc.runDirectory, "config/$CONFIG_DOMAIN"))
+	val configPath = File(mc.runDirectory, "config/$CONFIG_DOMAIN")
+	val moduleConfig = ModuleConfig(configPath)
 	@JvmStatic
 	lateinit var renderer2D: Renderer2DMC
 		private set

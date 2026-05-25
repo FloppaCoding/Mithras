@@ -104,6 +104,7 @@ class MSAAFrameBuffer(internal val samples: Int, initialWidth: Int, initialHeigh
     fun useAndCopyFrom(source: FrameBuffer) {
         val w = source.width; val h = source.height
         resize(w, h)
+        glDisable(GL_SCISSOR_TEST)
         glBlitNamedFramebuffer(source.fbo, fbo, 0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_LINEAR)
         glBindFramebuffer(GL_FRAMEBUFFER, fbo)
     }
@@ -114,6 +115,7 @@ class MSAAFrameBuffer(internal val samples: Int, initialWidth: Int, initialHeigh
      */
     fun copyBackTo(target: FrameBuffer) {
         val width = width; val height = height
+        glDisable(GL_SCISSOR_TEST)
         glBlitNamedFramebuffer(fbo, target.fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR)
         glBindFramebuffer(GL_FRAMEBUFFER, target.fbo)
     }

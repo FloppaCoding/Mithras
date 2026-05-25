@@ -9,7 +9,7 @@ import floppacoding.mithras.module.settings.impl.NumberSetting
 import floppacoding.mithras.module.settings.impl.SelectorOptions
 import floppacoding.mithras.module.settings.impl.SelectorSetting
 import net.minecraft.client.option.Perspective
-import net.minecraft.client.render.BackgroundRenderer
+import net.minecraft.client.render.fog.FogRenderer
 
 /**
  * A module to improve how the game is viewed through the camera.
@@ -27,8 +27,8 @@ object Camera : Module(
     private val fogMode by SelectorSetting("Fog Mode", FogMode.REDUCED, description = "Modifies fog rendering. Fog can be rendered normally, completely hidden, or reduced in intensity.").onSet {
         mode ->
         // This code looks a little weird because the fog state field is private and only accessible by toggling.
-        val fog = BackgroundRenderer.toggleFog()
-        if(fog != mode.isFogVisible()) {BackgroundRenderer.toggleFog()}
+        val fog = FogRenderer.toggleFog()
+        if(fog != mode.isFogVisible()) {FogRenderer.toggleFog()}
     }
     private val fogIntensity by NumberSetting<Float>("Fog Intensity", 0.5f, 0f, 1f, 0.05f, description = "The fog intensity when Fog Mode reduced is selected.").withDependency {
         fogMode == FogMode.REDUCED
@@ -62,10 +62,17 @@ object Camera : Module(
 
     /**
      * Returns the modified fog intensity.
-     * @see floppacoding.mithras.mixin.render.BackgroundRendererMixin.modifyFogColor
+     * @see floppacoding.mithras.mixin.render.FogRendererMixin.modifyFogColor
      */
     @JvmStatic
-    fun fogIntensity(): Float = if (this.enabled && this.fogMode === FogMode.REDUCED) this.fogIntensity else 1f
+    fun fogIntensity(): Float {
+        if (!this.enabled) return 1f
+        return when (this.fogMode) {
+            FogMode.HIDDEN -> 0f
+            FogMode.REDUCED -> this.fogIntensity
+            else -> 1f
+        }
+    }
 
     /**
      * Prevent sodium from occluding chunks normally hidden by fog.

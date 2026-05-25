@@ -20,8 +20,8 @@ object AuroraMC : Renderer2DMC, Renderer2D by Aurora {
     override fun setTransform(context: DrawContext) {
         Aurora.matrices.loadIdentity()
         Aurora.matrices.scale(mc.window.scaleFactor.toFloat(), mc.window.scaleFactor.toFloat())
-        val pm = context.matrices.peek().positionMatrix
-        Aurora.matrices.peek().set(pm.m00(), pm.m01(), pm.m10(), pm.m11(), pm.m30(), pm.m31())
+        val pm = context.matrices
+        Aurora.matrices.peek().set(pm.m00(), pm.m01(), pm.m10(), pm.m11(), pm.m20(), pm.m21())
     }
 
     override fun setDimensions(width: Int, height: Int) {

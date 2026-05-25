@@ -2,13 +2,16 @@ package floppacoding.mithras.mixin.gui;
 
 import floppacoding.mithras.Mithras;
 import floppacoding.mithras.commands.impl.MainCommand;
-import floppacoding.mithras.events.DrawItemTooltopEvent;
+import floppacoding.mithras.events.DrawItemTooltipEvent;
 import floppacoding.mithras.events.DrawSlotEvent;
 import floppacoding.mithras.events.GuiSlotClickEvent;
+import floppacoding.mithras.module.impl.player.InventoryTweaks;
 import floppacoding.mithras.utils.ChatUtils;
+import floppacoding.mithras.utils.ScreenMixinDuck;
 import floppacoding.mithras.utils.inventory.NBTStringWriter;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -45,6 +48,18 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     @SuppressWarnings("unchecked")
     @Unique private final HandledScreen<T> handledScreen = (HandledScreen<T>) (Object) this;
 
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void onInstance(CallbackInfo ci) {
+        ((ScreenMixinDuck) handledScreen).mithras_setReinitDrawables(true);
+    }
+
+    @Inject(method = "init", at = @At("TAIL"))
+    private void onInit(CallbackInfo ci) {
+        if (InventoryTweaks.isInventorySearchEnabled()) {
+            ((ScreenMixinDuck) handledScreen).mithras_addElement(InventoryTweaks.getAndRepositionSearchFiled());
+        }
+    }
+
     /**
      * Posts a {@link GuiSlotClickEvent} when a slot is click in an inventory screen.
      */
@@ -56,7 +71,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     }
 
     @Inject(method = "drawSlot", at = @At("HEAD"), cancellable = true)
-    private void onDrawSlot(DrawContext context, Slot slot, CallbackInfo ci) {
+    private void onDrawSlot(DrawContext context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
         if (Mithras.EVENT_BUS.post(new DrawSlotEvent<>(context, slot, handledScreen)).isCancelled()) {
             ci.cancel();
         }
@@ -66,15 +81,15 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     private void onItemTooltip(DrawContext context, int x, int y, CallbackInfo ci) {
         assert this.focusedSlot != null;
         ItemStack itemStack = this.focusedSlot.getStack();
-        if (Mithras.EVENT_BUS.post(new DrawItemTooltopEvent(handledScreen, itemStack)).isCancelled()) {
+        if (Mithras.EVENT_BUS.post(new DrawItemTooltipEvent(handledScreen, itemStack, context, x, y)).isCancelled()) {
             ci.cancel();
         }
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+    private void onKeyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
         if (!MainCommand.INSTANCE.getDevMode()) return;
-        if (keyCode == GLFW.GLFW_KEY_RIGHT_CONTROL && this.focusedSlot != null) {
+        if (input.getKeycode() == GLFW.GLFW_KEY_RIGHT_CONTROL && this.focusedSlot != null) {
             ItemStack stack = this.focusedSlot.getStack();
             if (stack == null) return;
             String nbtString = NBTStringWriter.creatNbtString(stack);

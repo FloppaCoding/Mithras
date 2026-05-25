@@ -47,6 +47,7 @@ object ChatCleaner : Module(
             milestones      && LocationManager.inDungeons && text.containsOneOf(dungClasses)    -> event.cancel()
             blocksInTheWay  && text.startsWith("There are blocks in the way!")            -> event.cancel()
             abilityHider    && text.startsWith("Your") && text.endsWith("damage.")  -> event.cancel()
+            abilityHider    && text.contains("This creature is immune to this kind of magic!")  -> event.cancel()
             comboHider      && text.contains("Kill Combo") && !text.contains(":")    -> event.cancel()
             autoRecombHider && text.startsWith("Your Auto-Recombobulator recombobulated") -> event.cancel()
             stashHider      && text.endsWith("Click here to pick it all up!")              -> event.cancel()
@@ -68,6 +69,8 @@ object ChatCleaner : Module(
         "Guided Sheep is now available",
         "is ready to use! Press DROP to activate it!",
         "used Dragon's Breath on you!",
+        "struck you for",
+        "hit you for",
         "[SKULL] Wither Skull: Monsters with a star next to their name have Wither Keys...sometimes.",
         "[SKULL] Wither Skull: You need a Wither Key to open this door!",
         "[STATUE] Oruo the Omniscient: I am Oruo the Omniscient. I have lived many lives. I have learned all there is to know.",

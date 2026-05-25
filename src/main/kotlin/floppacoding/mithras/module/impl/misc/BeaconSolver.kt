@@ -113,8 +113,8 @@ object BeaconSolver : Module(
      */
     @EventHandler
     private fun onGuiOpen(event: GuiOpenEvent) {
-        if (event.screen !is GenericContainerScreen || inBeacon || !LocationManager.inArea(SkyblockArea.GALATEA)) return
-        val chestName = event.screen.title.string
+        if (event.newScreen !is GenericContainerScreen || inBeacon || !LocationManager.inArea(SkyblockArea.GALATEA)) return
+        val chestName = event.newScreen.title.string
         if (chestName == "Tune Frequency")  {
             inBeacon = true
         }
@@ -176,11 +176,11 @@ object BeaconSolver : Module(
     private fun drawClicks(clicks: Int, event: DrawSlotEvent<*>) {
         val textWidth = mc.textRenderer.getWidth("$clicks")
         val offs = (16 - textWidth) / 2
-        event.context.matrices.push()
-        event.context.matrices.translate(0.0f, 0.0f, 1000.0f)
+        event.context.matrices.pushMatrix()
+        event.context.matrices.translate(0.0f, 0.0f)
         event.context.fill(event.slot.x+offs, event.slot.y+4, event.slot.x+offs+ textWidth, event.slot.y+4 + mc.textRenderer.fontHeight, Color(0,0,0,150).rgb)
         event.context.drawText(mc.textRenderer, "$clicks", event.slot.x + offs, event.slot.y + 4, -1, false)
-        event.context.matrices.pop()
+        event.context.matrices.popMatrix()
     }
 
     private fun getClosestColorClicks(slot: Slot): Int? {

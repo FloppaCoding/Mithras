@@ -7,7 +7,6 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.impl.BooleanSetting
 import floppacoding.mithras.module.settings.impl.ColorSetting
 import floppacoding.mithras.module.settings.impl.NumberSetting
-import floppacoding.mithras.utils.Extensions.equalsOneOf
 import floppacoding.mithras.utils.Extensions.isSubclassOfOneOf
 import floppacoding.mithras.utils.LocationManager
 import floppacoding.mithras.utils.inventory.ItemUtils.extraAttributes
@@ -24,10 +23,9 @@ import net.minecraft.world.BlockStateRaycastContext
 import net.minecraft.world.BlockView
 import net.minecraft.world.World
 import java.awt.Color
-import kotlin.reflect.KClass
 
 /**
- * A module to highlight in game the block targetted by etherwarp.
+ * A module to highlight in game the block targeted by etherwarp.
  *
  * @author Aton
  */
@@ -35,7 +33,7 @@ object EtherwarpHighlight : Module(
     "Etherwarp Highlight",
     category = Category.MISC,
     description = "Highlights the block you are going to etherwarp to. "
-){
+) {
     private val validOutlineColor by ColorSetting("Valid Outline", Color(20,255,100), description = "Color of the outline of valid etherwarp targets.")
     private val validFillColor by ColorSetting("Valid Fill", Color(20,255,100,100), description = "Fill color for the sides of valid etherwarp targets.")
     private val invalidOutlineColor by ColorSetting("Invalid Outline", Color(255,55,20), description = "Color of the outline of invalid etherwarp targets.")
@@ -49,30 +47,36 @@ object EtherwarpHighlight : Module(
         // The is holding check is not strictly required since the check for the ethermerge attribute will already cover that
 //        if (mc.player?.isHoldingInMainHand(SkyblockItem.AOTV,SkyblockItem.AOTE) != true) return
         val attributes = mc.player?.mainHandStack?.extraAttributes ?: return
-        if (!attributes.getBoolean("ethermerge",false)) return
+        if (!attributes.getBoolean("ethermerge", false)) return
         val distance = 57.0 + attributes.getInt("tuned_transmission", 0)
+
         val hitResult = raycastEtherwarp(distance) ?: return
         val targetState = mc.world?.getBlockState(hitResult.blockPos) ?: return
-        val isValid =
-        if ( (mc.crosshairTarget as? BlockHitResult)?.blockPos == hitResult.blockPos && doesBlockUsePreventEtherwarp(targetState)) false
-        else isValidTarget(targetState)
+
+        val isValid = if (
+            (mc.crosshairTarget as? BlockHitResult)?.blockPos == hitResult.blockPos &&
+            doesBlockUsePreventEtherwarp(targetState)
+        ) false else isValidTarget(targetState)
+
         if (!showInvalidTarget && !isValid) return
+
         val outlineColor: Color
         val fillColor: Color
         if (isValid && canEtherwarpTo(hitResult)) {
             outlineColor = validOutlineColor
             fillColor    = validFillColor
-        }else {
+        } else {
             outlineColor = invalidOutlineColor
             fillColor    = invalidFillColor
         }
+
         Renderer3D.drawBox(event.context, Box(hitResult.blockPos), outlineColor, fillColor, lineWidth)
     }
 
     private fun canEtherwarpTo(hitResult: BlockHitResult): Boolean {
-        val targettedPostion = hitResult.blockPos ?: return false
+        val targetedPostion = hitResult.blockPos ?: return false
         for (offset in 1..2) {
-            val state = mc.world!!.getBlockState(targettedPostion.up(offset))
+            val state = mc.world!!.getBlockState(targetedPostion.up(offset))
             if (isValidTarget(state)) {
                 return false
             }
@@ -81,7 +85,9 @@ object EtherwarpHighlight : Module(
     }
 
     private fun isValidTarget(state: BlockState): Boolean {
-        if (state.block::class.equalsOneOf(nonSolidValidTargets)) return true
+        if (state.block is LilyPadBlock || state.block is SignBlock) return true
+        // i have no clue why adding lilypadblock didn't work to that list. nd it was easier to just do above
+//        if (state.block::class.equalsOneOf(nonSolidValidTargets)) return true
         if (state.isSolid) return true
         return false
     }
@@ -112,20 +118,18 @@ object EtherwarpHighlight : Module(
     }
 
     private fun raycastEtherwarp(distance: Double) : BlockHitResult? {
-        // This should already account for the shift in eye height from crouching.
-        // The standing eye height is 1.62F and the crouching one is 1.27F
-        // In 1.8.9 the crouching eye height is 1.54! Hypixel uses that for the ray cast since skyblock runs on
-        // 1.8.9.
-//        val start = mc.player?.eyePos?.add(0.0,0.27,0.0) ?: return null
-        val start = mc.player?.pos?.add(0.0,1.54,0.0) ?: return null
+        // Crouching eye height is modern versions is 1.27F, in old versions it is 1.54F. Standing is 1.64F.
+        // this is used in areas that only support modern versions
+        // however in servers that continue support for 1.8.9, eye height is the one in older versions, 1.54
+        val eyeHeight = 1.27
+
+        val start = mc.player?.entityPos?.add(0.0,eyeHeight,0.0) ?: return null
         val direction = mc.player?.rotationVector ?: return null
         val end = start.add(direction.multiply(distance))
 
         val context = BlockStateRaycastContext(start, end) {
             !it.isAir
         }
-
-
 
         return BlockView.raycast<BlockHitResult?, BlockStateRaycastContext>(context.start, context.end, context,
             { innerContext: BlockStateRaycastContext, pos: BlockPos ->
@@ -154,9 +158,9 @@ object EtherwarpHighlight : Module(
         // DO NOT USE BlockView.raycast(BlockStateRaycastContext), it will always return the block at the end!
     }
 
-    private val nonSolidValidTargets = listOf<KClass<*>>(
-        SignBlock::class,
-    )
+//    private val nonSolidValidTargets = listOf<KClass<*>>(
+//        SignBlock::class,
+//    )
 
     private val usableBypass = arrayOf(
         TntBlock::class,
@@ -177,10 +181,10 @@ object EtherwarpHighlight : Module(
     //
     // When a block you cannot etherwarp to is in the line of sight you cannot etherwarp to anything behind it.
     //
-    // You cannot etherwarp to lilipads, torches, foliage, skulls, tripwire, fluids, fire, ladder, redstone, repeater, comparator.
+    // You cannot etherwarp to torches, foliage, skulls, tripwire, fluids, fire, ladder, redstone, repeater, comparator.
     // These will block the line of sight, but when on top of a target they will not prevent the etherwarp.
     //
-    // You can etherwarp to signs.
+    // You can etherwarp to signs and lily pads.
     //
     // The following blocks can be on top of the target and will not prevent etherwarp:
     // Skull, fire, torch, foliage.

@@ -104,10 +104,11 @@ object StarMobHighlight : Module(
     @EventHandler
     fun onRenderWorld(event: RenderWorldOverlayEvent) {
         if (!inDungeons) return
+        val tickProgress = mc.renderTickCounter.getTickProgress(true)-1
         entityList.forEach {
-            val dx: Double = (event.context.tickCounter().getTickProgress(true)-1) * (it.entity.x - it.entity.lastRenderX)
-            val dy: Double = (event.context.tickCounter().getTickProgress(true)-1) * (it.entity.y - it.entity.lastRenderY)
-            val dz: Double = (event.context.tickCounter().getTickProgress(true)-1) * (it.entity.z - it.entity.lastRenderZ)
+            val dx: Double = tickProgress * (it.entity.x - it.entity.lastRenderX)
+            val dy: Double = tickProgress * (it.entity.y - it.entity.lastRenderY)
+            val dz: Double = tickProgress * (it.entity.z - it.entity.lastRenderZ)
             Renderer3D.drawBox(event.context, it.box.offset(dx,dy,dz), it.color, null, it.lineWidth)
 
             Renderer3D.drawBox(event.context, it.box, it.color, null, it.lineWidth)

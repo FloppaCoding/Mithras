@@ -3,7 +3,7 @@ package floppacoding.mithras.utils.render
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.VertexFormat
 import floppacoding.mithras.Mithras
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.block.BlockState
 import net.minecraft.block.ShapeContext
 import net.minecraft.client.render.Tessellator
@@ -74,8 +74,8 @@ object Renderer3D {
         if (!color.isVisible()) return
         RenderSystem.assertOnRenderThread()
 
-        val vec3d: Vec3d = context.camera().pos
-        val matrices = context.matrixStack() ?: return
+        val vec3d: Vec3d = context.worldState().cameraRenderState.pos
+        val matrices = context.matrices()
         matrices.push()
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
 
@@ -84,12 +84,12 @@ object Renderer3D {
         val rgba = color.rgb
 
         val tessellator = Tessellator.getInstance()
-        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL)
+        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH)
 
         val lineNormal = Vector3f(x2-x1, y2-y1, z2-z1).normalize()
 
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(rgba).normal(normalMatrix, lineNormal.x, lineNormal.y, lineNormal.z)
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(rgba).normal(normalMatrix, lineNormal.x, lineNormal.y, lineNormal.z)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(rgba).normal(normalMatrix, lineNormal.x, lineNormal.y, lineNormal.z).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(rgba).normal(normalMatrix, lineNormal.x, lineNormal.y, lineNormal.z).lineWidth(lineWidth)
 
 
         val builtBuffer = bufferBuilder.end()
@@ -174,8 +174,8 @@ object Renderer3D {
         if (fillColor?.isVisible() != true && outlineColor?.isVisible() != true) return
         RenderSystem.assertOnRenderThread()
 
-        val vec3d: Vec3d = context.camera().pos
-        val matrices = context.matrixStack() ?: return
+        val vec3d: Vec3d = context.worldState().cameraRenderState.pos
+        val matrices = context.matrices()
         matrices.push()
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
 
@@ -321,8 +321,8 @@ object Renderer3D {
         if (!color.isVisible()) return
         RenderSystem.assertOnRenderThread()
 
-        val vec3d: Vec3d = context.camera().pos
-        val matrices = context.matrixStack() ?: return
+        val vec3d: Vec3d = context.worldState().cameraRenderState.pos
+        val matrices = context.matrices()
         matrices.push()
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
 
@@ -331,7 +331,7 @@ object Renderer3D {
 
         val tessellator = Tessellator.getInstance()
 
-        outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, color.rgb, phase)
+        outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, color.rgb, lineWidth, phase)
 
         matrices.pop()
     }
@@ -368,8 +368,8 @@ object Renderer3D {
         if (!fillColor.isVisible()) return
         RenderSystem.assertOnRenderThread()
 
-        val vec3d: Vec3d = context.camera().pos
-        val matrices = context.matrixStack() ?: return
+        val vec3d: Vec3d = context.worldState().cameraRenderState.pos
+        val matrices = context.matrices()
         matrices.push()
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
         val matrix4f: Matrix4f = matrices.peek().positionMatrix
@@ -419,8 +419,8 @@ object Renderer3D {
         if (!fillColor.isVisible() && !outlineColor.isVisible()) return
         RenderSystem.assertOnRenderThread()
 
-        val vec3d: Vec3d = context.camera().pos
-        val matrices = context.matrixStack() ?: return
+        val vec3d: Vec3d = context.worldState().cameraRenderState.pos
+        val matrices = context.matrices()
         matrices.push()
         matrices.translate(-vec3d.getX(), -vec3d.getY(), -vec3d.getZ())
         val positionMatrix: Matrix4f = matrices.peek().positionMatrix
@@ -431,7 +431,7 @@ object Renderer3D {
         if (fillColor.isVisible())
             fillSides(tessellator, positionMatrix, x1, y1, z1, x2, y2, z2, fillColor.rgb, phase)
         if (outlineColor.isVisible())
-            outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, outlineColor.rgb, phase)
+            outlineBox(tessellator, positionMatrix, normalMatrix, x1, y1, z1, x2, y2, z2, outlineColor.rgb, lineWidth, phase)
 
         matrices.pop()
     }
@@ -480,40 +480,40 @@ object Renderer3D {
         layer.draw(builtBuffer)
     }
 
-    private fun outlineBox(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int, phase: Boolean) {
-        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL)
+    private fun outlineBox(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, color: Int, lineWidth: Float, phase: Boolean) {
+        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH)
         // This rendering works by using 2 vertices per line, one for the start point and one for the end.
         // The normal goes along the line and is used for properly displaying the line width.
 
         // Bottom 4 edges
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,1f,0f,0f)
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,1f,0f,0f)
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,0f,0f,1f)
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,0f,1f)
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,-1f,0f,0f)
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,-1f,0f,0f)
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,0f,0f,-1f)
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,0f,0f,-1f)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,1f,0f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,1f,0f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,0f,0f,1f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,0f,1f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,-1f,0f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,-1f,0f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,0f,0f,-1f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,0f,0f,-1f).lineWidth(lineWidth)
 
         // Top 4 edges
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,1f,0f,0f)
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,1f,0f,0f)
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,0f,0f,1f)
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,0f,1f)
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,-1f,0f,0f)
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,-1f,0f,0f)
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,0f,-1f)
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,0f,0f,-1f)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,1f,0f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,1f,0f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,0f,0f,1f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,0f,1f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,-1f,0f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,-1f,0f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,0f,-1f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,0f,0f,-1f).lineWidth(lineWidth)
 
         // 4 Side edges
-        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,0f,1f,0f)
-        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,0f,1f,0f)
-        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,0f,1f,0f)
-        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,0f,1f,0f)
-        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,0f,1f,0f)
-        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,1f,0f)
-        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,1f,0f)
-        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,1f,0f)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z1).color(color).normal(normalMatrix,0f,1f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z1).color(color).normal(normalMatrix,0f,1f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z1).color(color).normal(normalMatrix,0f,1f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z1).color(color).normal(normalMatrix,0f,1f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y1, z2).color(color).normal(normalMatrix,0f,1f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x1, y2, z2).color(color).normal(normalMatrix,0f,1f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y1, z2).color(color).normal(normalMatrix,0f,1f,0f).lineWidth(lineWidth)
+        bufferBuilder.vertex(positionMatrix, x2, y2, z2).color(color).normal(normalMatrix,0f,1f,0f).lineWidth(lineWidth)
 
         val builtBuffer = bufferBuilder.end()
         val layer = if(phase) RenderLayers.LINES_PHASE else RenderLayers.LINES
@@ -521,7 +521,7 @@ object Renderer3D {
     }
 
     private fun outlineEllipse(tessellator: Tessellator, positionMatrix: Matrix4f, normalMatrix: MatrixStack.Entry, xRadius: Float, yRadius: Float, color: Int, segments: Int, phase: Boolean) {
-        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINE_STRIP, VertexFormats.POSITION_COLOR_NORMAL)
+        val bufferBuilder = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR_NORMAL)
 
         // Entries of the rotation matrix
         val segmentAngle = 2f * 3.1415925f / segments

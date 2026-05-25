@@ -18,6 +18,6 @@ class FrameBufferMC(val buffer: Framebuffer) : FrameBuffer() {
 
     init {
         val device = RenderSystem.getDevice() as GlBackend
-        fbo = (buffer.colorAttachment as GlTexture).getOrCreateFramebuffer(device.framebufferManager, buffer.depthAttachment)
+        fbo = (buffer.colorAttachment as GlTexture).getOrCreateFramebuffer((device as GlBackend).bufferManager, buffer.depthAttachment)
     }
 }

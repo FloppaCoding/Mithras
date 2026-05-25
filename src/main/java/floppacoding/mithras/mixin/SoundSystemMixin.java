@@ -9,13 +9,13 @@ import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SoundSystem.class)
-public class SoundSystemMixin {
+public abstract class SoundSystemMixin {
 
-    @Inject(method = "play(Lnet/minecraft/client/sound/SoundInstance;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/sound/SoundInstance;getSound()Lnet/minecraft/client/sound/Sound;"), cancellable = true)
-    private void onPlaySound(SoundInstance sound, CallbackInfo ci) {
+    @Inject(method = "play(Lnet/minecraft/client/sound/SoundInstance;)Lnet/minecraft/client/sound/SoundSystem$PlayResult;", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/sound/SoundInstance;getSound()Lnet/minecraft/client/sound/Sound;"), cancellable = true)
+    private void onPlaySound(SoundInstance sound, CallbackInfoReturnable<SoundSystem.PlayResult> cir) {
         if (DebugCommand.shouldLogShounds()) {
             SoundCategory logCategory = DebugCommand.getLogCategory();
             SoundCategory soundCategory = sound.getCategory();
@@ -27,6 +27,6 @@ public class SoundSystemMixin {
                 Mithras.getLogger().info("Playing sound {}", sound);
             } }
         }
-        if(Mithras.EVENT_BUS.post(new PlaySoundEvent(sound)).isCancelled()) ci.cancel();
+        if(Mithras.EVENT_BUS.post(new PlaySoundEvent(sound)).isCancelled()) cir.cancel();
     }
 }

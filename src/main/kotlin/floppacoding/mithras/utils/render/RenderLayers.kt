@@ -1,98 +1,69 @@
 package floppacoding.mithras.utils.render
 
+import net.minecraft.client.render.LayeringTransform
+import net.minecraft.client.render.OutputTarget
 import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.render.RenderLayer.MultiPhase
-import net.minecraft.client.render.RenderPhase
-import net.minecraft.client.render.RenderPhase.LineWidth
-import java.util.*
+import net.minecraft.client.render.RenderSetup
 
 object RenderLayers {
 
-    val LINES: MultiPhase = RenderLayer.of(
-        "Mithras_lines",
-        1536,
-        false,
-        true,
-        MithrasRenderPipelines.LINES,
-        RenderLayer.MultiPhaseParameters.builder()
-            .lineWidth(LineWidth(OptionalDouble.empty()))
-            .layering(RenderPhase.VIEW_OFFSET_Z_LAYERING)
-            .target(RenderPhase.ITEM_ENTITY_TARGET)
-            .build(false)
+    // these builders could use the .translucent() method to produce correct effect.
+    // This will enable sorting within the layer. Since the rendering in this mod is so far done immediately for every
+    // object this would not do much.
+
+    val LINES: RenderLayer = RenderLayer.of(
+        "mithras_lines",
+        RenderSetup.builder(MithrasRenderPipelines.LINES)
+            .layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+            .outputTarget(OutputTarget.ITEM_ENTITY_TARGET)
+            .build()
     )
 
-    val LINES_PHASE: MultiPhase = RenderLayer.of(
-        "Mithras_lines",
-        1536,
-        false,
-        true,
-        MithrasRenderPipelines.LINES_PHASE,
-        RenderLayer.MultiPhaseParameters.builder()
-            .lineWidth(LineWidth(OptionalDouble.empty()))
-            .layering(RenderPhase.VIEW_OFFSET_Z_LAYERING)
-            .target(RenderPhase.ITEM_ENTITY_TARGET)
-            .build(false)
+    val LINES_PHASE: RenderLayer = RenderLayer.of(
+        "mithras_lines",
+        RenderSetup.builder(MithrasRenderPipelines.LINES_PHASE)
+            .layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+            .outputTarget(OutputTarget.ITEM_ENTITY_TARGET)
+            .build()
     )
 
-    val LINE_STRIP: MultiPhase = RenderLayer.of(
+    val LINE_STRIP: RenderLayer = RenderLayer.of(
         "mithras_line_strip",
-        1536,
-        false,
-        true,
-        MithrasRenderPipelines.LINE_STRIP,
-        RenderLayer.MultiPhaseParameters.builder()
-            .lineWidth(LineWidth(OptionalDouble.empty()))
-            .layering(RenderPhase.VIEW_OFFSET_Z_LAYERING)
-            .target(RenderPhase.ITEM_ENTITY_TARGET)
-            .build(false)
+        RenderSetup.builder(MithrasRenderPipelines.LINE_STRIP)
+            .layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+            .outputTarget(OutputTarget.ITEM_ENTITY_TARGET)
+            .build()
     )
 
-    val LINE_STRIP_PHASE: MultiPhase = RenderLayer.of(
+    val LINE_STRIP_PHASE: RenderLayer = RenderLayer.of(
         "mithras_line_strip",
-        1536,
-        false,
-        true,
-        MithrasRenderPipelines.LINE_STRIP_PHASE,
-        RenderLayer.MultiPhaseParameters.builder()
-            .lineWidth(LineWidth(OptionalDouble.empty()))
-            .layering(RenderPhase.VIEW_OFFSET_Z_LAYERING)
-            .target(RenderPhase.ITEM_ENTITY_TARGET)
-            .build(false)
+        RenderSetup.builder(MithrasRenderPipelines.LINE_STRIP_PHASE)
+            .layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+            .outputTarget(OutputTarget.ITEM_ENTITY_TARGET)
+            .build()
     )
 
-    val TRIANGLE_FAN: MultiPhase = RenderLayer.of(
+    val TRIANGLE_FAN: RenderLayer = RenderLayer.of(
         "mithras_triangle_fan",
-        1536,
-        false,
-        true,
-        MithrasRenderPipelines.TRIANGLE_FAN,
-        RenderLayer.MultiPhaseParameters.builder().build(false)
+        RenderSetup.builder(MithrasRenderPipelines.TRIANGLE_FAN)
+            .build()
     )
 
-    val TRIANGLE_FAN_PHASE: MultiPhase = RenderLayer.of(
+    val TRIANGLE_FAN_PHASE: RenderLayer = RenderLayer.of(
         "mithras_triangle_fan",
-        1536,
-        false,
-        true,
-        MithrasRenderPipelines.TRIANGLE_FAN_PHASE,
-        RenderLayer.MultiPhaseParameters.builder().build(false)
+        RenderSetup.builder(MithrasRenderPipelines.TRIANGLE_FAN_PHASE)
+            .build()
     )
 
-    val QUADS: MultiPhase = RenderLayer.of(
+    val QUADS: RenderLayer = RenderLayer.of(
         "mithras_quads",
-        1536,
-        false,
-        true,
-        MithrasRenderPipelines.QUADS,
-        RenderLayer.MultiPhaseParameters.builder().build(false)
+        RenderSetup.builder(MithrasRenderPipelines.QUADS)
+        .build()
     )
 
-    val QUADS_PHASE: MultiPhase = RenderLayer.of(
+    val QUADS_PHASE: RenderLayer = RenderLayer.of(
         "mithras_quads",
-        1536,
-        false,
-        true,
-        MithrasRenderPipelines.QUADS_PHASE,
-        RenderLayer.MultiPhaseParameters.builder().build(false)
+        RenderSetup.builder(MithrasRenderPipelines.QUADS_PHASE)
+                .build()
     )
 }

@@ -1,14 +1,18 @@
 package floppacoding.mithras.mixin.gui;
 
-import floppacoding.aurora.core.Renderer2D;
+import floppacoding.aurora.mc_modern.Renderer2DMC;
 import floppacoding.mithras.Mithras;
 import floppacoding.mithras.events.GuiBackgroundDrawnEvent;
+import floppacoding.mithras.ui.GuiScreen;
 import floppacoding.mithras.ui.core.elements.GuiElement;
 import floppacoding.mithras.utils.ScreenMixinDuck;
 import net.minecraft.client.gui.AbstractParentElement;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -30,10 +34,26 @@ import static floppacoding.mithras.Mithras.mc;
 @Mixin(Screen.class)
 public abstract class ScreenMixin extends AbstractParentElement implements ScreenMixinDuck {
     @Shadow @Final private List<Drawable> drawables;
+
+    @Shadow public abstract void render(DrawContext context, int mouseX, int mouseY, float deltaTicks);
+
     @Unique private final ArrayList<GuiElement> elements = new ArrayList<>();
     @Unique private float elementScale = (float) mc.getWindow().getScaleFactor();
     @Unique private boolean isVanillaGui = true;
-    @Unique private Renderer2D renderer() {return  Mithras.getRenderer2D(); }
+    @Unique private boolean reinitDrawables = false;
+    @Unique private Renderer2DMC renderer() {return  Mithras.getRenderer2D(); }
+    @Unique private Boolean shouldBlur()  {
+        try {
+            return ((GuiScreen) (Object) this).getBlurBackground();
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    @Override
+    public void mithras_setReinitDrawables(boolean state) {
+        this.reinitDrawables = state;
+    }
 
     @Override
     public float mithras_getElementScale() {
@@ -65,6 +85,23 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
         return this.drawables;
     }
 
+    @Inject(method = "applyBlur", at = @At("HEAD"), cancellable = true)
+    private void onApplyBlur(CallbackInfo ci) {
+        if (!isVanillaGui && !shouldBlur()) {ci.cancel();}
+    }
+
+    @Inject(method = "renderDarkening(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("HEAD"), cancellable = true)
+    private void onRenderDarkening(DrawContext dc, CallbackInfo ci) {
+        if (!isVanillaGui) {ci.cancel();}
+    }
+
+    @Inject(method = "clearAndInit", at = @At("HEAD"))
+    private void onClearAndInit(CallbackInfo ci) {
+        if (reinitDrawables) {
+            drawables.clear();
+        }
+    }
+
     @Inject(method = "init()V", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
         // TODO any initialization / resizing goes here
@@ -72,44 +109,50 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderElements(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        Renderer2D renderer = renderer();
+
+        Renderer2DMC renderer = renderer();
         if (isVanillaGui) {
             renderer.beginFrame();
-            renderer.scale(elementScale, elementScale);
+            // TODO implement gui scale affecting these elements?
+//            renderer.scale(elementScale, elementScale); // This should not come before the positioning of the elements
         }
         renderer.push();
         for (GuiElement element : elements) {
             element.render(scaledMouseX(), scaledMouseY(), delta);
         }
         renderer.pop();
+    }
+
+    @Override
+    public void mithras_finishFrame() {
         if (isVanillaGui) {
-            renderer.endFrame();
+            renderer().endFrame();
         }
     }
 
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(Click click, boolean doubled) {
         float x = scaledMouseX();
         float y = scaledMouseY();
 
-        boolean interactedWithElement = interactWithElements( (element) -> element.mouseClicked(x, y, button) );
+        boolean interactedWithElement = interactWithElements( (element) -> element.mouseClicked(x, y, click.button()) );
         if (interactedWithElement) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY,button);
+        return super.mouseClicked(click, doubled);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(Click click) {
         float x = scaledMouseX();
         float y = scaledMouseY();
 
-        boolean interactedWithElement = interactWithElements( (element) -> element.mouseReleased(x, y, button) );
+        boolean interactedWithElement = interactWithElements( (element) -> element.mouseReleased(x, y, click.button()) );
         if (interactedWithElement) {
             return true;
         }
-        return super.mouseReleased(mouseX,mouseY,button);
+        return super.mouseReleased(click);
     }
 
     @Override
@@ -125,29 +168,29 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    public void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
-        boolean interactedWithElement = interactWithElements( (element) -> element.keyPressed(keyCode, scanCode, modifiers) );
+    public void onKeyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
+        boolean interactedWithElement = interactWithElements( (element) -> element.keyPressed(input.getKeycode(), input.scancode(), input.modifiers()) );
         if (interactedWithElement) {
             cir.setReturnValue(true);
         }
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-        boolean interactedWithElement = interactWithElements( (element) -> element.keyReleased(keyCode, scanCode, modifiers) );
+    public boolean keyReleased(KeyInput input) {
+        boolean interactedWithElement = interactWithElements( (element) -> element.keyReleased(input.getKeycode(), input.scancode(), input.modifiers()) );
         if (interactedWithElement) {
             return true;
         }
-        return super.keyReleased(keyCode, scanCode, modifiers);
+        return super.keyReleased(input);
     }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
-        boolean interactedWithElement = interactWithElements( (element) -> element.charTyped(chr, modifiers) );
+    public boolean charTyped(CharInput input) {
+        boolean interactedWithElement = interactWithElements( (element) -> element.charTyped(input.asString().charAt(0), input.modifiers()) );
         if (interactedWithElement) {
             return true;
         }
-        return super.charTyped(chr, modifiers);
+        return super.charTyped(input);
     }
 
     /**
@@ -170,8 +213,8 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
         return false;
     }
 
-    @Unique private float scaledMouseX() { return (float) (mc.mouse.getX() / elementScale); }
-    @Unique private float scaledMouseY() { return (float) (mc.mouse.getY() / elementScale); }
+    @Unique private float scaledMouseX() { return (float) (mc.mouse.getX() /* TODO fix scale / elementScale*/); }
+    @Unique private float scaledMouseY() { return (float) (mc.mouse.getY() /*TODO fix scale / elementScale*/); }
 
     /**
      * Dispatches the BackgroundDrawEvent

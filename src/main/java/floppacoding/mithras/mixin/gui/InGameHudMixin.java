@@ -2,6 +2,7 @@ package floppacoding.mithras.mixin.gui;
 
 import floppacoding.mithras.Mithras;
 import floppacoding.mithras.events.HudRenderEvent;
+import floppacoding.mithras.module.impl.player.InventoryTweaks;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.render.RenderTickCounter;
@@ -29,5 +30,10 @@ public abstract class InGameHudMixin {
     @Inject(method = "renderVignetteOverlay", at = @At("HEAD"), cancellable = true)
     private void noVignette(DrawContext context, Entity entity, CallbackInfo ci) {
         ci.cancel();
+    }
+
+    @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
+    private void hideStatusEffectOverlay(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        if(InventoryTweaks.shouldHideEffectsHud()) ci.cancel();
     }
 }

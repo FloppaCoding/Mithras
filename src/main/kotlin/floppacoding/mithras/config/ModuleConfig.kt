@@ -24,7 +24,7 @@ import java.io.IOException
  *
  * @author Aton
  */
-class ModuleConfig(path: File) {
+class ModuleConfig(path: File) : Config {
 
     private val gson = GsonBuilder()
         .registerTypeAdapter(object : TypeToken<Setting<*>>(){}.type, SettingSerializer())
@@ -58,7 +58,7 @@ class ModuleConfig(path: File) {
      *
      * Modules must be loaded.
      */
-    fun loadConfig() {
+    override fun loadConfig() {
         try {
             val configModules: ArrayList<ConfigModule>
             with(configFile.bufferedReader().use { it.readText() }) {
@@ -105,7 +105,7 @@ class ModuleConfig(path: File) {
         }
     }
 
-    fun saveConfig() {
+    override fun saveConfig() {
         try {
             configFile.bufferedWriter().use {
                 it.write(gson.toJson(ModuleManager.modules))

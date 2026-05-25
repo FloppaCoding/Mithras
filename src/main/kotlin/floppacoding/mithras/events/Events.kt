@@ -1,7 +1,7 @@
 package floppacoding.mithras.events
 
 import floppacoding.mithras.utils.SkyblockArea
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.block.BlockState
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.sound.SoundInstance
 import net.minecraft.client.util.InputUtil.Key
 import net.minecraft.client.world.ClientWorld
+import net.minecraft.inventory.SimpleInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.Packet
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket
@@ -178,12 +179,35 @@ class GuiSlotClickEvent<T : ScreenHandler>(val slot: Slot?, val slotId: Int, val
 class HotbarDropEvent(val stack: ItemStack): Cancellable()
 
 /**
+ * Fired whenever a GUI is changed through [mc.setScreen][net.minecraft.client.MinecraftClient.setScreen].
+ *
+ * @see GuiOpenEvent
+ * @see GuiCloseEvent
+ */
+open class GuiChangeEvent(open val oldScreen: Screen?, open val newScreen: Screen?)
+
+/**
  * Posted whenever a new screen is opened through [mc.setScreen][net.minecraft.client.MinecraftClient.setScreen].
  *
- * The event is only posted when the screen is set to null.
+ * The event is only posted when the screen is not set to null.
  *
+ * @see floppacoding.mithras.mixin.MinecraftClientMixin.onSetScreen
  */
-class GuiOpenEvent(val screen: Screen)
+class GuiOpenEvent(oldScreen: Screen?,override val newScreen: Screen) : GuiChangeEvent(oldScreen, newScreen)
+
+/**
+ * Posted whenever a screen is closed, in particular this is when [mc.setScreen][net.minecraft.client.MinecraftClient.setScreen].
+ * is invoked with the parameter *null* and sets the current screen to *null*.
+ * @see floppacoding.mithras.mixin.MinecraftClientMixin.onSetScreen
+ */
+class GuiCloseEvent(oldScreen: Screen?) : GuiChangeEvent(oldScreen, null)
+
+/**
+ * Posted whenever a SimpleInventory has had a change in its items.
+ *
+ * @see floppacoding.mithras.mixin.SimpleInventoryMixin.onInventoryChange
+ */
+class SimpleInventoryUpdateEvent(val inventory: SimpleInventory)
 
 /* RENDER EVENTS */
 
@@ -197,11 +221,11 @@ class HudRenderEvent(val context: DrawContext, val partialTicks: Float)
 
 
 /**
- * Posted on [WorldRenderEvents.BEFORE_DEBUG_RENDER][net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BEFORE_DEBUG_RENDER]
+ * Posted on [WorldRenderEvents.BEFORE_DEBUG_RENDER][net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.BEFORE_DEBUG_RENDER]
  * after blocks and entities are drawn, but before the games debug rendering, player hand and hud are drawn.
  *
  * Use this for rendering things like wire frames or lines in the world.
- * @see net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BEFORE_DEBUG_RENDER
+ * @see net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.BEFORE_DEBUG_RENDER
  */
 class RenderWorldOverlayEvent(val context: WorldRenderContext)
 
@@ -219,7 +243,7 @@ class DrawSlotEvent<T : ScreenHandler>(val context: DrawContext, val slot: Slot,
  */
 class GuiBackgroundDrawnEvent(val screen: Screen, val context: DrawContext)
 
-class DrawItemTooltopEvent(val screen: Screen, val stack: ItemStack) : Cancellable()
+class DrawItemTooltipEvent(val screen: Screen, val stack: ItemStack, val context: DrawContext, val x: Int, val y: Int) : Cancellable()
 
 /* NETWORK */
 
@@ -248,3 +272,5 @@ class TeleportEvent(val packet: PlayerPositionLookS2CPacket)
  * @see floppacoding.mithras.mixin.WorldChunkMixin.onSetBlock
  */
 class BlockStateChangeEvent(val pos: BlockPos, val oldState: BlockState, val newState: BlockState)
+
+class JoinHypixelEvent

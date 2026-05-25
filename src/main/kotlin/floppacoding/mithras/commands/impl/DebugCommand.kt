@@ -15,6 +15,7 @@ import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.DungeonScan
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.dungeon.RunInformation
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.MapUtils
 import floppacoding.mithras.module.impl.dungeon.dungeonmap.utils.RoomUtils
+import floppacoding.mithras.module.impl.player.InventoryTweaks
 import floppacoding.mithras.shaders.Shaders
 import floppacoding.mithras.ui.other.Test
 import floppacoding.mithras.ui.other.Test2
@@ -30,6 +31,7 @@ import floppacoding.mithras.utils.inventory.NBTStringWriter
 import floppacoding.mithras.utils.inventory.SkyblockItem
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.entity.Entity
@@ -78,7 +80,7 @@ object DebugCommand : Command() {
                         ChatUtils.chatMessage("Printing tab list to logs.")
                         val tablist = TabListUtils.tabList
                         tablist.forEach {
-                            Mithras.logger.info("${it.second}; skin path: ${it.first.skinTextures.texture.path}")
+                            Mithras.logger.info("${it.second}; skin path: ${it.first.skinTextures.body.texturePath()}")
                         }
                     }
                 }
@@ -88,6 +90,12 @@ object DebugCommand : Command() {
                                 "in Skyblock: ${LocationManager.inSkyblock}, area: ${LocationManager.currentArea?.areaName}"
                     ) }
                 }
+                literal("loadStorageConfig"){ execute {
+                    Mithras.scope.launch(Dispatchers.IO) {
+                        InventoryTweaks.storageConfig.loadConfig()
+                        ChatUtils.chatMessage("Reloaded storage config")
+                    }
+                }}
             }
             literal("sound") {
                 literal("log") {
@@ -250,7 +258,7 @@ object DebugCommand : Command() {
                 literal("teammates") {
                     execute {
                         Dungeon.dungeonTeammates.forEach {
-                            ChatUtils.chatMessage("${it.name}; is fake: ${it.fakeEntity}; is the player: ${it.player == mc.player}; skin path: ${it.player.skinTextures.texture.path}")
+                            ChatUtils.chatMessage("${it.name}; is fake: ${it.fakeEntity}; is the player: ${it.player == mc.player}; skin path: ${it.player.skin.body.texturePath()}")
                         }
                     }
                 }
@@ -579,7 +587,7 @@ object DebugCommand : Command() {
                             val box = it.source.player.boundingBox.expand(range)
 
                             mc.world?.getEntitiesByClass(Entity::class.java, box) { true }?.forEach { entity ->
-                                ChatUtils.chatMessage(MutableText.of(entity.name.content).append(", position: ").append(entity.pos.toString())
+                                ChatUtils.chatMessage(MutableText.of(entity.name.content).append(", position: ").append(entity.entityPos.toString())
                                     .append(", type: ").append(entity.type.name.string).append(", class: ").append(entity::class.simpleName))
                             }
                         }

@@ -5,11 +5,12 @@ import floppacoding.mithras.module.Category
 import floppacoding.mithras.module.Module
 import net.minecraft.block.Blocks
 import net.minecraft.client.render.OverlayTexture
-import net.minecraft.client.render.VertexConsumerProvider
+import net.minecraft.client.render.command.OrderedRenderCommandQueue
 import net.minecraft.client.render.entity.ItemEntityRenderer
 import net.minecraft.client.render.entity.state.ItemEntityRenderState
 import net.minecraft.client.render.entity.state.ItemStackEntityRenderState
 import net.minecraft.client.render.item.ItemRenderState
+import net.minecraft.client.render.state.CameraRenderState
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
@@ -41,8 +42,8 @@ object ItemPhysics : Module(
     fun render(
         itemEntityRenderState: ItemEntityRenderState?,
         matrixStack: MatrixStack,
-        vertexConsumerProvider: VertexConsumerProvider?,
-        i: Int,
+        queue: OrderedRenderCommandQueue,
+        cameraRenderState: CameraRenderState,
         box: Box,
         random: Random
     ): Boolean {
@@ -79,8 +80,8 @@ object ItemPhysics : Module(
             matrixStack.translate(0f, -0.125f, 0f)
         }
 
-        ItemEntityRenderer.renderStack(
-            matrixStack, vertexConsumerProvider, i, itemEntityRenderState,
+        ItemEntityRenderer.render(
+            matrixStack, queue, itemEntityRenderState.light, itemEntityRenderState,
             random, box
         )
         matrixStack.pop()
@@ -88,7 +89,7 @@ object ItemPhysics : Module(
         return true
     }
 
-    fun renderStack(matrices: MatrixStack, vertexConsumers: VertexConsumerProvider, light: Int, state: ItemStackEntityRenderState, random: Random, box: Box) : Boolean{
+    fun renderStack(matrices: MatrixStack, queue: OrderedRenderCommandQueue, light: Int, state: ItemStackEntityRenderState, random: Random, box: Box) : Boolean{
         if (!this.enabled || state.itemRenderState?.isEmpty != false) return false
         val i: Int = state.renderedAmount
         if (i != 0) {
@@ -96,7 +97,7 @@ object ItemPhysics : Module(
             val itemRenderState: ItemRenderState = state.itemRenderState
             val f: Float = box.lengthZ.toFloat()
             if (f > 0.0625f) {
-                itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV)
+                itemRenderState.render(matrices, queue, light, OverlayTexture.DEFAULT_UV, state.outlineColor)
 
                 for (j in 1..<i) {
                     matrices.push()
@@ -104,13 +105,13 @@ object ItemPhysics : Module(
                     val h: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f
                     val k: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.7f // *0.7f to slightly reduce how high the items stack in y direction.
                     matrices.translate(g, h, k)
-                    itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV)
+                    itemRenderState.render(matrices, queue, light, OverlayTexture.DEFAULT_UV, state.outlineColor)
                     matrices.pop()
                 }
             } else {
                 val l = f * 1.0f // original value is 1.5f. With 0.5f the items lie right ontop of each other.
                 //matrices.translate(0.0f, 0.0f, -(l * (i - 1) / 2.0f)) // this would make the items sink into the ground
-                itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV)
+                itemRenderState.render(matrices, queue, light, OverlayTexture.DEFAULT_UV, state.outlineColor)
                 matrices.translate(0.0f, 0.0f, l)
 
                 for (m in 1..<i) {
@@ -118,7 +119,7 @@ object ItemPhysics : Module(
                     val h: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.5f
                     val k: Float = (random.nextFloat() * 2.0f - 1.0f) * 0.15f * 0.5f
                     matrices.translate(h, k, 0.0f)
-                    itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV)
+                    itemRenderState.render(matrices, queue, light, OverlayTexture.DEFAULT_UV, state.outlineColor)
                     matrices.pop()
                     matrices.translate(0.0f, 0.0f, l)
                 }

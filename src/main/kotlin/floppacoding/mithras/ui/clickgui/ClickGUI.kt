@@ -11,6 +11,8 @@ import floppacoding.mithras.ui.clickgui.elements.menu.ElementColor
 import floppacoding.mithras.ui.clickgui.elements.menu.ElementSlider
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
 import floppacoding.mithras.utils.render.ImageManager
+import net.minecraft.client.input.CharInput
+import net.minecraft.client.input.KeyInput
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.glfw.GLFW
 import java.io.IOException
@@ -42,7 +44,7 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
      */
     var advancedMenu: AdvancedMenu? = null
 
-    override var blur: Boolean
+    override var blurBackground: Boolean
         get() = MainSettings.blur.enabled
         set(value) {}
 
@@ -156,7 +158,9 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
      * Handles key presses. Does not handle text field inputs.
      * @see charTyped
      */
-    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+    override fun keyPressed(input: KeyInput): Boolean {
+        val keyCode = input.key
+        val scanCode = input.scancode
         /** If in an advanced menu only hande that */
         if (advancedMenu != null) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE && !advancedMenu!!.isListening()) {
@@ -179,7 +183,7 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
 
         /** keyTyped in GuiScreen gets used to exit the gui on escape */
         return try {
-            super.keyPressed(keyCode, scanCode, modifiers)
+            super.keyPressed(input)
         } catch (e2: IOException) {
             e2.printStackTrace()
             false
@@ -190,7 +194,9 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
      * Handles text character inputs for text fields.
      * @see keyPressed
      */
-    override fun charTyped(chr: Char, modifiers: Int): Boolean {
+    override fun charTyped(input: CharInput): Boolean {
+        val chr = input.asString()[0]
+        val modifiers =input.modifiers
         /** If in an advanced menu only hande that */
         if (advancedMenu != null) {
             return advancedMenu?.charTyped(chr, modifiers) ?: true
@@ -200,7 +206,7 @@ class ClickGUI : GuiScreen("Mithras GUI", 2f) {
             if (panel.charTyped(chr, modifiers)) return true
         }
 
-        return super.charTyped(chr, modifiers)
+        return super.charTyped(input)
     }
 
     override fun init()  {

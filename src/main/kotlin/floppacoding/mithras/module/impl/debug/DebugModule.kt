@@ -80,12 +80,12 @@ object DebugModule : Module(
             event.context.fill(event.slot.x, event.slot.y, event.slot.x + 16, event.slot.y + 16,Color(0,255,0).rgb)
         }// else event.cancel()
         if ((event.slot.stack?.item as? BlockItem)?.block is StainedGlassPaneBlock) {
-            event.context.matrices.push()
-            event.context.matrices.translate(0.0f, 0.0f, 1000.0f)
+            event.context.matrices.pushMatrix()
+            event.context.matrices.translate(0.0f, 0.0f)
             val text = "2"
             val offs = (16 - mc.textRenderer.getWidth(text)) / 2
             event.context.drawText(mc.textRenderer, text, event.slot.x + offs, event.slot.y + 4, Color(255,255,255).rgb, false)
-            event.context.matrices.pop()
+            event.context.matrices.popMatrix()
         }
 
     }

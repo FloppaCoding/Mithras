@@ -38,10 +38,10 @@ class DungeonPlayer(
 
     // TODO add abstraction here for general image.
     var skinImage: Image? = try {
-        ImageManager.createSkinImage(player.skinTextures.texture)  } catch (e: ClassCastException){null}
+        ImageManager.createSkinImage(player.skin.body.id())  } catch (e: ClassCastException){null}
         get() {
             if (field == null) try{
-                ImageManager.createSkinImage(player.skinTextures.texture)
+                ImageManager.createSkinImage(player.skin.body.id())
             }catch (_: ClassCastException) {
             }
             return field
@@ -88,7 +88,7 @@ class DungeonPlayer(
 
     fun loadSkinImage() {
         try {
-            skinImage = ImageManager.createSkinImage(player.skinTextures.texture)
+            skinImage = ImageManager.createSkinImage(player.skin.body.id())
         }catch (_: ClassCastException){}
     }
 

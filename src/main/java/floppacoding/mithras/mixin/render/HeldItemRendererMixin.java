@@ -18,7 +18,7 @@ public abstract class HeldItemRendererMixin {
      * Allows for custom position, rotation and scale of the held item.
      */
     @Inject(method = "swingArm", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;applySwingOffset(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/Arm;F)V"))
-    public void transformItemPosition(float swingProgress, float equipProgress, MatrixStack matrices, int armX, Arm arm, CallbackInfo ci) {
+    public void transformItemPosition(float swingProgress, MatrixStack matrices, int i, Arm arm, CallbackInfo ci) {
         ItemAnimations.INSTANCE.itemTransformHook(matrices, arm, swingProgress);
     }
 
@@ -33,7 +33,7 @@ public abstract class HeldItemRendererMixin {
     /**
      * Used to do the 1.8 swing animation instead of the 1.9+ animation.
      */
-    @Redirect(method = "updateHeldItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;getAttackCooldownProgress(F)F"))
+    @Redirect(method = "updateHeldItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;getHandEquippingProgress(F)F"))
     public float tweakSwing(ClientPlayerEntity instance, float v) {
         if(ItemAnimations.INSTANCE.doOldSwing()) {
             return 1f;

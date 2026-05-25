@@ -2,10 +2,7 @@ package floppacoding.mithras.utils
 
 import floppacoding.mithras.Mithras
 import floppacoding.mithras.Mithras.mc
-import floppacoding.mithras.events.AreaChangeEvent
-import floppacoding.mithras.events.ClientTickEvent
-import floppacoding.mithras.events.ConnectionEvent
-import floppacoding.mithras.events.WorldChangeEvent
+import floppacoding.mithras.events.*
 import floppacoding.mithras.mixin.ClientCommonNetworkHandlerAccessor
 import meteordevelopment.orbit.EventHandler
 import net.minecraft.client.network.ClientPlayNetworkHandler
@@ -97,6 +94,7 @@ object LocationManager {
             (((mc.player?.networkHandler as? ClientCommonNetworkHandlerAccessor)?.brand?.lowercase()?.contains("hypixel")
                 ?: mc.currentServerEntry?.address?.lowercase()?.contains("hypixel")) == true)
         }.getOrDefault(false)
+        Mithras.EVENT_BUS.post(JoinHypixelEvent())
     }
 
 
@@ -122,6 +120,7 @@ object LocationManager {
                 break
             }
         }
+        // TODO tab list does not show owner like this anymore therefore owner will always be null, probably can just remove it, or maybe check for own island is sufficient
         if (area == null) return null
         if (area.contains("Private Island")) {
             return SkyblockArea.PrivateIsland(owner)

@@ -9,7 +9,6 @@ import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.ModuleManager
 import floppacoding.mithras.module.settings.Setting
 import floppacoding.mithras.module.settings.impl.*
-import floppacoding.mithras.ui.other.FractalScreen
 import floppacoding.mithras.utils.ChatUtils
 import floppacoding.mithras.utils.Extensions
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
@@ -33,11 +32,6 @@ object MainCommand : Command() {
                     ChatUtils.modMessage("${if (devMode) "enabled" else "disabled"} developer mode.")
                 }
             }
-            literal("fractal") {
-                execute {
-                    Extensions.setScreen(FractalScreen)
-                }
-            }
             literal("toggle") {
                 stringSelection("module", ::listModules) {
                     execute {
@@ -51,9 +45,6 @@ object MainCommand : Command() {
                 stringSelection("moduleName", ::listModules) {
                     moduleSetting()
                 }
-            }
-            string("moduleName") {
-                moduleSetting()
             }
         }
 

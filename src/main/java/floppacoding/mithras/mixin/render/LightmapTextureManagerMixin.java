@@ -24,7 +24,7 @@ public abstract class LightmapTextureManagerMixin {
         slice = @Slice(
             from = @At(
                 value = "INVOKE",
-                target = "Lnet/minecraft/client/render/DimensionEffects;shouldBrightenLighting()Z"
+                target = "Lnet/minecraft/client/option/GameOptions;getGamma()Lnet/minecraft/client/option/SimpleOption;"
             )
         )
     )

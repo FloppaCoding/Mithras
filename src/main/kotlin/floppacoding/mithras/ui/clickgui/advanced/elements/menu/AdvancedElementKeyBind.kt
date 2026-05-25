@@ -1,12 +1,13 @@
 package floppacoding.mithras.ui.clickgui.advanced.elements.menu
 
+import floppacoding.aurora.core.TextAlign
 import floppacoding.mithras.module.Module
 import floppacoding.mithras.module.settings.impl.DummySetting
 import floppacoding.mithras.ui.clickgui.advanced.AdvancedMenu
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElement
 import floppacoding.mithras.ui.clickgui.advanced.elements.AdvancedElementType
 import floppacoding.mithras.ui.clickgui.util.ColorUtil
-import floppacoding.aurora.core.TextAlign
+import net.minecraft.client.input.KeyInput
 import net.minecraft.client.util.InputUtil
 import org.lwjgl.glfw.GLFW
 
@@ -61,7 +62,7 @@ class AdvancedElementKeyBind(parent: AdvancedMenu, module: Module) :
             } else if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
                 listening = false
             } else if (!keyBlackList.contains(keyCode)) {
-                module.keyBind = InputUtil.fromKeyCode(keyCode, scanCode)
+                module.keyBind = InputUtil.fromKeyCode(KeyInput( keyCode, scanCode,0))
                 listening = false
             }
             return true

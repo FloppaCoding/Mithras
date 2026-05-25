@@ -6,8 +6,11 @@ import floppacoding.mithras.events.MouseScrollEvent;
 import floppacoding.mithras.module.impl.misc.KeepMousePosition;
 import floppacoding.mithras.module.impl.player.DisableHotbarScroll;
 import net.minecraft.client.Mouse;
+import net.minecraft.client.input.MouseInput;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.util.Window;
 import org.lwjgl.glfw.GLFW;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -33,9 +36,9 @@ public abstract class MouseMixin {
      * Post a {@link InputEvent} when a mouse button is clicked.
      */
     @Inject(method = "onMouseButton", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/KeyBinding;setKeyPressed(Lnet/minecraft/client/util/InputUtil$Key;Z)V"), cancellable = true)
-    public void mithras$onMouseClick(long window, int button, int action, int mods, CallbackInfo ci) {
+    public void mithras$onMouseClick(long window, MouseInput input, int action, CallbackInfo ci) {
         // Action seems to determine whether the key was pressed or release and maybe more?! 1 should indicate a key press.
-        if(Mithras.EVENT_BUS.post(new InputEvent(InputUtil.Type.MOUSE.createFromCode(button), action)).isCancelled())
+        if(Mithras.EVENT_BUS.post(new InputEvent(InputUtil.Type.MOUSE.createFromCode(input.button()), action)).isCancelled())
             ci.cancel();
     }
 
@@ -57,9 +60,9 @@ public abstract class MouseMixin {
             ci.cancel();
     }
 
-    @Inject(method = "lockCursor", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;cursorLocked:Z"),
+    @Inject(method = "lockCursor", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;cursorLocked:Z", opcode = Opcodes.PUTFIELD),
         slice = @Slice(
-            from = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;IS_SYSTEM_MAC:Z")
+            from = @At(value = "FIELD", target = "Lnet/minecraft/client/input/SystemKeycodes;UPDATE_PRESSED_STATE_ON_MOUSE_GRAB:Z", opcode = Opcodes.GETSTATIC)
         )
     )
     private void mithras$storeMousePosition(CallbackInfo ci) {
@@ -75,18 +78,18 @@ public abstract class MouseMixin {
      * The bytecode will look differnt than expected.
      * This mixin is probably the safest way to deal with that.
      */
-    @Redirect(method = "unlockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/InputUtil;setCursorParameters(JIDD)V"))
-    private void mithras$modifyMousePosition(long handler, int inputModeValue, double x, double y) {
+    @Redirect(method = "unlockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/InputUtil;setCursorParameters(Lnet/minecraft/client/util/Window;IDD)V"))
+    private void mithras$modifyMousePosition(Window window, int inputModeValue, double x, double y) {
         if (System.currentTimeMillis() < setTime + 500 && KeepMousePosition.INSTANCE.shouldKeepMousePosition()) {
             this.x = lastX;
             this.y = lastY;
             // This vanilla method is not implemented correctly. It will only set the cursor position when the previous
             // input mode was already NORMAL! So in this situation, when changing from grabbed cursor to normal cursor
             // it will not set the cursor position. So it has to be set manually again.
-            InputUtil.setCursorParameters(handler, inputModeValue, lastX, lastY);
-            GLFW.glfwSetCursorPos(handler, lastX, lastY);
+            InputUtil.setCursorParameters(window, inputModeValue, lastX, lastY);
+            GLFW.glfwSetCursorPos(window.getHandle(), lastX, lastY);
         }else {
-            InputUtil.setCursorParameters(handler, inputModeValue, x, y);
+            InputUtil.setCursorParameters(window, inputModeValue, x, y);
         }
     }
 }

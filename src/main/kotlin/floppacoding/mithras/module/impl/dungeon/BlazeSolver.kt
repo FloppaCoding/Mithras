@@ -132,9 +132,9 @@ object BlazeSolver : Module(
 
         Renderer3D.drawEntityBoundingBox(event.context, target.blaze, outlineColor = targetColor, lineWidth = 4f)
         if (next != null && lineColor.alpha != 0) {
-            Renderer3D.drawLine(event.context, target.blaze.pos.add(0.0,1.0,0.0), next.blaze.pos.add(0.0,1.0,0.0), lineColor, 4f)
+            Renderer3D.drawLine(event.context, target.blaze.entityPos.add(0.0,1.0,0.0), next.blaze.entityPos.add(0.0,1.0,0.0), lineColor, 4f)
             if (secondNext != null && secondLineColor.alpha != 0) {
-                Renderer3D.drawLine(event.context, next.blaze.pos.add(0.0,1.0,0.0), secondNext.blaze.pos.add(0.0,1.0,0.0), secondLineColor, 4f)
+                Renderer3D.drawLine(event.context, next.blaze.entityPos.add(0.0,1.0,0.0), secondNext.blaze.entityPos.add(0.0,1.0,0.0), secondLineColor, 4f)
             }
         }
 
