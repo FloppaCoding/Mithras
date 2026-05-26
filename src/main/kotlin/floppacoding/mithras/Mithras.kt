@@ -21,7 +21,7 @@ import kotlinx.coroutines.*
 import meteordevelopment.orbit.EventBus
 import meteordevelopment.orbit.EventHandler
 import meteordevelopment.orbit.EventPriority
-import net.fabricmc.api.ModInitializer
+import net.fabricmc.api.ClientModInitializer
 import net.hypixel.api.HypixelAPI
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
@@ -31,13 +31,13 @@ import java.lang.invoke.MethodHandles
 import kotlin.concurrent.timer
 
 
-object Mithras : ModInitializer {
+object Mithras : ClientModInitializer {
 
 	@JvmStatic
-    val logger: Logger = LoggerFactory.getLogger("mithras")
+    val logger: Logger = LoggerFactory.getLogger("Mithras")
 	const val MOD_ID = "mithras"
 	const val MOD_NAME = "Mithras"
-	const val MOD_VERSION = "0.0.1"
+	const val MOD_VERSION = "0.0.3"
 	const val CHAT_PREFIX = "§r§eMithras §6§l»§r"
 	const val SHORT_PREFIX = "§6§lF§r§eC §6§l»§r"
 	const val RESOURCE_DOMAIN = "mithras"
@@ -79,7 +79,7 @@ object Mithras : ModInitializer {
 	var totalTicks: Long = 0
 		private set
 
-	override fun onInitialize() {
+	override fun onInitializeClient() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.

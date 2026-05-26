@@ -16,7 +16,7 @@
 	"icon": "assets/mithras/gui/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
+		"client": [
 			{
 				"value": "floppacoding.mithras.Mithras",
 				"adapter": "kotlin"

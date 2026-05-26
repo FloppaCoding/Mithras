@@ -6,6 +6,8 @@ import floppacoding.mithras.events.GuiBackgroundDrawnEvent;
 import floppacoding.mithras.ui.GuiScreen;
 import floppacoding.mithras.ui.core.elements.GuiElement;
 import floppacoding.mithras.utils.ScreenMixinDuck;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.AbstractParentElement;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
@@ -13,6 +15,8 @@ import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.input.CharInput;
 import net.minecraft.client.input.KeyInput;
+import net.minecraft.text.Text;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,8 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Function;
-
-import static floppacoding.mithras.Mithras.mc;
 
 /**
  * Integrates the handling of custom GUI elements into vanilla GUIs.
@@ -37,8 +39,9 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
 
     @Shadow public abstract void render(DrawContext context, int mouseX, int mouseY, float deltaTicks);
 
+    @Shadow @Final protected MinecraftClient client;
     @Unique private final ArrayList<GuiElement> elements = new ArrayList<>();
-    @Unique private float elementScale = (float) mc.getWindow().getScaleFactor();
+    @Unique private float elementScale = 1f;
     @Unique private boolean isVanillaGui = true;
     @Unique private boolean reinitDrawables = false;
     @Unique private Renderer2DMC renderer() {return  Mithras.getRenderer2D(); }
@@ -85,6 +88,13 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
         return this.drawables;
     }
 
+    @Inject(method = "<init>(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;)V", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/screen/Screen;title:Lnet/minecraft/text/Text;", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
+    private void onClassInit(MinecraftClient minecraftClient, TextRenderer textRenderer, Text text, CallbackInfo ci) {
+        if (client.getWindow() != null) {
+            this.mithras_setElementScale(client.getWindow().getScaleFactor());
+        }
+    }
+
     @Inject(method = "applyBlur", at = @At("HEAD"), cancellable = true)
     private void onApplyBlur(CallbackInfo ci) {
         if (!isVanillaGui && !shouldBlur()) {ci.cancel();}
@@ -129,7 +139,6 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
             renderer().endFrame();
         }
     }
-
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
@@ -213,8 +222,8 @@ public abstract class ScreenMixin extends AbstractParentElement implements Scree
         return false;
     }
 
-    @Unique private float scaledMouseX() { return (float) (mc.mouse.getX() /* TODO fix scale / elementScale*/); }
-    @Unique private float scaledMouseY() { return (float) (mc.mouse.getY() /*TODO fix scale / elementScale*/); }
+    @Unique private float scaledMouseX() { return (float) (client.mouse.getX() /* TODO fix scale / elementScale*/); }
+    @Unique private float scaledMouseY() { return (float) (client.mouse.getY() /*TODO fix scale / elementScale*/); }
 
     /**
      * Dispatches the BackgroundDrawEvent
