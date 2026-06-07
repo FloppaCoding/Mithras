@@ -3,6 +3,7 @@ package floppacoding.mithras
 import floppacoding.aurora.core.Aurora
 import floppacoding.aurora.mc_modern.AuroraMC
 import floppacoding.aurora.mc_modern.Renderer2DMC
+import floppacoding.mithras.Mithras.HYPIXEL_API
 import floppacoding.mithras.commands.MithrasCommandManager
 import floppacoding.mithras.config.ModuleConfig
 import floppacoding.mithras.events.ClientTickEvent
@@ -37,7 +38,7 @@ object Mithras : ClientModInitializer {
     val logger: Logger = LoggerFactory.getLogger("Mithras")
 	const val MOD_ID = "mithras"
 	const val MOD_NAME = "Mithras"
-	const val MOD_VERSION = "0.0.3"
+	const val MOD_VERSION = "0.0.4"
 	const val CHAT_PREFIX = "§r§eMithras §6§l»§r"
 	const val SHORT_PREFIX = "§6§lF§r§eC §6§l»§r"
 	const val RESOURCE_DOMAIN = "mithras"
@@ -111,7 +112,7 @@ object Mithras : ClientModInitializer {
 		Aurora.runDirectory = mc.runDirectory.path
 
 		// Load and generate fonts.
-		FontManager
+		FontManager.ensureInitialized()
 
 		// Moved here from onInitialize because at that time some minecraft classes are not yet loaded in.
 		// Loads in all modules and sets up automatically generated functionality

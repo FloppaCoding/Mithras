@@ -11,4 +11,6 @@ object FontManager {
     init {
         AuroraMC.defaultFont = ROBOTO
     }
+
+    fun ensureInitialized() = Unit
 }
