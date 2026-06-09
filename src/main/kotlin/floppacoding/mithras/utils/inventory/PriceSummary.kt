@@ -3,11 +3,8 @@ package floppacoding.mithras.utils.inventory
 import floppacoding.mithras.utils.ChatUtils
 import floppacoding.mithras.utils.ChatUtils.setHoverItem
 import floppacoding.mithras.utils.ChatUtils.setHoverText
-import floppacoding.mithras.utils.inventory.PriceSummary.Format.*
 import net.minecraft.item.ItemStack
 import net.minecraft.text.MutableText
-import java.text.NumberFormat
-import java.util.*
 
 /**
  * A container class for tracking and formatting the price data of an item.
@@ -65,7 +62,7 @@ class PriceSummary @JvmOverloads constructor(
      * The total value will show all contributions when hovered.
      */
     @JvmOverloads
-    fun createHoverableText(messageFormat: Format = DEFAULT_FORMAT, hoverFormat: Format = DEFAULT_FORMAT) : MutableText {
+    fun createHoverableText(messageFormat: ItemPrice.Format = DEFAULT_FORMAT, hoverFormat: ItemPrice.Format = DEFAULT_FORMAT) : MutableText {
         val baseText: MutableText = stack?.let { it.name.copy().setHoverItem(it) } ?: ChatUtils.literalText("Stack")
         baseText.append(" §ris Worth ")
         baseText.append(createHoverablePriceBreakDown(messageFormat, hoverFormat))
@@ -76,7 +73,7 @@ class PriceSummary @JvmOverloads constructor(
      * Returns a hover able text displaying the items price as well as the breakdown of contributions.
      */
     @JvmOverloads
-    fun createHoverablePriceBreakDown(messageFormat: Format = DEFAULT_FORMAT, hoverFormat: Format = DEFAULT_FORMAT) : MutableText {
+    fun createHoverablePriceBreakDown(messageFormat: ItemPrice.Format = DEFAULT_FORMAT, hoverFormat: ItemPrice.Format = DEFAULT_FORMAT) : MutableText {
         sortSummary()
         val totalWorth = toString(messageFormat)
         val hoverTopLine = ChatUtils.literalText("${ChatUtils.GREEN}${count}${ChatUtils.GRAY}x ")
@@ -98,45 +95,13 @@ class PriceSummary @JvmOverloads constructor(
     /**
      * Converts the total price to a string using the supplied [format].
      */
-    fun toString(format: Format) : String{
+    fun toString(format: ItemPrice.Format) : String{
         return format(totalPrice)
     }
 
-    /**
-     * Expresses the formatting for price values.
-     *
-     * - [SKYBLOCK]: 4,784,851.0
-     * - [SHORT]: 4.7B
-     * - [LONG]: 4.7 billion
-     */
-    enum class Format(val formatter: (Double) -> String) {
-        /**
-         * Should make the price look like "852,173,387.0"
-         */
-        SKYBLOCK(PriceSummary::formatSkyblock),
-        SHORT(shortFormat::format),
-        LONG(longFormat::format);
-
-        operator fun invoke(p1: Double): String {
-            return formatter(p1)
-        }
-    }
 
     companion object {
-        private val skyblock = NumberFormat.getCurrencyInstance(Locale.US)
-        private val shortFormat = NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.SHORT)
-        private val longFormat = NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.LONG)
 
-        val DEFAULT_FORMAT = SKYBLOCK
-
-        fun formatSkyblock(price: Double): String {
-            return skyblock.format(price).replace("$","")
-        }
-
-        init {
-            skyblock.maximumFractionDigits = 1
-            longFormat.minimumFractionDigits = 1
-            shortFormat.minimumFractionDigits = 1
-        }
+        val DEFAULT_FORMAT = ItemPrice.Format.SKYBLOCK
     }
 }

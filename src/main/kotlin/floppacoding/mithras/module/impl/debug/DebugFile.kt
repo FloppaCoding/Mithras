@@ -1,20 +1,16 @@
 package floppacoding.mithras.module.impl.debug
 
-fun main() {
-//    val price = 852173387
-//
-//    val format = NumberFormat.getCurrencyInstance(Locale.US)
-//    format.maximumFractionDigits = 1
-//    println(format.format(price))
-//    val format2 = NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.SHORT)
-//    format2.minimumFractionDigits = 1
-//    println(format2.format(price))
-//
-//    val format3 = NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.LONG)
-//    format3.minimumFractionDigits = 1
-//    println(format3.format(price))
+import com.google.gson.GsonBuilder
 
-    val a = Outer::class.nestedClasses.mapNotNull{it.objectInstance}
+fun main() {
+
+    val b = mapOf("U21" to mapOf("C3" to listOf(Pair("L4", 2), Pair("C1", 1)), "C4" to listOf(Pair("L5", 2), Pair("C2", 1))), "A21" to mapOf("B3" to listOf(Pair("C4", 2), Pair("C1", 1)), "B4" to listOf(Pair("C5", 2), Pair("C2", 1))))
+    val c = listOf("ASAA", "asdSD", "SDA")
+    val gson = GsonBuilder().setPrettyPrinting().create()
+
+    val jsonString = gson.toJson(b)
+    val jsonString2 = gson.toJson(c)
+    println(jsonString)
 
 }
 

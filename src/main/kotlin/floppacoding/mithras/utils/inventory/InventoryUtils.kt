@@ -45,24 +45,10 @@ import net.minecraft.item.ItemStack
  *
  *
  * @author Aton
- * @see SkyblockItem
+ * @see SkyblockItems
  */
 object InventoryUtils {
     //<editor-fold desc="findItem">
-    /**
-     * Returns the first slot where an item with one of the specified [attributes] is found.
-     * Returns null if no matches were found.
-     *
-     * [SkyblockItem] is used to determine whether an item meets an attribute.
-     *
-     * @param inInv Will also search in the inventory and not only in the hotbar
-     */
-    fun findItem(vararg attributes: SkyblockItem.Attribute, inInv: Boolean = false): Int? {
-        val items = SkyblockItem.entries.filter { attributes.any { attribute -> it.hasAttribute(attribute) } }
-        val regex = Regex(items.joinToString("|") { it.itemID })
-        return findItem(regex, inInv, 2)
-    }
-
     /**
      * Returns the first slot where the specified [item] is found.
      * Returns null if no matches were found.
@@ -132,17 +118,6 @@ object InventoryUtils {
     //</editor-fold>
 
     //<editor-fold desc="isHoldingInMainHand">
-    /**
-     * Check whether the player is holding an item with one of the specified [attributes].
-     *
-     * [SkyblockItem] is used to determine whether an item meets an attribute.
-     */
-    fun ClientPlayerEntity?.isHoldingInMainHand(vararg attributes: SkyblockItem.Attribute): Boolean {
-        val items = SkyblockItem.entries.filter { attributes.any { attribute -> it.hasAttribute(attribute) } }
-        val regex = Regex(items.joinToString("|") { it.itemID })
-        return this.isHoldingInMainHand(regex, 2)
-    }
-
     /**
      * Check whether the player is holding one of the given [items].
      * Returns null if no matches were found.

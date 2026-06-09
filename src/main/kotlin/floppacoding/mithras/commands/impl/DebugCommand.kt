@@ -28,7 +28,7 @@ import floppacoding.mithras.utils.inventory.ItemUtils.lore
 import floppacoding.mithras.utils.inventory.ItemUtils.skyblockRarity
 import floppacoding.mithras.utils.inventory.ItemValueCalculator
 import floppacoding.mithras.utils.inventory.NBTStringWriter
-import floppacoding.mithras.utils.inventory.SkyblockItem
+import floppacoding.mithras.utils.inventory.SkyblockItems
 import floppacoding.mithras.utils.network.BazaarAPI
 import floppacoding.mithras.utils.network.LowestBinAPI
 import kotlinx.coroutines.Dispatchers
@@ -327,72 +327,6 @@ object DebugCommand : Command() {
                 }
             }
             literal("player") {
-                literal("loadskin") {
-                    execute {
-//                        val skin = mc.networkHandler?.getPlayerListEntry(mc.player?.uuid)?.skinTexture ?: return@execute
-//                        try {
-//                            val skinImage =  ImageManager.createImage(skin)
-//                            ChatUtils.chatMessage(skinImage.glID.toString())
-//                        }catch (e: IOException) {
-//                            ChatUtils.chatMessage("failed creating image")
-//                        }
-
-                    }
-                }
-                literal("checkskin") {
-                    string("name") {
-                        execute { context ->
-//                            val tabEntries = TabListUtils.tabList
-//                            val player = tabEntries.find { it.second.contains(StringArgumentType.getString(context, "name")) }
-//                            if (player == null) {
-//                                ChatUtils.chatMessage("No player matching \"${StringArgumentType.getString(context, "name")}\" found.")
-//                                return@execute
-//                            }
-//                            val name = (player.first.displayName?.string ?: "null") + " - " + player.second
-//                            var texture = player.first.skinTexture
-//                            if (texture == null) {
-//                                ChatUtils.chatMessage("Skin texture not found for ${name}!")
-//                                return@execute
-//                            }
-//                            var resource = mc.resourceManager.getResource(texture)
-//                            if (resource.isEmpty) {
-//                                ChatUtils.chatMessage("No resource present for ${name}, path:  ${texture.namespace}:${texture.path}. Trying to reload.")
-//                                texture = mc.skinProvider.loadSkin(player.first.profile)
-//                                resource = mc.resourceManager.getResource(texture)
-//                                if (resource.isEmpty) {
-//                                    ChatUtils.chatMessage("Reloading resource failed for ${texture.namespace}:${texture.path}. Trying to create from texture.")
-////                                val profileTexture = mc.sessionService.getTextures(player.first.profile, false)
-////                                    .get(MinecraftProfileTexture.Type.SKIN) as MinecraftProfileTexture
-////                                val string = Hashing.sha1().hashUnencodedChars(profileTexture.hash).toString()
-////                                val identifier = Identifier("skins/$string")
-//                                    val newTexture = mc.textureManager.getTexture(texture)
-//                                    val cacheFile = ((newTexture as PlayerSkinTexture) as PlayerSkinAccessor).cacheFile
-//                                    ChatUtils.chatMessage("Cache file ${if (cacheFile == null) "does not exist." else "exists."}")
-//                                    if (cacheFile != null) {
-//                                        ChatUtils.chatMessage("path: ${cacheFile.path}")
-//                                        ChatUtils.chatMessage("absolute path: ${cacheFile.absolutePath}")
-//                                        try {
-//                                            var stream: InputStream? = null
-//                                            if (cacheFile.exists() && cacheFile.isFile()) {
-//                                                stream = Files.newInputStream(cacheFile.toPath())
-//                                                ChatUtils.chatMessage("created input stream")
-//                                            }else {
-//                                                ChatUtils.chatMessage("cache file is not file ?!")
-//                                            }
-//                                            stream?.close()
-//                                        }catch (_: Exception){
-//                                            ChatUtils.chatMessage("Error loading resource")
-//                                        }
-//                                    }
-//                                    return@execute
-//                                }
-//
-//                            }
-//                            ChatUtils.chatMessage("Resource present for ${texture.path}")
-//                            resource.get().inputStream.close()
-                        }
-                    }
-                }
                 literal("gameprofile") {
                     string("name") {
                         execute { context ->
@@ -516,7 +450,7 @@ object DebugCommand : Command() {
                 }
                 literal("isHoldingAotve") {
                     execute {
-                        ChatUtils.chatMessage(mc.player?.isHoldingInMainHand(SkyblockItem.AOTV,SkyblockItem.AOTE).toString())
+                        ChatUtils.chatMessage(mc.player?.isHoldingInMainHand(SkyblockItems.AOTV,SkyblockItems.AOTE).toString())
                     }
                 }
             }

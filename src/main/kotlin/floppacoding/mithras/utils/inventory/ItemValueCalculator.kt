@@ -214,7 +214,7 @@ object ItemValueCalculator {
 
     private fun identifySpecialItem(stack: ItemStack): SpecialItem? {
         return when {
-            stack.matchesItem(SkyblockItem.STONK) -> SpecialItem.STONK
+            stack.matchesItem(SkyblockItems.STONK) -> SpecialItem.STONK
             else -> null
         }
     }

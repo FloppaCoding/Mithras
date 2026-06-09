@@ -14,7 +14,7 @@ import floppacoding.mithras.utils.Extensions.equalsOneOf
 import floppacoding.mithras.utils.Extensions.withAlpha
 import floppacoding.mithras.utils.LocationManager.inDungeons
 import floppacoding.mithras.utils.inventory.InventoryUtils.isHoldingInMainHand
-import floppacoding.mithras.utils.inventory.SkyblockItem
+import floppacoding.mithras.utils.inventory.SkyblockItems
 import floppacoding.mithras.utils.render.ImageManager
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.entity.player.PlayerModelPart
@@ -347,7 +347,7 @@ object MapRender: HudElement(
             }
 
             if (DungeonMap.playerNameMode.value == DungeonMap.NameMode.ALWAYS || DungeonMap.playerNameMode.value == DungeonMap.NameMode.HOLDING_LEAP
-                 && mc.player.isHoldingInMainHand(SkyblockItem.SPIRIT_LEAP, SkyblockItem.INFINILEAP)
+                 && mc.player.isHoldingInMainHand(SkyblockItems.SPIRIT_LEAP, SkyblockItems.INFINILEAP)
             ) {
                 renderer.push()
 //                renderer.scale(0.8f, 0.8f)

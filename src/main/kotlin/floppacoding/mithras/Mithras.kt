@@ -4,6 +4,7 @@ import floppacoding.aurora.core.Aurora
 import floppacoding.aurora.mc_modern.AuroraMC
 import floppacoding.aurora.mc_modern.Renderer2DMC
 import floppacoding.mithras.commands.MithrasCommandManager
+import floppacoding.mithras.commands.impl.AttributeTree
 import floppacoding.mithras.config.ModuleConfig
 import floppacoding.mithras.events.ClientTickEvent
 import floppacoding.mithras.events.FabricEventMapper
@@ -130,6 +131,8 @@ object Mithras : ModInitializer {
 
 		clickGUI = ClickGUI()
 
+		scope.launch (Dispatchers.IO){ AttributeTree.loadShards() }
+
 		timer(period = 60*60*1000L) {
 			scope.launch (Dispatchers.IO){
 				launch {
@@ -138,6 +141,7 @@ object Mithras : ModInitializer {
 					}catch (_: Exception) {}
 				}
 				launch { LowestBinAPI.loadData() }
+				launch { AttributeTree.loadShards() }
 			}
 		}
 	}

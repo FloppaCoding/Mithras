@@ -90,7 +90,7 @@ object ItemUtils {
     /**
      * The skyblock item ID
      *
-     * See [SkyblockItem] for an incomplete list of itemIDs.
+     * See [SkyblockItems] for an incomplete list of itemIDs.
      */
     val ItemStack.itemID: String
         get() {
@@ -248,7 +248,7 @@ object ItemUtils {
 /**
  * Checks the item's lore for whether it is a shortbow.
  *
- * See also [SkyblockItem] for a list of skyblock items.
+ * See also [SkyblockItems] for a list of skyblock items.
  */
     val ItemStack?.isShortbow: Boolean
         get() {
@@ -256,12 +256,6 @@ object ItemUtils {
         }
 
     fun ItemStack.matchesItem(item: SkyblockItem): Boolean = this.itemID == item.itemID
-
-    val ItemStack.skyblockItem : SkyblockItem?
-        get() {
-            val itemID = this.itemID
-            return SkyblockItem.entries.find { it.itemID == itemID }
-        }
 
     /**
      * Maps the key and value of the enchantment in ExtraAttributes -> enchantments to the corresponding enchantment id,

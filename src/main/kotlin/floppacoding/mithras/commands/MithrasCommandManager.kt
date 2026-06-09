@@ -2,8 +2,9 @@ package floppacoding.mithras.commands
 
 import com.mojang.brigadier.CommandDispatcher
 import floppacoding.mithras.commands.MithrasCommandManager.commands
-import floppacoding.mithras.commands.impl.MainCommand
+import floppacoding.mithras.commands.impl.AttributeTree
 import floppacoding.mithras.commands.impl.DebugCommand
+import floppacoding.mithras.commands.impl.MainCommand
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.command.CommandRegistryAccess
@@ -24,7 +25,8 @@ object MithrasCommandManager {
      */
     private val commands: ArrayList<Command> = arrayListOf(
         MainCommand,
-        DebugCommand
+        DebugCommand,
+        AttributeTree
     )
 
     /**

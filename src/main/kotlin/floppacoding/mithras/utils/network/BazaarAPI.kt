@@ -24,11 +24,11 @@ object BazaarAPI {
     fun getProduct(id: String): SkyBlockBazaarReply.Product? = itemStats[id]
 
     fun getSellPrice(id: String): Double? = itemStats[id]?.quickStatus?.sellPrice
-    fun getBuyrice(id: String): Double? = itemStats[id]?.quickStatus?.buyPrice
+    fun getBuyPrice(id: String): Double? = itemStats[id]?.quickStatus?.buyPrice
 
     fun getPrice(id: String): Double? {
         return when (priceMode) {
-            PriceMode.BUY -> getBuyrice(id)
+            PriceMode.BUY -> getBuyPrice(id)
             PriceMode.SELL -> getSellPrice(id)
         }
     }
